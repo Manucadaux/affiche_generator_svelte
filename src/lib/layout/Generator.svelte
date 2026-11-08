@@ -1,16 +1,34 @@
 <script>
-	let { addPage } = $props();
+	let {
+		addPage,
+		optionsLibrary,
+		optionsMonth,
+		selectedLibrary = $bindable(),
+		selectedMonth = $bindable()
+	} = $props();
 </script>
 
 <div class="generator">
 	<p>Général</p>
-	<p>
-		<button
-			onclick={addPage}
-			class="rounded border border-gray-400 bg-white px-4 py-2 font-semibold text-gray-800 shadow hover:bg-gray-100"
-			>Ajouter page</button
-		>
-	</p>
+	<div>
+		<button onclick={addPage} class="btn btn-block btn-neutral">Ajouter page</button>
+	</div>
+	<div>
+		<label for="libraries">Sélectionnez une médiathèque</label>
+		<select class="select" name="libraries" bind:value={selectedLibrary}>
+			{#each optionsLibrary as option (option.id)}
+				<option value={option}>{option.label}</option>
+			{/each}
+		</select>
+	</div>
+	<div>
+		<label for="monthes">Sélectionnez un mois</label>
+		<select class="select" name="monthes" bind:value={selectedMonth}>
+			{#each optionsMonth as option (option.id)}
+				<option value={option}>{option.label}</option>
+			{/each}
+		</select>
+	</div>
 </div>
 
 <style>
