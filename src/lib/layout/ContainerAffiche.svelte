@@ -1,18 +1,16 @@
 <script>
 	// @ts-nocheck
+	import PageAffiche from '../components/PageAffiche.svelte';
 
 	import { innerHeight } from 'svelte/reactivity/window';
-	let { children, pageNumber, page } = $props();
+	let { pageNumber, selectedLibrary, selectedMonth, page, styles } = $props();
 </script>
 
 <div class="headerPageContainer">
 	<p>Page n° {pageNumber}</p>
 </div>
-<div class="pageContainer" style="height: {innerHeight.current - 160}px;">
-	<div class="page">
-		<p>{page.id}</p>
-		{@render children()}
-	</div>
+<div class="pageContainer" style="height: {innerHeight.current - 120}px;">
+	<PageAffiche {selectedLibrary} {selectedMonth} {page} {styles} />
 </div>
 
 <style>
@@ -36,14 +34,5 @@
 		border-bottom: none;
 		border-radius: 16px 16px 0 0;
 		width: 100%;
-	}
-
-	.page {
-		width: 297mm;
-		height: 420mm;
-		background: white;
-		zoom: 40%;
-		margin: 0 auto;
-		color: black;
 	}
 </style>

@@ -1,6 +1,7 @@
 <script>
-	import Affiche from '#lib/layout/Affiche.svelte';
+	import ContainerAffiche from '../lib/layout/ContainerAffiche.svelte';
 	import Generator from '#lib/layout/Generator.svelte';
+	import PageAffiche from '../lib/components/PageAffiche.svelte';
 
 	const optionsLibrary = [
 		{ id: 1, label: 'Les Allées', text: 'Les Allées' },
@@ -33,44 +34,123 @@
 
 	let selectedMonth = $state();
 
+	let styles = $state({
+		bgDate: '#00FF00',
+		bgTitle: '#FF0000',
+		colorDate: '#FFFFFF',
+		colorTitle: '#FFFFFF',
+		colorContent: '#0000FF',
+		zoom: '40%'
+	});
+
 	let pages = $state([
 		{
 			id: Date.now(),
-			event: {
-				title: 'banana',
-				date: 'Sa. 31 oct.',
-				hour: '10h',
-				content: 'Me gusta banana'
-			}
+			events: [
+				{
+					id: 1,
+					title: 'banana',
+					date: 'Sa. 31 oct.',
+					hour: '10h',
+					content: 'Me gusta banana'
+				}
+			]
 		}
 	]);
+
+	let nbPages = $derived(pages.length);
 
 	function addPage() {
 		pages = [
 			...pages,
 			{
 				id: Date.now(),
-				event: {
-					title: 'banana',
-					date: 'Sa. 31 oct.',
-					hour: '10h',
-					content: 'Me gusta banana'
-				}
+				events: [
+					{
+						id: 1,
+						title: 'banana',
+						date: 'Sa. 31 oct.',
+						hour: '10h',
+						content: 'Me gusta banana'
+					}
+				]
 			}
 		];
 	}
+
+	let isRendering = $state(false);
+	let target = $state();
+
+	async function exportPdf() {
+		const { default: html2canvas } = await import('html2canvas-pro');
+		const { jsPDF } = await import('jspdf');
+
+		const pdf = new jsPDF({
+			orientation: 'portrait',
+			unit: 'mm',
+			format: 'a3',
+			compress: true
+		});
+
+		// Récupère les div contenues dans la div parent
+		const divs = target.querySelectorAll(':scope > div');
+
+		for (let i = 0; i < divs.length; i++) {
+			const canvas = await html2canvas(divs[i], {
+				scale: 2,
+				useCORS: true,
+				backgroundColor: '#ffffff',
+				logging: false
+			});
+
+			const image = canvas.toDataURL('image/png');
+
+			const pageWidth = pdf.internal.pageSize.getWidth();
+			const pageHeight = pdf.internal.pageSize.getHeight();
+
+			const ratio = Math.min(pageWidth / canvas.width, pageHeight / canvas.height);
+
+			const imageWidth = canvas.width * ratio;
+			const imageHeight = canvas.height * ratio;
+
+			const x = (pageWidth - imageWidth) / 2;
+			const y = (pageHeight - imageHeight) / 2;
+
+			if (i > 0) {
+				pdf.addPage();
+			}
+
+			pdf.addImage(image, 'PNG', x, y, imageWidth, imageHeight);
+		}
+
+		pdf.save('document-A3.pdf');
+	}
 </script>
 
-<Generator {addPage} {optionsLibrary} {optionsMonth} bind:selectedLibrary bind:selectedMonth />
+<Generator
+	{nbPages}
+	{addPage}
+	{optionsLibrary}
+	{optionsMonth}
+	bind:selectedLibrary
+	bind:selectedMonth
+	bind:styles
+	{exportPdf}
+/>
 
-<div class="container">
-	{#each pages as page, i (page.id)}
-		<Affiche pageNumber={i + 1} {page}>
-			<h2>Médiathèque {selectedLibrary && selectedLibrary.text}</h2>
-			<h3>Mois {selectedMonth && selectedMonth.text}</h3>
-		</Affiche>
-	{/each}
-</div>
+{#if !isRendering}
+	<div class="container">
+		{#each pages as page, i (page.id)}
+			<ContainerAffiche pageNumber={i + 1} {selectedLibrary} {selectedMonth} {page} {styles} />
+		{/each}
+	</div>
+{:else}
+	<div class="renderer" bind:this={target}>
+		{#each pages as page (page.id)}
+			<PageAffiche {selectedLibrary} {selectedMonth} {page} {styles} />
+		{/each}
+	</div>
+{/if}
 
 <style>
 	:global {
@@ -85,7 +165,7 @@
 		width: calc(100% - 360px);
 		max-height: calc(100% - 60px);
 		position: absolute;
-		top: 50px;
+		top: 10px;
 		left: 350px;
 	}
 </style>

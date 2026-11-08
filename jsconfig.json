@@ -3,6 +3,6 @@
 		"strict": true,
 		"types": ["node"]
 	},
-	"include": ["src", "vite.config.ts", "prettier.config.js", "eslint.config.js"],
+	"include": ["src", "vite.config.js", "prettier.config.js", "eslint.config.js"],
 	"exclude": ["src/lib/vitest-examples/**"]
 }
