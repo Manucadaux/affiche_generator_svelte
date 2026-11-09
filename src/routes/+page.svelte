@@ -1,40 +1,22 @@
 <script>
-	import { useLocalStorage } from '#lib/utils/useLocalStorage.svelte.ts';
-	import ContainerAffiche from '../lib/layout/ContainerAffiche.svelte';
+	import { useLocalStorage } from '#lib/utils/useLocalStorage.svelte.js';
+	import { optionsLibrary, optionsMonth } from '#lib/data/options.js';
+	import { slide } from 'svelte/transition';
 	import Generator from '#lib/layout/Generator.svelte';
+	import ContainerAffiche from '../lib/layout/ContainerAffiche.svelte';
 
-	const optionsLibrary = [
-		{ id: 1, label: 'Les Allées', text: 'Les Allées' },
-		{ id: 2, label: 'André Labarrère', text: 'André Labarrère' },
-		{ id: 3, label: "Trait d'Union", text: "Trait d'Union" },
-		{ id: 4, label: 'Lons', text: 'de Lons' },
-		{ id: 5, label: 'Billère', text: 'de Billère' },
-		{ id: 6, label: 'Jurançon', text: 'de Jurançon' },
-		{ id: 7, label: 'Lescar', text: 'de Lescar' },
-		{ id: 8, label: 'Gan', text: 'de Gan' },
-		{ id: 9, label: 'Espaci Lectura', text: 'Espaci Lectura' }
-	];
+	const selectedLibrary = useLocalStorage('selectedLibraryId', null);
+	const selectedMonth = useLocalStorage('selectedMonthId', null);
 
-	let selectedLibrary = $state();
+	let selectedLibraryData = $derived(
+		optionsLibrary.find((option) => option.id === selectedLibrary.current) ?? null
+	);
 
-	const optionsMonth = [
-		{ id: 1, label: 'Janvier', text: 'de Janvier' },
-		{ id: 2, label: 'Février', text: 'de Février' },
-		{ id: 3, label: 'Mars', text: 'de Mars' },
-		{ id: 4, label: 'Avril', text: "d'Avril" },
-		{ id: 5, label: 'Mai', text: 'de Mai' },
-		{ id: 6, label: 'Juin', text: 'de Juin' },
-		{ id: 7, label: 'Juillet', text: 'de Juillet' },
-		{ id: 8, label: 'Août', text: "d'Août" },
-		{ id: 9, label: 'Septembre', text: 'de Septembre' },
-		{ id: 10, label: 'Octobre', text: "d'Octobre" },
-		{ id: 11, label: 'Novembre', text: 'de Novembre' },
-		{ id: 12, label: 'Décembre', text: 'de Décembre' }
-	];
+	let selectedMonthData = $derived(
+		optionsMonth.find((option) => option.id === selectedMonth.current) ?? null
+	);
 
-	let selectedMonth = $state();
-
-	let styles = $state({
+	const styles = useLocalStorage('styles', {
 		bgDate: '#00FF00',
 		bgTitle: '#FF0000',
 		colorDate: '#FFFFFF',
@@ -43,12 +25,16 @@
 		zoom: '40%'
 	});
 
-	let pages = $state([
+	function generateId() {
+		return crypto.randomUUID();
+	}
+
+	const pages = useLocalStorage('pages', [
 		{
-			id: Date.now(),
+			id: generateId(),
 			events: [
 				{
-					id: 1,
+					id: generateId(),
 					title: 'banana',
 					date: 'Sa. 31 oct.',
 					hour: '10h',
@@ -58,16 +44,16 @@
 		}
 	]);
 
-	let nbPages = $derived(pages.length);
+	let nbPages = $derived(pages.current.length);
 
 	function addPage() {
-		pages = [
-			...pages,
+		pages.current = [
+			...pages.current,
 			{
-				id: Date.now(),
+				id: generateId(),
 				events: [
 					{
-						id: 1,
+						id: generateId(),
 						title: 'banana',
 						date: 'Sa. 31 oct.',
 						hour: '10h',
@@ -77,6 +63,10 @@
 			}
 		];
 	}
+
+	function deletePage(pageId) {
+		pages.current = pages.current.filter((page) => page.id !== pageId);
+	}
 </script>
 
 <Generator
@@ -84,22 +74,26 @@
 	{addPage}
 	{optionsLibrary}
 	{optionsMonth}
-	bind:selectedLibrary
-	bind:selectedMonth
-	bind:styles
+	bind:selectedLibrary={selectedLibrary.current}
+	bind:selectedMonth={selectedMonth.current}
+	bind:styles={styles.current}
 />
 
 <div class="container">
-	{#each pages as page, i (page.id)}
-		<ContainerAffiche pageNumber={i + 1} {selectedLibrary} {selectedMonth} {page} {styles} />
+	{#each pages.current as page, i (page.id)}
+		<div transition:slide={{ duration: 500 }}>
+			<ContainerAffiche
+				pageNumber={i + 1}
+				selectedLibrary={selectedLibraryData}
+				selectedMonth={selectedMonthData}
+				{page}
+				styles={styles.current}
+				canDelete={pages.current.length > 1}
+				onDeletePage={deletePage}
+			/>
+		</div>
 	{/each}
 </div>
-
-<!-- <div class="renderer" bind:this={target}>
-		{#each pages as page (page.id)}
-			<PageAffiche {selectedLibrary} {selectedMonth} {page} {styles} />
-		{/each}
-	</div> -->
 
 <style>
 	:global {
@@ -112,9 +106,9 @@
 
 	.container {
 		width: calc(100% - 360px);
-		max-height: calc(100% - 60px);
 		position: absolute;
 		top: 10px;
 		left: 350px;
+		padding-bottom: 40px;
 	}
 </style>

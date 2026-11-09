@@ -15,7 +15,7 @@
 	let swatches = ['#f44336', '#e91e63', '#9c27b0', '#2196f3', '#4caf50', '#ffeb3b', '#ff9800'];
 </script>
 
-<div class="generator">
+<div class="generator bg-base-300">
 	<p>Général</p>
 	<div>
 		<button onclick={addPage} class="btn btn-block btn-neutral">
@@ -24,17 +24,17 @@
 	</div>
 	<div>
 		<label for="libraries">Sélectionnez une médiathèque</label>
-		<select class="select" name="libraries" bind:value={selectedLibrary}>
+		<select id="libraries" class="select" bind:value={selectedLibrary}>
 			{#each optionsLibrary as option (option.id)}
-				<option value={option}>{option.label}</option>
+				<option value={option.id}>{option.label}</option>
 			{/each}
 		</select>
 	</div>
 	<div>
-		<label for="monthes">Sélectionnez un mois</label>
-		<select class="select" name="monthes" bind:value={selectedMonth}>
+		<label for="months">Sélectionnez un mois</label>
+		<select id="months" class="select" bind:value={selectedMonth}>
 			{#each optionsMonth as option (option.id)}
-				<option value={option}>{option.label}</option>
+				<option value={option.id}>{option.label}</option>
 			{/each}
 		</select>
 	</div>
@@ -51,13 +51,19 @@
 		<ColorPicker
 			bind:hex={styles.colorTitle}
 			{swatches}
-			label="Couleur texte date"
+			label="Couleur texte titre"
 			isAlpha={false}
 		/>
 		<ColorPicker bind:hex={styles.colorContent} {swatches} label="Couleur texte" isAlpha={false} />
 	</div>
 	<div>
 		<a href={resolve('/render')} class="btn btn-block btn-primary">Générer PDF</a>
+	</div>
+	<div>
+		<button class="btn btn-warning">Réinitialiser les évènements</button>
+	</div>
+	<div>
+		<button class="btn btn-error">Réinitialiser tout</button>
 	</div>
 </div>
 
@@ -66,10 +72,13 @@
 		width: 310px;
 		padding: 20px 20px 0;
 		height: 100%;
-		background: rgb(173, 173, 173);
 		position: fixed;
 		top: 0;
 		left: 0;
+
+		> div {
+			margin: 25px 0;
+		}
 	}
 
 	.dark {
