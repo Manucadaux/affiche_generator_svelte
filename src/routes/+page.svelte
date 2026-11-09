@@ -59,13 +59,21 @@
 		);
 	}
 
-	// Réinitialiser uniquement les pages et les événements
 	function resetEvents() {
+		const confirmation = confirm('Voulez-vous vraiment réinitialiser tous les évènements ?');
+
+		if (!confirmation) return;
+
 		pages.current = [createPage()];
 	}
 
-	// Réinitialiser toutes les données de l'application
 	function resetAll() {
+		const confirmation = confirm(
+			'Voulez-vous vraiment tout réinitialiser ? Cette action supprimera toutes les affiches et remettra les paramètres par défaut.'
+		);
+
+		if (!confirmation) return;
+
 		pages.current = [createPage()];
 		selectedLibrary.current = null;
 		selectedMonth.current = null;
