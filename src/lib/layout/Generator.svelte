@@ -9,7 +9,9 @@
 		optionsMonth,
 		selectedLibrary = $bindable(),
 		selectedMonth = $bindable(),
-		styles = $bindable()
+		styles = $bindable(),
+		onResetEvents,
+		onResetAll
 	} = $props();
 
 	let swatches = ['#f44336', '#e91e63', '#9c27b0', '#2196f3', '#4caf50', '#ffeb3b', '#ff9800'];
@@ -60,10 +62,10 @@
 		<a href={resolve('/render')} class="btn btn-block btn-primary">Générer PDF</a>
 	</div>
 	<div>
-		<button class="btn btn-warning">Réinitialiser les évènements</button>
+		<button class="btn btn-warning" onclick={onResetEvents}>Réinitialiser les évènements</button>
 	</div>
 	<div>
-		<button class="btn btn-error">Réinitialiser tout</button>
+		<button class="btn btn-error" onclick={onResetAll}>Réinitialiser tout</button>
 	</div>
 </div>
 

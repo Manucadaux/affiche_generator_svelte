@@ -3,12 +3,37 @@
 	import PageAffiche from '../components/PageAffiche.svelte';
 
 	import { innerHeight } from 'svelte/reactivity/window';
-	let { pageNumber, selectedLibrary, selectedMonth, page, styles, canDelete, onDeletePage } =
-		$props();
+	let {
+		pageNumber,
+		selectedLibrary,
+		selectedMonth,
+		page,
+		styles,
+		canDelete,
+		onDeletePage,
+		onAddEvent,
+		onRemoveEvent
+	} = $props();
 </script>
 
 <div class="headerPageContainer bg-base-300">
-	<p>Page n° {pageNumber}</p>
+	<div>
+		<p>Page n° {pageNumber}</p>
+		<p>
+			Nombre d'évènemements :
+			<button
+				class="btn btn-sm"
+				disabled={page.events.length <= 1}
+				onclick={() => onRemoveEvent(page.id)}>-</button
+			>
+			{page.events.length}
+			<button
+				class="btn btn-sm"
+				disabled={page.events.length >= 4}
+				onclick={() => onAddEvent(page.id)}>+</button
+			>
+		</p>
+	</div>
 	<button class="btn btn-sm" disabled={!canDelete} onclick={() => onDeletePage(page.id)}
 		>Supprimer la page</button
 	>

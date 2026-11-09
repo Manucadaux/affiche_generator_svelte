@@ -1,6 +1,7 @@
 <script>
 	import { useLocalStorage } from '#lib/utils/useLocalStorage.svelte.js';
 	import { optionsLibrary, optionsMonth } from '#lib/data/options.js';
+	import { createPage, createEvent } from '#lib/utils/factories.js';
 	import { slide } from 'svelte/transition';
 	import Generator from '#lib/layout/Generator.svelte';
 	import ContainerAffiche from '../lib/layout/ContainerAffiche.svelte';
@@ -16,56 +17,59 @@
 		optionsMonth.find((option) => option.id === selectedMonth.current) ?? null
 	);
 
-	const styles = useLocalStorage('styles', {
+	const defaultStyles = {
 		bgDate: '#00FF00',
 		bgTitle: '#FF0000',
 		colorDate: '#FFFFFF',
 		colorTitle: '#FFFFFF',
 		colorContent: '#0000FF',
 		zoom: '40%'
-	});
+	};
 
-	function generateId() {
-		return crypto.randomUUID();
-	}
+	const styles = useLocalStorage('styles', defaultStyles);
 
-	const pages = useLocalStorage('pages', [
-		{
-			id: generateId(),
-			events: [
-				{
-					id: generateId(),
-					title: 'banana',
-					date: 'Sa. 31 oct.',
-					hour: '10h',
-					content: 'Me gusta banana'
-				}
-			]
-		}
-	]);
+	const pages = useLocalStorage('pages', [createPage()]);
 
 	let nbPages = $derived(pages.current.length);
 
 	function addPage() {
-		pages.current = [
-			...pages.current,
-			{
-				id: generateId(),
-				events: [
-					{
-						id: generateId(),
-						title: 'banana',
-						date: 'Sa. 31 oct.',
-						hour: '10h',
-						content: 'Me gusta banana'
-					}
-				]
-			}
-		];
+		pages.current = [...pages.current, createPage()];
 	}
 
 	function deletePage(pageId) {
 		pages.current = pages.current.filter((page) => page.id !== pageId);
+	}
+
+	function addEvent(pageId) {
+		pages.current = pages.current.map((page) =>
+			page.id === pageId && page.events.length < 4
+				? {
+						...page,
+						events: [...page.events, createEvent()]
+					}
+				: page
+		);
+	}
+
+	function removeEvent(pageId) {
+		pages.current = pages.current.map((page) =>
+			page.id === pageId && page.events.length > 1
+				? { ...page, events: page.events.slice(0, -1) }
+				: page
+		);
+	}
+
+	// Réinitialiser uniquement les pages et les événements
+	function resetEvents() {
+		pages.current = [createPage()];
+	}
+
+	// Réinitialiser toutes les données de l'application
+	function resetAll() {
+		pages.current = [createPage()];
+		selectedLibrary.current = null;
+		selectedMonth.current = null;
+		styles.current = { ...defaultStyles };
 	}
 </script>
 
@@ -77,11 +81,13 @@
 	bind:selectedLibrary={selectedLibrary.current}
 	bind:selectedMonth={selectedMonth.current}
 	bind:styles={styles.current}
+	onResetEvents={resetEvents}
+	onResetAll={resetAll}
 />
 
 <div class="container">
 	{#each pages.current as page, i (page.id)}
-		<div transition:slide={{ duration: 500 }}>
+		<div out:slide={{ duration: 500 }}>
 			<ContainerAffiche
 				pageNumber={i + 1}
 				selectedLibrary={selectedLibraryData}
@@ -90,6 +96,8 @@
 				styles={styles.current}
 				canDelete={pages.current.length > 1}
 				onDeletePage={deletePage}
+				onAddEvent={addEvent}
+				onRemoveEvent={removeEvent}
 			/>
 		</div>
 	{/each}

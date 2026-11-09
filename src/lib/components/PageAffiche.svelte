@@ -4,7 +4,6 @@
 </script>
 
 <div class="page" style:zoom={styles.zoom}>
-	<p>{page.id}</p>
 	<h2>Médiathèque {selectedLibrary && selectedLibrary.text}</h2>
 	<h3>Mois {selectedMonth && selectedMonth.text}</h3>
 
