@@ -59,6 +59,12 @@
 		);
 	}
 
+	function toggleReverse(pageId, checked) {
+		pages.current = pages.current.map((page) =>
+			page.id === pageId ? { ...page, reverse: checked } : page
+		);
+	}
+
 	function resetEvents() {
 		const confirmation = confirm('Voulez-vous vraiment réinitialiser tous les évènements ?');
 
@@ -106,6 +112,7 @@
 				onDeletePage={deletePage}
 				onAddEvent={addEvent}
 				onRemoveEvent={removeEvent}
+				onToggleReverse={toggleReverse}
 			/>
 		</div>
 	{/each}

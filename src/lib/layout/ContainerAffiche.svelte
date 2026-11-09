@@ -14,13 +14,22 @@
 		canDelete,
 		onDeletePage,
 		onAddEvent,
-		onRemoveEvent
+		onRemoveEvent,
+		onToggleReverse
 	} = $props();
 </script>
 
-<HeaderPage {pageNumber} {page} {canDelete} {onDeletePage} {onAddEvent} {onRemoveEvent} />
+<HeaderPage
+	{pageNumber}
+	{page}
+	{canDelete}
+	{onDeletePage}
+	{onAddEvent}
+	{onRemoveEvent}
+	{onToggleReverse}
+/>
 
-<div class="pageContainer" style="height: {innerHeight.current - 160}px;">
+<div class="pageContainer" style="height: {innerHeight.current - 140}px;">
 	<PageAffiche {selectedLibrary} {selectedMonth} {page} {styles} />
 </div>
 

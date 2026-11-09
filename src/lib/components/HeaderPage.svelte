@@ -1,10 +1,22 @@
 <script>
-	let { pageNumber, page, canDelete, onDeletePage, onAddEvent, onRemoveEvent } = $props();
+	let { pageNumber, page, canDelete, onDeletePage, onAddEvent, onRemoveEvent, onToggleReverse } =
+		$props();
 </script>
 
 <div class="headerPageContainer bg-base-300">
 	<div>
-		<p>Page n° {pageNumber}</p>
+		<p>
+			Page n° {pageNumber}
+			<label class="label">
+				<input
+					type="checkbox"
+					class="checkbox checkbox-sm"
+					checked={page.reverse ?? false}
+					onchange={(event) => onToggleReverse(page.id, event.currentTarget.checked)}
+				/>
+				Inversé
+			</label>
+		</p>
 
 		<p>
 			Nombre d'évènements :
@@ -27,10 +39,11 @@
 			</button>
 		</p>
 	</div>
-
-	<button class="btn btn-sm" disabled={!canDelete} onclick={() => onDeletePage(page.id)}>
-		Supprimer la page
-	</button>
+	<div>
+		<button class="btn btn-sm" disabled={!canDelete} onclick={() => onDeletePage(page.id)}>
+			Supprimer la page
+		</button>
+	</div>
 </div>
 
 <style>

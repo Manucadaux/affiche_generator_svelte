@@ -8,7 +8,7 @@
 	<h3>Mois {selectedMonth && selectedMonth.text}</h3>
 
 	{#each page.events as event (event.id)}
-		<Event {event} {styles} />
+		<Event {event} {styles} nbEvents={page.events.length} reverse={page.reverse ?? false} />
 	{/each}
 </div>
 
