@@ -1,5 +1,7 @@
 <script>
+	import { resolve } from '$app/paths';
 	import ColorPicker from 'svelte-awesome-color-picker';
+
 	let {
 		nbPages,
 		addPage,
@@ -7,8 +9,7 @@
 		optionsMonth,
 		selectedLibrary = $bindable(),
 		selectedMonth = $bindable(),
-		styles = $bindable(),
-		exportPdf
+		styles = $bindable()
 	} = $props();
 
 	let swatches = ['#f44336', '#e91e63', '#9c27b0', '#2196f3', '#4caf50', '#ffeb3b', '#ff9800'];
@@ -56,7 +57,7 @@
 		<ColorPicker bind:hex={styles.colorContent} {swatches} label="Couleur texte" isAlpha={false} />
 	</div>
 	<div>
-		<button onclick={exportPdf} class="btn btn-block btn-primary">Générer PDF</button>
+		<a href={resolve('/render')} class="btn btn-block btn-primary">Générer PDF</a>
 	</div>
 </div>
 
