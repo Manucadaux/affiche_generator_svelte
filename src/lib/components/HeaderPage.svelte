@@ -10,7 +10,7 @@
 			<label class="label">
 				<input
 					type="checkbox"
-					class="checkbox checkbox-sm"
+					class="checkbox checkbox-xs"
 					checked={page.reverse ?? false}
 					onchange={(event) => onToggleReverse(page.id, event.currentTarget.checked)}
 				/>
@@ -57,5 +57,9 @@
 		border-radius: 16px 16px 0 0;
 		width: 100%;
 		box-sizing: border-box;
+	}
+
+	label {
+		margin-left: 20px;
 	}
 </style>
