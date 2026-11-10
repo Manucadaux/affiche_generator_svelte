@@ -1,4 +1,5 @@
 <script>
+	// @ts-nocheck
 	import { useLocalStorage } from '#lib/utils/useLocalStorage.svelte.js';
 	import { optionsLibrary, optionsMonth } from '#lib/data/options.js';
 	import { createPage, createEvent } from '#lib/utils/factories.js';

@@ -8,7 +8,9 @@ export function createEvent() {
 		title: 'banana',
 		date: 'Sa. 31 oct.',
 		hour: '10h',
-		content: 'Me gusta banana'
+		content: 'Me gusta banana',
+		condition: 'tout public',
+		inscription: true
 	};
 }
 

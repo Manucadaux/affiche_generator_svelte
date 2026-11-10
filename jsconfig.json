@@ -1,8 +1,5 @@
 {
-	"compilerOptions": {
-		"strict": true,
-		"types": ["node"]
-	},
-	"include": ["src", "vite.config.js", "prettier.config.js", "eslint.config.js"],
-	"exclude": ["src/lib/vitest-examples/**"]
+	"extends": "$app/tsconfig",
+	"include": ["src", "test", "*"],
+	"exclude": ["src/service-worker"]
 }
