@@ -1,7 +1,8 @@
 <script>
 	// @ts-nocheck
-	import { useLocalStorage } from '#lib/utils/useLocalStorage.svelte.js';
 	import { optionsLibrary, optionsMonth, defaultStyles } from '#lib/data/options.js';
+
+	import { useLocalStorage } from '#lib/utils/useLocalStorage.svelte.js';
 	import { createPage, createEvent, generateId } from '#lib/utils/factories.js';
 	import {
 		deleteEventImage,
@@ -10,8 +11,11 @@
 		saveEventImage
 	} from '#lib/utils/imageStorage.js';
 	import { scrollToPage } from '#lib/utils/scroll.js';
+	import { createPageActions } from '#lib/utils/pageActions.js';
+
 	import { slide } from 'svelte/transition';
-	import { onMount, tick } from 'svelte';
+	import { onMount } from 'svelte';
+
 	import Generator from '#lib/layout/Generator.svelte';
 	import ContainerAffiche from '../lib/layout/ContainerAffiche.svelte';
 	import EventEditor from '#lib/components/affiche/EventEditor.svelte';
@@ -19,6 +23,16 @@
 	const selectedLibrary = useLocalStorage('selectedLibraryId', null);
 	const selectedMonth = useLocalStorage('selectedMonthId', null);
 	const pages = useLocalStorage('pages', [createPage()]);
+
+	const { addPage, duplicatePage } = createPageActions({
+		pages,
+		createPage,
+		generateId,
+		getEventImage,
+		saveEventImage,
+		deleteEventImages,
+		scrollToPage
+	});
 
 	onMount(() => {
 		const validEventIds = pages.current.flatMap((page) => page.events.map((event) => event.id));
@@ -63,69 +77,6 @@
 	);
 
 	let nbPages = $derived(pages.current.length);
-
-	async function addPage(pageId) {
-		const index = pages.current.findIndex((page) => page.id === pageId);
-
-		if (index === -1) return;
-
-		const newPage = createPage();
-		const newPages = [...pages.current];
-
-		newPages.splice(index + 1, 0, newPage);
-		pages.current = newPages;
-
-		await scrollToPage(newPage.id);
-	}
-
-	async function duplicatePage(pageId) {
-		const sourcePage = pages.current.find((page) => page.id === pageId);
-
-		if (!sourcePage) return;
-
-		// Créer une copie avec de nouveaux identifiants
-		const duplicatedPage = {
-			...sourcePage,
-			id: generateId(),
-			events: sourcePage.events.map((event) => ({
-				...event,
-				id: generateId()
-			}))
-		};
-
-		try {
-			// Copier les images associées aux événements
-			await Promise.all(
-				sourcePage.events.map(async (event, index) => {
-					const image = await getEventImage(event.id);
-
-					if (image) {
-						await saveEventImage(duplicatedPage.events[index].id, image);
-					}
-				})
-			);
-
-			// Insérer la copie juste après la page originale
-			const index = pages.current.findIndex((page) => page.id === pageId);
-
-			if (index === -1) {
-				await deleteEventImages(duplicatedPage.events);
-				return;
-			}
-
-			const newPages = [...pages.current];
-			newPages.splice(index + 1, 0, duplicatedPage);
-
-			pages.current = newPages;
-			await scrollToPage(duplicatedPage.id);
-		} catch (error) {
-			// Nettoyer les éventuelles images déjà copiées
-			await deleteEventImages(duplicatedPage.events);
-
-			console.error('Erreur lors de la duplication de la page :', error);
-			alert('Impossible de dupliquer la page.');
-		}
-	}
 
 	async function deleteEventImages(events) {
 		const results = await Promise.allSettled(events.map((event) => deleteEventImage(event.id)));
@@ -320,10 +271,6 @@
 		border: none;
 		background: transparent;
 		cursor: default;
-	}
-
-	.editorContainer {
-		z-index: 10;
 	}
 
 	.loaderContainer {
