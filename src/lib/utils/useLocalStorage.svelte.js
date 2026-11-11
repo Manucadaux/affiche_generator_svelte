@@ -69,6 +69,10 @@ export function useLocalStorage(key, initialValue) {
 
 		set current(newValue) {
 			value = newValue;
+		},
+
+		get ready() {
+			return ready;
 		}
 	};
 }

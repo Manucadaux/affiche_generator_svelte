@@ -57,6 +57,10 @@
 
 	const styles = useLocalStorage('styles', defaultStyles);
 
+	let isReady = $derived(
+		pages.ready && styles.ready && selectedLibrary.ready && selectedMonth.ready
+	);
+
 	let nbPages = $derived(pages.current.length);
 
 	function addPage(pageId) {
@@ -215,39 +219,46 @@
 	}
 </script>
 
-<Generator
-	{nbPages}
-	{optionsLibrary}
-	{optionsMonth}
-	bind:selectedLibrary={selectedLibrary.current}
-	bind:selectedMonth={selectedMonth.current}
-	bind:styles={styles.current}
-	onResetEvents={resetEvents}
-	onResetAll={resetAll}
-/>
+{#if isReady}
+	<Generator
+		{nbPages}
+		{optionsLibrary}
+		{optionsMonth}
+		bind:selectedLibrary={selectedLibrary.current}
+		bind:selectedMonth={selectedMonth.current}
+		bind:styles={styles.current}
+		onResetEvents={resetEvents}
+		onResetAll={resetAll}
+	/>
 
-<div class="container">
-	{#each pages.current as page, i (page.id)}
-		<div out:slide={{ duration: 500 }}>
-			<ContainerAffiche
-				pageNumber={i + 1}
-				selectedLibrary={selectedLibraryData}
-				selectedMonth={selectedMonthData}
-				{page}
-				styles={styles.current}
-				canDelete={pages.current.length > 1}
-				onDeletePage={deletePage}
-				onAddEvent={addEvent}
-				onRemoveEvent={removeEvent}
-				onToggleReverse={toggleReverse}
-				onSelectEvent={selectEvent}
-				isEditing={selectedEvent !== null}
-				onAddPage={addPage}
-				onDuplicatePage={duplicatePage}
-			/>
-		</div>
-	{/each}
-</div>
+	<div class="container">
+		{#each pages.current as page, i (page.id)}
+			<div out:slide={{ duration: 500 }}>
+				<ContainerAffiche
+					pageNumber={i + 1}
+					selectedLibrary={selectedLibraryData}
+					selectedMonth={selectedMonthData}
+					{page}
+					styles={styles.current}
+					canDelete={pages.current.length > 1}
+					onDeletePage={deletePage}
+					onAddEvent={addEvent}
+					onRemoveEvent={removeEvent}
+					onToggleReverse={toggleReverse}
+					onSelectEvent={selectEvent}
+					isEditing={selectedEvent !== null}
+					onAddPage={addPage}
+					onDuplicatePage={duplicatePage}
+				/>
+			</div>
+		{/each}
+	</div>
+{:else}
+	<div class="loaderContainer">
+		<span class="loading loading-lg loading-spinner"></span>
+		<p>Chargement...</p>
+	</div>
+{/if}
 
 {#if selectedEvent}
 	<button
@@ -307,5 +318,15 @@
 
 	.editorContainer {
 		z-index: 10;
+	}
+
+	.loaderContainer {
+		position: fixed;
+		inset: 0;
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+		align-items: center;
+		gap: 12px;
 	}
 </style>
