@@ -5,6 +5,7 @@ export function generateId() {
 export function createEvent() {
 	return {
 		id: generateId(),
+		imageVersion: 0,
 		title: 'banana',
 		sizeTitle: 36,
 		date: 'Sa. 31 oct.',

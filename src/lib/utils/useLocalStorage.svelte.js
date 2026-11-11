@@ -1,5 +1,10 @@
 import { onMount } from 'svelte';
 
+/**
+ * @template T
+ * @param {string} key
+ * @param {T} initialValue
+ */
 export function useLocalStorage(key, initialValue) {
 	let value = $state(initialValue);
 	let ready = $state(false);
@@ -15,7 +20,6 @@ export function useLocalStorage(key, initialValue) {
 		} catch (error) {
 			console.error(`Erreur de lecture localStorage [${key}] :`, error);
 
-			// Suppression de la donnée invalide
 			try {
 				localStorage.removeItem(key);
 			} catch (removeError) {
@@ -28,6 +32,7 @@ export function useLocalStorage(key, initialValue) {
 		ready = true;
 
 		// Synchronisation entre les onglets
+		/** @param {StorageEvent} event */
 		const handleStorage = (event) => {
 			if (event.key !== key && event.key !== null) return;
 
@@ -35,7 +40,6 @@ export function useLocalStorage(key, initialValue) {
 				value = event.newValue === null ? initialValue : JSON.parse(event.newValue);
 			} catch (error) {
 				console.error(`Erreur de synchronisation localStorage [${key}] :`, error);
-
 				value = initialValue;
 			}
 		};

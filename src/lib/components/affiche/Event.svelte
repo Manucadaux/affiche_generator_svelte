@@ -1,4 +1,7 @@
 <script>
+	// @ts-nocheck
+	import { getEventImage } from '#lib/utils/imageStorage.js';
+
 	let { event, styles, nbEvents, reverse, eventIndex, onSelectEvent } = $props();
 
 	let eventClass = $derived(['uno', 'duo', 'trio', 'quatro'][nbEvents - 1] ?? 'uno');
@@ -7,6 +10,38 @@
 
 	let titleSize = $derived(`${event.sizeTitle ?? 36}px`);
 	let descriptionSize = $derived(`${event.sizeDescription ?? 25}px`);
+
+	let imageUrl = $state(null);
+
+	// Charger l'image depuis IndexedDB
+	$effect(() => {
+		const currentEvent = event;
+		const eventId = currentEvent.id;
+
+		let cancelled = false;
+		let objectUrl = null;
+
+		imageUrl = null;
+
+		getEventImage(eventId)
+			.then((blob) => {
+				if (cancelled || !blob) return;
+
+				objectUrl = URL.createObjectURL(blob);
+				imageUrl = objectUrl;
+			})
+			.catch((error) => {
+				console.error('Erreur lors du chargement de l’image :', error);
+			});
+
+		return () => {
+			cancelled = true;
+
+			if (objectUrl) {
+				URL.revokeObjectURL(objectUrl);
+			}
+		};
+	});
 </script>
 
 <div
@@ -24,7 +59,7 @@
 		}
 	}}
 >
-	<div class="imgContainer"></div>
+	<div class="imgContainer" style:background-image={imageUrl ? `url("${imageUrl}")` : 'none'}></div>
 
 	<div class="infoContainer">
 		<div class="dateContainer" style:background={styles.bgDate} style:color={styles.colorDate}>

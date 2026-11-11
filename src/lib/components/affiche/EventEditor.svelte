@@ -1,9 +1,99 @@
 <script>
 	// @ts-nocheck
+	import { saveEventImage, getEventImage, deleteEventImage } from '#lib/utils/imageStorage.js';
+
 	let { event, onUpdateEvent, onClose } = $props();
+
+	let imageUrl = $state(null);
+	let imageError = $state('');
+	let currentObjectUrl = null;
 
 	function update(field, value) {
 		onUpdateEvent(event.id, field, value);
+	}
+
+	// Charger l'image existante
+	$effect(() => {
+		const eventId = event.id;
+		let cancelled = false;
+
+		imageUrl = null;
+
+		getEventImage(eventId)
+			.then((blob) => {
+				if (cancelled || !blob) return;
+
+				const newUrl = URL.createObjectURL(blob);
+
+				currentObjectUrl = newUrl;
+				imageUrl = newUrl;
+			})
+			.catch((error) => {
+				console.error('Erreur lors du chargement de l’image :', error);
+			});
+
+		return () => {
+			cancelled = true;
+
+			if (currentObjectUrl) {
+				URL.revokeObjectURL(currentObjectUrl);
+				currentObjectUrl = null;
+			}
+		};
+	});
+
+	// Choisir et enregistrer une nouvelle image
+	async function handleImageChange(e) {
+		const input = e.currentTarget;
+		const file = input.files?.[0];
+
+		if (!file) return;
+
+		input.value = '';
+
+		if (!file.type.startsWith('image/')) {
+			imageError = 'Veuillez choisir un fichier image.';
+			return;
+		}
+
+		try {
+			await saveEventImage(event.id, file);
+
+			// Mettre à jour l'image dans l'éditeur
+			if (currentObjectUrl) {
+				URL.revokeObjectURL(currentObjectUrl);
+			}
+
+			const newUrl = URL.createObjectURL(file);
+
+			currentObjectUrl = newUrl;
+			imageUrl = newUrl;
+			imageError = '';
+
+			// Signaler le changement à Event.svelte
+			update('imageVersion', (event.imageVersion ?? 0) + 1);
+		} catch (error) {
+			console.error('Erreur lors de l’enregistrement de l’image :', error);
+			imageError = 'Impossible d’enregistrer cette image.';
+		}
+	}
+
+	// Supprimer l'image
+	async function removeImage() {
+		try {
+			await deleteEventImage(event.id);
+
+			if (currentObjectUrl) {
+				URL.revokeObjectURL(currentObjectUrl);
+				currentObjectUrl = null;
+			}
+
+			imageUrl = null;
+			imageError = '';
+		} catch (error) {
+			console.error('Erreur lors de la suppression de l’image :', error);
+			imageError = 'Impossible de supprimer cette image.';
+		}
 	}
 </script>
 
@@ -66,7 +156,7 @@
 				type="number"
 				min="1"
 				value={event.sizeTitle}
-				oninput={(e) => update('sizeTitle', Number(e.currentTarget.value))}
+				oninput={(e) => update('sizeTitle', Math.max(1, Number(e.currentTarget.value)))}
 			/>
 		</fieldset>
 
@@ -77,7 +167,7 @@
 				type="number"
 				min="1"
 				value={event.sizeDescription}
-				oninput={(e) => update('sizeDescription', Number(e.currentTarget.value))}
+				oninput={(e) => update('sizeDescription', Math.max(1, Number(e.currentTarget.value)))}
 			/>
 		</fieldset>
 	</div>
@@ -100,4 +190,41 @@
 			onchange={(e) => update('inscription', e.currentTarget.checked)}
 		/>
 	</div>
+
+	<div class="divider my-0">Image</div>
+
+	{#if imageUrl}
+		<div class="space-y-3">
+			<div class="overflow-hidden rounded-lg border border-base-300">
+				<img
+					src={imageUrl}
+					alt={event.title || 'Événement'}
+					class="max-h-52 w-full object-contain"
+				/>
+			</div>
+
+			<div class="flex gap-2">
+				<label class="btn flex-1 btn-outline btn-sm">
+					Remplacer l'image
+					<input type="file" accept="image/*" class="hidden" onchange={handleImageChange} />
+				</label>
+
+				<button class="btn btn-outline btn-error btn-sm" onclick={removeImage}> Supprimer </button>
+			</div>
+		</div>
+	{:else}
+		<label
+			class="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-base-300 p-8 transition hover:border-primary hover:bg-base-200"
+		>
+			<span class="text-3xl">+</span>
+			<span class="font-medium">Ajouter une image</span>
+			<span class="text-xs text-base-content/60">Clique pour choisir un fichier</span>
+
+			<input type="file" accept="image/*" class="hidden" onchange={handleImageChange} />
+		</label>
+	{/if}
+
+	{#if imageError}
+		<p class="text-sm text-error">{imageError}</p>
+	{/if}
 </div>

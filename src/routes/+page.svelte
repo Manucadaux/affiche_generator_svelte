@@ -3,13 +3,23 @@
 	import { useLocalStorage } from '#lib/utils/useLocalStorage.svelte.js';
 	import { optionsLibrary, optionsMonth, defaultStyles } from '#lib/data/options.js';
 	import { createPage, createEvent } from '#lib/utils/factories.js';
+	import { deleteEventImage, cleanupOrphanedImages } from '#lib/utils/imageStorage.js';
 	import { slide } from 'svelte/transition';
+	import { onMount } from 'svelte';
 	import Generator from '#lib/layout/Generator.svelte';
 	import ContainerAffiche from '../lib/layout/ContainerAffiche.svelte';
 	import EventEditor from '#lib/components/affiche/EventEditor.svelte';
 
 	const selectedLibrary = useLocalStorage('selectedLibraryId', null);
 	const selectedMonth = useLocalStorage('selectedMonthId', null);
+
+	onMount(() => {
+		const validEventIds = pages.current.flatMap((page) => page.events.map((event) => event.id));
+
+		cleanupOrphanedImages(validEventIds).catch((error) => {
+			console.error('Erreur lors du nettoyage des images :', error);
+		});
+	});
 
 	let selectedLibraryData = $derived(
 		optionsLibrary.find((option) => option.id === selectedLibrary.current) ?? null
@@ -49,7 +59,27 @@
 		pages.current = [...pages.current, createPage()];
 	}
 
-	function deletePage(pageId) {
+	async function deleteEventImages(events) {
+		const results = await Promise.allSettled(events.map((event) => deleteEventImage(event.id)));
+
+		results.forEach((result) => {
+			if (result.status === 'rejected') {
+				console.error('Erreur lors de la suppression d’une image :', result.reason);
+			}
+		});
+	}
+
+	async function deletePage(pageId) {
+		const page = pages.current.find((page) => page.id === pageId);
+
+		if (!page) return;
+
+		await deleteEventImages(page.events);
+
+		if (page.events.some((event) => event.id === selectedEventId)) {
+			selectedEventId = null;
+		}
+
 		pages.current = pages.current.filter((page) => page.id !== pageId);
 	}
 
@@ -64,11 +94,21 @@
 		);
 	}
 
-	function removeEvent(pageId) {
+	async function removeEvent(pageId) {
+		const page = pages.current.find((page) => page.id === pageId);
+
+		if (!page || page.events.length <= 1) return;
+
+		const eventToRemove = page.events[page.events.length - 1];
+
+		await deleteEventImages([eventToRemove]);
+
+		if (eventToRemove.id === selectedEventId) {
+			selectedEventId = null;
+		}
+
 		pages.current = pages.current.map((page) =>
-			page.id === pageId && page.events.length > 1
-				? { ...page, events: page.events.slice(0, -1) }
-				: page
+			page.id === pageId ? { ...page, events: page.events.slice(0, -1) } : page
 		);
 	}
 
@@ -78,21 +118,31 @@
 		);
 	}
 
-	function resetEvents() {
+	async function resetEvents() {
 		const confirmation = confirm('Voulez-vous vraiment réinitialiser tous les évènements ?');
 
 		if (!confirmation) return;
 
+		const allEvents = pages.current.flatMap((page) => page.events);
+
+		await deleteEventImages(allEvents);
+
+		selectedEventId = null;
 		pages.current = [createPage()];
 	}
 
-	function resetAll() {
+	async function resetAll() {
 		const confirmation = confirm(
 			'Voulez-vous vraiment tout réinitialiser ? Cette action supprimera toutes les affiches et remettra les paramètres par défaut.'
 		);
 
 		if (!confirmation) return;
 
+		const allEvents = pages.current.flatMap((page) => page.events);
+
+		await deleteEventImages(allEvents);
+
+		selectedEventId = null;
 		pages.current = [createPage()];
 		selectedLibrary.current = null;
 		selectedMonth.current = null;
