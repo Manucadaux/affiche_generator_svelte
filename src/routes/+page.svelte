@@ -12,6 +12,7 @@
 
 	const selectedLibrary = useLocalStorage('selectedLibraryId', null);
 	const selectedMonth = useLocalStorage('selectedMonthId', null);
+	const pages = useLocalStorage('pages', [createPage()]);
 
 	onMount(() => {
 		const validEventIds = pages.current.flatMap((page) => page.events.map((event) => event.id));
@@ -28,8 +29,6 @@
 	let selectedMonthData = $derived(
 		optionsMonth.find((option) => option.id === selectedMonth.current) ?? null
 	);
-
-	const pages = useLocalStorage('pages', [createPage()]);
 
 	let selectedEventId = $state(null);
 
