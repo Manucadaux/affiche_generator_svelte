@@ -9,6 +9,7 @@
 		getEventImage,
 		saveEventImage
 	} from '#lib/utils/imageStorage.js';
+	import { scrollToPage } from '#lib/utils/scroll.js';
 	import { slide } from 'svelte/transition';
 	import { onMount, tick } from 'svelte';
 	import Generator from '#lib/layout/Generator.svelte';
@@ -62,15 +63,6 @@
 	);
 
 	let nbPages = $derived(pages.current.length);
-
-	async function scrollToPage(pageId) {
-		await tick();
-
-		document.getElementById(`page-${pageId}`)?.scrollIntoView({
-			behavior: 'smooth',
-			block: 'start'
-		});
-	}
 
 	async function addPage(pageId) {
 		const index = pages.current.findIndex((page) => page.id === pageId);
