@@ -209,6 +209,9 @@
 	}
 
 	.container {
+		display: flex;
+		flex-direction: column;
+		gap: 40px;
 		width: calc(100% - 360px);
 		position: absolute;
 		top: 10px;

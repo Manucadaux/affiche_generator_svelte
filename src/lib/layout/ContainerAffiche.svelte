@@ -21,7 +21,7 @@
 	} = $props();
 </script>
 
-<div class="card border border-base-300 bg-base-100">
+<div class="afficheCard card border border-base-300 bg-base-100">
 	<HeaderPage
 		{pageNumber}
 		{page}
@@ -46,8 +46,7 @@
 		width: 100%;
 		height: 100%;
 		overflow: scroll;
-		box-sizing: content-box;
-		margin-bottom: 40px;
+		box-sizing: border-box;
 		position: relative;
 		padding: 20px 0;
 		transition:
@@ -57,5 +56,9 @@
 
 	.pageContainer.editing {
 		transform: translateX(-200px);
+	}
+
+	.afficheCard {
+		overflow: hidden;
 	}
 </style>
