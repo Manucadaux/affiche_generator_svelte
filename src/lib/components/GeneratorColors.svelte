@@ -19,7 +19,7 @@
 	];
 </script>
 
-<div class="colors dark">
+<div class="colors">
 	<ColorPicker bind:hex={styles.bgDate} {swatches} label="Couleur fond date" isAlpha={false} />
 
 	<ColorPicker bind:hex={styles.bgTitle} {swatches} label="Couleur fond titre" isAlpha={false} />
@@ -35,13 +35,3 @@
 
 	<ColorPicker bind:hex={styles.colorContent} {swatches} label="Couleur texte" isAlpha={false} />
 </div>
-
-<style>
-	.dark {
-		--cp-bg-color: #333;
-		--cp-border-color: white;
-		--cp-text-color: white;
-		--cp-input-color: #555;
-		--cp-button-hover-color: #777;
-	}
-</style>

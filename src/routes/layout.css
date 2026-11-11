@@ -51,4 +51,13 @@
 @import 'tailwindcss';
 @plugin '@tailwindcss/forms';
 @plugin '@tailwindcss/typography';
-@plugin 'daisyui';
+@plugin 'daisyui' {
+	themes:
+		light --default,
+		dark --prefersdark,
+		cupcake,
+		retro,
+		cyberpunk,
+		valentine,
+		aqua;
+}

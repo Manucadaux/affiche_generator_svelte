@@ -70,6 +70,12 @@
 	}
 
 	async function deletePage(pageId) {
+		const confirmation = confirm(
+			'Voulez-vous vraiment supprimer cette page et tous ses évènements ?'
+		);
+
+		if (!confirmation) return;
+
 		const page = pages.current.find((page) => page.id === pageId);
 
 		if (!page) return;

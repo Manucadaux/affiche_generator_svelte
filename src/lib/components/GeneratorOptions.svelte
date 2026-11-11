@@ -1,4 +1,5 @@
 <script>
+	import { Palette, ChevronDown } from 'lucide-svelte';
 	let {
 		nbPages,
 		addPage,
@@ -8,10 +9,48 @@
 		selectedMonth = $bindable(),
 		styles = $bindable()
 	} = $props();
+
+	const themes = [
+		{ label: 'Light', value: 'light' },
+		{ label: 'Dark', value: 'dark' },
+		{ label: 'Cupcake', value: 'cupcake' },
+		{ label: 'Retro', value: 'retro' },
+		{ label: 'Cyberpunk', value: 'cyberpunk' },
+		{ label: 'Valentine', value: 'valentine' },
+		{ label: 'Aqua', value: 'aqua' }
+	];
 </script>
 
-<div>
-	<h3>Général</h3>
+<div class="generatorOptions">
+	<div class="generalHeader">
+		<h3>Général</h3>
+
+		<div class="dropdown dropdown-end">
+			<button tabindex="0" class="btn btn-neutral btn-sm" aria-label="Choisir un thème">
+				<Palette size={18} />
+				<ChevronDown size={14} />
+			</button>
+
+			<ul
+				tabindex="-1"
+				class="dropdown-content z-50 w-48 rounded-box border border-base-300 bg-base-100 p-2 shadow-xl"
+			>
+				<li class="menu-title">Choisir un thème</li>
+
+				{#each themes as theme (theme.value)}
+					<li>
+						<input
+							type="radio"
+							name="theme-dropdown"
+							class="theme-controller btn btn-block justify-start btn-ghost btn-sm"
+							aria-label={theme.label}
+							value={theme.value}
+						/>
+					</li>
+				{/each}
+			</ul>
+		</div>
+	</div>
 	<div class="zoomControl">
 		<label for="zoom">
 			Zoom de l'affiche : <strong>{styles.zoom}%</strong>
@@ -54,7 +93,23 @@
 </div>
 
 <style>
-	div {
+	.generatorOptions > div {
 		margin: 25px 0;
+	}
+
+	.generalHeader {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		position: relative;
+		overflow: visible;
+	}
+
+	.generalHeader h3 {
+		margin: 0;
+	}
+
+	.dropdown {
+		position: relative;
 	}
 </style>

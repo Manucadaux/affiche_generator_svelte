@@ -52,9 +52,6 @@
 		justify-content: space-between;
 		align-items: center;
 		padding: 8px;
-		border: 1px solid black;
-		border-bottom: none;
-		border-radius: 16px 16px 0 0;
 		width: 100%;
 		box-sizing: border-box;
 	}
