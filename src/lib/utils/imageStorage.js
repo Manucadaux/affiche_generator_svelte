@@ -91,6 +91,21 @@ export async function deleteEventImage(eventId) {
 }
 
 /**
+ * Supprimer les images de plusieurs événements
+ * @param {{ id: string }[]} events
+ * @returns {Promise<void>}
+ */
+export async function deleteEventImages(events) {
+	const results = await Promise.allSettled(events.map((event) => deleteEventImage(event.id)));
+
+	results.forEach((result) => {
+		if (result.status === 'rejected') {
+			console.error('Erreur lors de la suppression d’une image :', result.reason);
+		}
+	});
+}
+
+/**
  * Supprimer les images qui ne sont plus associées à un événement
  * @param {string[]} validEventIds
  * @returns {Promise<void>}

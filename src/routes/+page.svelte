@@ -5,7 +5,7 @@
 	import { useLocalStorage } from '#lib/utils/useLocalStorage.svelte.js';
 	import { createPage, createEvent, generateId } from '#lib/utils/factories.js';
 	import {
-		deleteEventImage,
+		deleteEventImages,
 		cleanupOrphanedImages,
 		getEventImage,
 		saveEventImage
@@ -13,6 +13,7 @@
 	import { scrollToPage } from '#lib/utils/scroll.js';
 	import { createPageActions } from '#lib/utils/pageActions.js';
 	import { createEventActions } from '#lib/utils/eventActions.js';
+	import { createResetActions } from '#lib/utils/resetActions.js';
 
 	import { slide } from 'svelte/transition';
 	import { onMount } from 'svelte';
@@ -24,6 +25,9 @@
 	const selectedLibrary = useLocalStorage('selectedLibraryId', null);
 	const selectedMonth = useLocalStorage('selectedMonthId', null);
 	const pages = useLocalStorage('pages', [createPage()]);
+	const styles = useLocalStorage('styles', defaultStyles);
+
+	let selectedEventId = $state(null);
 
 	const { addPage, duplicatePage, deletePage } = createPageActions({
 		pages,
@@ -45,6 +49,17 @@
 		clearSelectedEvent: () => (selectedEventId = null)
 	});
 
+	const { resetEvents, resetAll } = createResetActions({
+		pages,
+		createPage,
+		deleteEventImages,
+		clearSelectedEvent: () => (selectedEventId = null),
+		selectedLibrary,
+		selectedMonth,
+		styles,
+		defaultStyles
+	});
+
 	onMount(() => {
 		const validEventIds = pages.current.flatMap((page) => page.events.map((event) => event.id));
 
@@ -60,8 +75,6 @@
 	let selectedMonthData = $derived(
 		optionsMonth.find((option) => option.id === selectedMonth.current) ?? null
 	);
-
-	let selectedEventId = $state(null);
 
 	function selectEvent(eventId) {
 		selectedEventId = eventId;
@@ -81,54 +94,11 @@
 		}));
 	}
 
-	const styles = useLocalStorage('styles', defaultStyles);
-
 	let isReady = $derived(
 		pages.ready && styles.ready && selectedLibrary.ready && selectedMonth.ready
 	);
 
 	let nbPages = $derived(pages.current.length);
-
-	async function deleteEventImages(events) {
-		const results = await Promise.allSettled(events.map((event) => deleteEventImage(event.id)));
-
-		results.forEach((result) => {
-			if (result.status === 'rejected') {
-				console.error('Erreur lors de la suppression d’une image :', result.reason);
-			}
-		});
-	}
-
-	async function resetEvents() {
-		const confirmation = confirm('Voulez-vous vraiment réinitialiser tous les évènements ?');
-
-		if (!confirmation) return;
-
-		const allEvents = pages.current.flatMap((page) => page.events);
-
-		await deleteEventImages(allEvents);
-
-		selectedEventId = null;
-		pages.current = [createPage()];
-	}
-
-	async function resetAll() {
-		const confirmation = confirm(
-			'Voulez-vous vraiment tout réinitialiser ? Cette action supprimera toutes les affiches et remettra les paramètres par défaut.'
-		);
-
-		if (!confirmation) return;
-
-		const allEvents = pages.current.flatMap((page) => page.events);
-
-		await deleteEventImages(allEvents);
-
-		selectedEventId = null;
-		pages.current = [createPage()];
-		selectedLibrary.current = null;
-		selectedMonth.current = null;
-		styles.current = { ...defaultStyles };
-	}
 </script>
 
 {#if isReady}
