@@ -2,8 +2,13 @@
 	// @ts-nocheck
 	import { useLocalStorage } from '#lib/utils/useLocalStorage.svelte.js';
 	import { optionsLibrary, optionsMonth, defaultStyles } from '#lib/data/options.js';
-	import { createPage, createEvent } from '#lib/utils/factories.js';
-	import { deleteEventImage, cleanupOrphanedImages } from '#lib/utils/imageStorage.js';
+	import { createPage, createEvent, generateId } from '#lib/utils/factories.js';
+	import {
+		deleteEventImage,
+		cleanupOrphanedImages,
+		getEventImage,
+		saveEventImage
+	} from '#lib/utils/imageStorage.js';
 	import { slide } from 'svelte/transition';
 	import { onMount } from 'svelte';
 	import Generator from '#lib/layout/Generator.svelte';
@@ -63,6 +68,54 @@
 		newPages.splice(index + 1, 0, createPage());
 
 		pages.current = newPages;
+	}
+
+	async function duplicatePage(pageId) {
+		const sourcePage = pages.current.find((page) => page.id === pageId);
+
+		if (!sourcePage) return;
+
+		// Créer une copie avec de nouveaux identifiants
+		const duplicatedPage = {
+			...sourcePage,
+			id: generateId(),
+			events: sourcePage.events.map((event) => ({
+				...event,
+				id: generateId()
+			}))
+		};
+
+		try {
+			// Copier les images associées aux événements
+			await Promise.all(
+				sourcePage.events.map(async (event, index) => {
+					const image = await getEventImage(event.id);
+
+					if (image) {
+						await saveEventImage(duplicatedPage.events[index].id, image);
+					}
+				})
+			);
+
+			// Insérer la copie juste après la page originale
+			const index = pages.current.findIndex((page) => page.id === pageId);
+
+			if (index === -1) {
+				await deleteEventImages(duplicatedPage.events);
+				return;
+			}
+
+			const newPages = [...pages.current];
+			newPages.splice(index + 1, 0, duplicatedPage);
+
+			pages.current = newPages;
+		} catch (error) {
+			// Nettoyer les éventuelles images déjà copiées
+			await deleteEventImages(duplicatedPage.events);
+
+			console.error('Erreur lors de la duplication de la page :', error);
+			alert('Impossible de dupliquer la page.');
+		}
 	}
 
 	async function deleteEventImages(events) {
@@ -190,6 +243,7 @@
 				onSelectEvent={selectEvent}
 				isEditing={selectedEvent !== null}
 				onAddPage={addPage}
+				onDuplicatePage={duplicatePage}
 			/>
 		</div>
 	{/each}
