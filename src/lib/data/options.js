@@ -24,3 +24,12 @@ export const optionsMonth = [
 	{ id: 11, label: 'Novembre', text: 'de Novembre' },
 	{ id: 12, label: 'Décembre', text: 'de Décembre' }
 ];
+
+export const defaultStyles = {
+	bgDate: '#b02082',
+	bgTitle: '#0256e2',
+	colorDate: '#FFFFFF',
+	colorTitle: '#FFFFFF',
+	colorContent: '#003288',
+	zoom: '40%'
+};

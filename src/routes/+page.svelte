@@ -1,7 +1,7 @@
 <script>
 	// @ts-nocheck
 	import { useLocalStorage } from '#lib/utils/useLocalStorage.svelte.js';
-	import { optionsLibrary, optionsMonth } from '#lib/data/options.js';
+	import { optionsLibrary, optionsMonth, defaultStyles } from '#lib/data/options.js';
 	import { createPage, createEvent } from '#lib/utils/factories.js';
 	import { slide } from 'svelte/transition';
 	import Generator from '#lib/layout/Generator.svelte';
@@ -17,15 +17,6 @@
 	let selectedMonthData = $derived(
 		optionsMonth.find((option) => option.id === selectedMonth.current) ?? null
 	);
-
-	const defaultStyles = {
-		bgDate: '#00FF00',
-		bgTitle: '#FF0000',
-		colorDate: '#FFFFFF',
-		colorTitle: '#FFFFFF',
-		colorContent: '#0000FF',
-		zoom: '40%'
-	};
 
 	const styles = useLocalStorage('styles', defaultStyles);
 

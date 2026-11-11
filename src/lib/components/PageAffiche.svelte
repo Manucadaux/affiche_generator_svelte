@@ -8,7 +8,7 @@
 </script>
 
 <div class="page" style:zoom={styles.zoom}>
-	<Decoration />
+	<Decoration {styles} />
 
 	<header class="headerPage">
 		<Header {selectedLibrary} {selectedMonth} {styles} />
@@ -44,6 +44,7 @@
 		font-family: 'luciole', 'Open Sans', sans-serif;
 		text-align: center;
 		box-sizing: border-box;
+		position: relative;
 	}
 
 	.headerPage {

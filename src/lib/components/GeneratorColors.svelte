@@ -3,7 +3,20 @@
 
 	let { styles = $bindable() } = $props();
 
-	let swatches = ['#f44336', '#e91e63', '#9c27b0', '#2196f3', '#4caf50', '#ffeb3b', '#ff9800'];
+	let swatches = [
+		'#ea3c45',
+		'#f58220',
+		'#f9c54e',
+		'#2fa38f',
+		'#0256e2',
+		'#b02082',
+		'#9b1d2a',
+		'#c2571a',
+		'#c79a1e',
+		'#1f7a4d',
+		'#003288',
+		'#660c49'
+	];
 </script>
 
 <div class="colors dark">
