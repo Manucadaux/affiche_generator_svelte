@@ -17,7 +17,8 @@
 		onSelectEvent,
 		isEditing,
 		onAddPage,
-		onDuplicatePage
+		onDuplicatePage,
+		selectedEventId
 	} = $props();
 </script>
 
@@ -35,7 +36,14 @@
 	/>
 
 	<div class="pageContainer" class:editing={isEditing}>
-		<PageAffiche {selectedLibrary} {selectedMonth} {page} {styles} {onSelectEvent} />
+		<PageAffiche
+			{selectedLibrary}
+			{selectedMonth}
+			{page}
+			{styles}
+			{onSelectEvent}
+			{selectedEventId}
+		/>
 	</div>
 </div>
 

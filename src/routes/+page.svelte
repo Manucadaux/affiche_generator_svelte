@@ -249,6 +249,7 @@
 					isEditing={selectedEvent !== null}
 					onAddPage={addPage}
 					onDuplicatePage={duplicatePage}
+					{selectedEventId}
 				/>
 			</div>
 		{/each}

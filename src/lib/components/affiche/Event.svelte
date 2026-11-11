@@ -2,7 +2,7 @@
 	// @ts-nocheck
 	import { getEventImage } from '#lib/utils/imageStorage.js';
 
-	let { event, styles, nbEvents, reverse, eventIndex, onSelectEvent } = $props();
+	let { event, styles, nbEvents, reverse, eventIndex, onSelectEvent, selectedEventId } = $props();
 
 	let eventClass = $derived(['uno', 'duo', 'trio', 'quatro'][nbEvents - 1] ?? 'uno');
 
@@ -48,6 +48,7 @@
 	class={`event ${eventClass}`}
 	class:reverse
 	class:imageRight
+	class:selected={selectedEventId === event.id}
 	style:--border-color={styles.bgTitle}
 	role="button"
 	tabindex="0"
@@ -113,6 +114,14 @@
 	.event:focus-visible {
 		outline: 4px solid #2563eb;
 		outline-offset: 4px;
+	}
+
+	.event.selected {
+		box-shadow:
+			0 0 0 4px #8edbff,
+			0 0 8px 5px rgba(142, 219, 255, 0.95),
+			0 0 20px 10px rgba(100, 190, 255, 0.8),
+			0 0 35px 15px rgba(100, 190, 255, 0.5);
 	}
 
 	.imgContainer {
