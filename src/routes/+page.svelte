@@ -10,7 +10,7 @@
 		saveEventImage
 	} from '#lib/utils/imageStorage.js';
 	import { slide } from 'svelte/transition';
-	import { onMount } from 'svelte';
+	import { onMount, tick } from 'svelte';
 	import Generator from '#lib/layout/Generator.svelte';
 	import ContainerAffiche from '../lib/layout/ContainerAffiche.svelte';
 	import EventEditor from '#lib/components/affiche/EventEditor.svelte';
@@ -63,15 +63,27 @@
 
 	let nbPages = $derived(pages.current.length);
 
-	function addPage(pageId) {
+	async function scrollToPage(pageId) {
+		await tick();
+
+		document.getElementById(`page-${pageId}`)?.scrollIntoView({
+			behavior: 'smooth',
+			block: 'start'
+		});
+	}
+
+	async function addPage(pageId) {
 		const index = pages.current.findIndex((page) => page.id === pageId);
 
 		if (index === -1) return;
 
+		const newPage = createPage();
 		const newPages = [...pages.current];
-		newPages.splice(index + 1, 0, createPage());
 
+		newPages.splice(index + 1, 0, newPage);
 		pages.current = newPages;
+
+		await scrollToPage(newPage.id);
 	}
 
 	async function duplicatePage(pageId) {
@@ -113,6 +125,7 @@
 			newPages.splice(index + 1, 0, duplicatedPage);
 
 			pages.current = newPages;
+			await scrollToPage(duplicatedPage.id);
 		} catch (error) {
 			// Nettoyer les éventuelles images déjà copiées
 			await deleteEventImages(duplicatedPage.events);
@@ -233,7 +246,7 @@
 
 	<div class="container">
 		{#each pages.current as page, i (page.id)}
-			<div out:slide={{ duration: 500 }}>
+			<div id={`page-${page.id}`} out:slide={{ duration: 500 }}>
 				<ContainerAffiche
 					pageNumber={i + 1}
 					selectedLibrary={selectedLibraryData}
