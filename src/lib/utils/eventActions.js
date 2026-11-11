@@ -58,5 +58,20 @@ export function createEventActions(dependencies) {
 		);
 	}
 
-	return { addEvent, removeEvent, toggleReverse };
+	/**
+	 * @template {keyof Event} K
+	 * @param {string} eventId
+	 * @param {K} field
+	 * @param {Event[K]} value
+	 */
+	function updateEvent(eventId, field, value) {
+		pages.current = pages.current.map((page) => ({
+			...page,
+			events: page.events.map((event) =>
+				event.id === eventId ? { ...event, [field]: value } : event
+			)
+		}));
+	}
+
+	return { addEvent, removeEvent, toggleReverse, updateEvent };
 }

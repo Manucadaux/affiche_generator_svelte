@@ -41,7 +41,7 @@
 		clearSelectedEvent: () => (selectedEventId = null)
 	});
 
-	const { addEvent, removeEvent, toggleReverse } = createEventActions({
+	const { addEvent, removeEvent, toggleReverse, updateEvent } = createEventActions({
 		pages,
 		createEvent,
 		deleteEventImages,
@@ -84,15 +84,6 @@
 		pages.current.flatMap((page) => page.events).find((event) => event.id === selectedEventId) ??
 			null
 	);
-
-	function updateEvent(eventId, field, value) {
-		pages.current = pages.current.map((page) => ({
-			...page,
-			events: page.events.map((event) =>
-				event.id === eventId ? { ...event, [field]: value } : event
-			)
-		}));
-	}
 
 	let isReady = $derived(
 		pages.ready && styles.ready && selectedLibrary.ready && selectedMonth.ready
