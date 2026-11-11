@@ -20,18 +20,57 @@
 </script>
 
 <div class="colors">
-	<ColorPicker bind:hex={styles.bgDate} {swatches} label="Couleur fond date" isAlpha={false} />
+	<ColorPicker
+		bind:hex={styles.bgDate}
+		{swatches}
+		label="Couleur fond date"
+		isAlpha={false}
+		textInputModes={['hex']}
+	/>
 
-	<ColorPicker bind:hex={styles.bgTitle} {swatches} label="Couleur fond titre" isAlpha={false} />
+	<ColorPicker
+		bind:hex={styles.bgTitle}
+		{swatches}
+		label="Couleur fond titre"
+		isAlpha={false}
+		textInputModes={['hex']}
+	/>
 
-	<ColorPicker bind:hex={styles.colorDate} {swatches} label="Couleur texte date" isAlpha={false} />
+	<ColorPicker
+		bind:hex={styles.colorDate}
+		{swatches}
+		label="Couleur texte date"
+		isAlpha={false}
+		textInputModes={['hex']}
+	/>
 
 	<ColorPicker
 		bind:hex={styles.colorTitle}
 		{swatches}
 		label="Couleur texte titre"
 		isAlpha={false}
+		textInputModes={['hex']}
 	/>
 
-	<ColorPicker bind:hex={styles.colorContent} {swatches} label="Couleur texte" isAlpha={false} />
+	<ColorPicker
+		bind:hex={styles.colorContent}
+		{swatches}
+		label="Couleur texte"
+		isAlpha={false}
+		textInputModes={['hex']}
+	/>
 </div>
+
+<style>
+	.colors :global(.input-container input) {
+		color: #1f1e1e;
+	}
+
+	.colors :global(.button-like) {
+		display: none;
+	}
+
+	.colors :global(.swatches) {
+		width: 98%;
+	}
+</style>
