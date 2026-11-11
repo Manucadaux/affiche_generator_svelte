@@ -29,6 +29,8 @@
 		optionsMonth.find((option) => option.id === selectedMonth.current) ?? null
 	);
 
+	const pages = useLocalStorage('pages', [createPage()]);
+
 	let selectedEventId = $state(null);
 
 	function selectEvent(eventId) {
@@ -50,8 +52,6 @@
 	}
 
 	const styles = useLocalStorage('styles', defaultStyles);
-
-	const pages = useLocalStorage('pages', [createPage()]);
 
 	let nbPages = $derived(pages.current.length);
 
