@@ -2,11 +2,14 @@
 	import Header from './affiche/Header.svelte';
 	import Event from './affiche/Event.svelte';
 	import Footer from './affiche/Footer.svelte';
+	import Decoration from './affiche/Decoration.svelte';
 
 	let { selectedLibrary, selectedMonth, page, styles } = $props();
 </script>
 
 <div class="page" style:zoom={styles.zoom}>
+	<Decoration />
+
 	<header class="headerPage">
 		<Header {selectedLibrary} {selectedMonth} {styles} />
 	</header>
