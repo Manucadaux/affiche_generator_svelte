@@ -4,7 +4,7 @@
 	import Footer from './affiche/Footer.svelte';
 	import Decoration from './affiche/Decoration.svelte';
 
-	let { selectedLibrary, selectedMonth, page, styles } = $props();
+	let { selectedLibrary, selectedMonth, page, styles, onSelectEvent } = $props();
 </script>
 
 <div class="page" style:zoom={styles.zoom}>
@@ -22,6 +22,7 @@
 				nbEvents={page.events.length}
 				reverse={page.reverse ?? false}
 				eventIndex={i}
+				{onSelectEvent}
 			/>
 		{/each}
 	</main>

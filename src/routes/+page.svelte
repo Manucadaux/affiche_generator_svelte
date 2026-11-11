@@ -6,6 +6,7 @@
 	import { slide } from 'svelte/transition';
 	import Generator from '#lib/layout/Generator.svelte';
 	import ContainerAffiche from '../lib/layout/ContainerAffiche.svelte';
+	import EventEditor from '#lib/components/affiche/EventEditor.svelte';
 
 	const selectedLibrary = useLocalStorage('selectedLibraryId', null);
 	const selectedMonth = useLocalStorage('selectedMonthId', null);
@@ -17,6 +18,26 @@
 	let selectedMonthData = $derived(
 		optionsMonth.find((option) => option.id === selectedMonth.current) ?? null
 	);
+
+	let selectedEventId = $state(null);
+
+	function selectEvent(eventId) {
+		selectedEventId = eventId;
+	}
+
+	let selectedEvent = $derived(
+		pages.current.flatMap((page) => page.events).find((event) => event.id === selectedEventId) ??
+			null
+	);
+
+	function updateEvent(eventId, field, value) {
+		pages.current = pages.current.map((page) => ({
+			...page,
+			events: page.events.map((event) =>
+				event.id === eventId ? { ...event, [field]: value } : event
+			)
+		}));
+	}
 
 	const styles = useLocalStorage('styles', defaultStyles);
 
@@ -105,10 +126,28 @@
 				onAddEvent={addEvent}
 				onRemoveEvent={removeEvent}
 				onToggleReverse={toggleReverse}
+				onSelectEvent={selectEvent}
+				isEditing={selectedEvent !== null}
 			/>
 		</div>
 	{/each}
 </div>
+
+{#if selectedEvent}
+	<button
+		class="editorBackdrop"
+		aria-label="Fermer l'éditeur"
+		onclick={() => (selectedEventId = null)}
+	></button>
+
+	<div class="editorContainer card border border-base-300 bg-base-100 shadow-xl">
+		<EventEditor
+			event={selectedEvent}
+			onUpdateEvent={updateEvent}
+			onClose={() => (selectedEventId = null)}
+		/>
+	</div>
+{/if}
 
 <style>
 	:global {
@@ -125,5 +164,29 @@
 		top: 10px;
 		left: 350px;
 		padding-bottom: 40px;
+	}
+
+	.editorContainer {
+		position: fixed;
+		top: 10px;
+		right: 20px;
+		width: 380px;
+		height: calc(100vh - 20px);
+		overflow-y: auto;
+		z-index: 10;
+	}
+
+	.editorBackdrop {
+		position: fixed;
+		inset: 0;
+		z-index: 9;
+		padding: 0;
+		border: none;
+		background: transparent;
+		cursor: default;
+	}
+
+	.editorContainer {
+		z-index: 10;
 	}
 </style>

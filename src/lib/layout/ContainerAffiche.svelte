@@ -15,22 +15,30 @@
 		onDeletePage,
 		onAddEvent,
 		onRemoveEvent,
-		onToggleReverse
+		onToggleReverse,
+		onSelectEvent,
+		isEditing
 	} = $props();
 </script>
 
-<HeaderPage
-	{pageNumber}
-	{page}
-	{canDelete}
-	{onDeletePage}
-	{onAddEvent}
-	{onRemoveEvent}
-	{onToggleReverse}
-/>
+<div class="card border border-base-300 bg-base-100">
+	<HeaderPage
+		{pageNumber}
+		{page}
+		{canDelete}
+		{onDeletePage}
+		{onAddEvent}
+		{onRemoveEvent}
+		{onToggleReverse}
+	/>
 
-<div class="pageContainer" style="height: {innerHeight.current - 140}px;">
-	<PageAffiche {selectedLibrary} {selectedMonth} {page} {styles} />
+	<div
+		class="pageContainer"
+		class:editing={isEditing}
+		style="height: {innerHeight.current - 140}px;"
+	>
+		<PageAffiche {selectedLibrary} {selectedMonth} {page} {styles} {onSelectEvent} />
+	</div>
 </div>
 
 <style>
@@ -39,11 +47,15 @@
 		height: 100%;
 		overflow: scroll;
 		box-sizing: content-box;
-		border: 1px solid black;
-		border-top: none;
-		border-radius: 0 0 16px 16px;
 		margin-bottom: 40px;
 		position: relative;
 		padding: 20px 0;
+		transition:
+			transform 500ms ease,
+			width 500ms ease;
+	}
+
+	.pageContainer.editing {
+		transform: translateX(-200px);
 	}
 </style>

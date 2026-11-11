@@ -1,9 +1,12 @@
 <script>
-	let { event, styles, nbEvents, reverse, eventIndex } = $props();
+	let { event, styles, nbEvents, reverse, eventIndex, onSelectEvent } = $props();
 
 	let eventClass = $derived(['uno', 'duo', 'trio', 'quatro'][nbEvents - 1] ?? 'uno');
 
 	let imageRight = $derived((eventIndex % 2 === 1) !== reverse);
+
+	let titleSize = $derived(`${event.sizeTitle ?? 36}px`);
+	let descriptionSize = $derived(`${event.sizeDescription ?? 25}px`);
 </script>
 
 <div
@@ -11,6 +14,15 @@
 	class:reverse
 	class:imageRight
 	style:--border-color={styles.bgTitle}
+	role="button"
+	tabindex="0"
+	onclick={() => onSelectEvent?.(event.id)}
+	onkeydown={(e) => {
+		if (e.key === 'Enter' || e.key === ' ') {
+			e.preventDefault();
+			onSelectEvent?.(event.id);
+		}
+	}}
 >
 	<div class="imgContainer"></div>
 
@@ -21,11 +33,25 @@
 		</div>
 
 		<div class="descriptionContainer">
-			<div class="title" style:background={styles.bgTitle} style:color={styles.colorTitle}>
+			<div
+				class="title"
+				style:background={styles.bgTitle}
+				style:color={styles.colorTitle}
+				style:font-size={titleSize}
+			>
 				{event.title}
 			</div>
-			<div class="text" style:color={styles.colorContent}>{event.content}</div>
-			<div class="footerInfo" style:background={styles.bgTitle} style:color={styles.colorTitle}>
+
+			<div class="text" style:color={styles.colorContent} style:font-size={descriptionSize}>
+				{event.content}
+			</div>
+
+			<div
+				class="footerInfo"
+				class:hidden={!event.condition?.trim() && !event.inscription}
+				style:background={styles.bgTitle}
+				style:color={styles.colorTitle}
+			>
 				<span class="condition">{event.condition}</span>
 				<span class="inscription">
 					{event.inscription ? 'Sur inscription' : ''}
@@ -44,9 +70,14 @@
 		box-sizing: border-box;
 		border-radius: 40px 40px 0 0;
 		overflow: hidden;
-
 		display: flex;
 		flex-direction: column;
+		cursor: pointer;
+	}
+
+	.event:focus-visible {
+		outline: 4px solid #2563eb;
+		outline-offset: 4px;
 	}
 
 	.imgContainer {
@@ -72,6 +103,10 @@
 		line-height: 1;
 	}
 
+	.hour {
+		white-space: pre-line;
+	}
+
 	.descriptionContainer {
 		display: flex;
 		flex: 1;
@@ -80,7 +115,6 @@
 		overflow: hidden;
 		overflow-wrap: break-word;
 		font-weight: bold;
-		font-size: 25px;
 		line-height: 1.2;
 
 		.title {
@@ -92,6 +126,7 @@
 			flex: 1 1 0;
 			min-height: 0;
 			overflow: hidden;
+			white-space: pre-line;
 		}
 
 		.footerInfo {
@@ -109,6 +144,10 @@
 			span {
 				display: block;
 			}
+		}
+
+		.footerInfo.hidden {
+			display: none;
 		}
 	}
 
@@ -145,16 +184,10 @@
 
 		.descriptionContainer {
 			flex: 1;
-			overflow-wrap: break-word;
-			font-weight: bold;
-			font-size: 25px;
-			line-height: 1.2;
 
 			.title {
-				width: 100%;
 				padding: 20px;
 				box-sizing: border-box;
-				font-size: 36px;
 				line-height: 1.5;
 				text-transform: uppercase;
 			}
@@ -216,15 +249,6 @@
 		.descriptionContainer {
 			flex: 1;
 
-			.title {
-				font-family: 'Pau Display', sans-serif;
-				font-size: 21px;
-			}
-
-			.text {
-				font-size: 23px;
-			}
-
 			.footerInfo {
 				font-size: 20px;
 			}
@@ -275,6 +299,7 @@
 
 		.descriptionContainer {
 			flex: 1;
+
 			.title {
 				padding: 15px;
 			}
@@ -293,28 +318,10 @@
 
 	.trio {
 		height: 30.5%;
-		.descriptionContainer {
-			.title {
-				font-size: 28px;
-			}
-
-			.text {
-				font-size: 22px;
-			}
-		}
 	}
 
 	.quatro {
 		height: 23.9%;
 		margin-bottom: 2.3%;
-		.descriptionContainer {
-			.title {
-				font-size: 25px;
-			}
-
-			.text {
-				font-size: 19px;
-			}
-		}
 	}
 </style>
