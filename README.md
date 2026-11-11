@@ -1,56 +1,89 @@
-# sv
+# Affiche Generator
 
-Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
+**Affiche Generator** est une application web permettant de créer et de personnaliser facilement des affiches composées de plusieurs pages et événements.
 
-## Creating a project
+L'application offre une interface de création interactive avec aperçu en temps réel, personnalisation graphique et export au format PDF.
 
-If you're seeing this, you've probably already done this step. Congrats!
+## Fonctionnalités
 
-```sh
-# create a new project
-npx sv create my-app
+- **Gestion des pages** : ajouter et organiser plusieurs pages.
+- **Gestion des événements** : créer, modifier et personnaliser les événements affichés.
+- **Personnalisation graphique** : modifier les couleurs et choisir parmi plusieurs thèmes visuels.
+- **Gestion des images** : associer des images aux événements.
+- **Décorations** : ajouter des éléments décoratifs à l'affiche.
+- **Aperçu dynamique** : visualiser les modifications en temps réel.
+- **Zoom** : ajuster l'affichage de l'affiche.
+- **Sauvegarde automatique** : retrouver son travail après avoir fermé et rouvert l'application.
+- **Export PDF** : générer un document PDF à partir de l'affiche.
+
+## Technologies utilisées
+
+- [Svelte 5](https://svelte.dev/) – interface réactive et composants.
+- [SvelteKit](https://svelte.dev/docs/kit) – framework applicatif.
+- [Tailwind CSS](https://tailwindcss.com/) – styles et mise en page.
+- [DaisyUI](https://daisyui.com/) – composants et thèmes.
+- [IndexedDB](https://developer.mozilla.org/fr/docs/Web/API/IndexedDB_API) – stockage des images.
+- `localStorage` – sauvegarde des données de l'application.
+- [jsPDF](https://github.com/parallax/jsPDF) et [html2canvas-pro](https://github.com/yorickshan/html2canvas-pro) – génération des PDF.
+- [Lucide](https://lucide.dev/) – icônes.
+
+## Installation
+
+Cloner le dépôt :
+
+```bash
+git clone https://github.com/Manucadaux/affiche_generator_svelte.git
 ```
 
-To recreate this project with the same configuration:
+Accéder au dossier :
 
-```sh
-# recreate this project
-npx sv@1.2.0 create --template minimal --no-types --add prettier eslint tailwindcss="plugins:typography,forms" vitest="usages:unit,component" --install npm testSvelte
+```bash
+cd affiche_generator_svelte
 ```
 
-## Adding features
+Installer les dépendances :
 
-Add features to your project with `sv add`:
-
-```sh
-npx sv add
+```bash
+npm install
 ```
 
-For example, to add Tailwind CSS:
+## Développement
 
-```sh
-npx sv add tailwindcss
-```
+Lancer le serveur de développement :
 
-## Developing
-
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
-
-```sh
+```bash
 npm run dev
+```
 
-# or start the server and open the app in a new browser tab
+Pour ouvrir automatiquement l'application dans le navigateur :
+
+```bash
 npm run dev -- --open
 ```
 
-## Building
+## Production
 
-To create a production version of your app:
+Construire l'application :
 
-```sh
+```bash
 npm run build
 ```
 
-You can preview the production build with `npm run preview`.
+Prévisualiser la version de production :
 
-> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
+```bash
+npm run preview
+```
+
+## Stockage des données
+
+L'application utilise deux mécanismes de stockage côté navigateur :
+
+- **localStorage** pour conserver les données et les paramètres de l'affiche.
+- **IndexedDB** pour stocker les images associées aux événements.
+
+Les données sont conservées localement dans le navigateur. Elles ne sont donc pas automatiquement synchronisées entre plusieurs appareils ou navigateurs.
+
+## Licence
+
+Projet personnel.
