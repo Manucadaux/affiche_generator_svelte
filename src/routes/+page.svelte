@@ -12,6 +12,7 @@
 	} from '#lib/utils/imageStorage.js';
 	import { scrollToPage } from '#lib/utils/scroll.js';
 	import { createPageActions } from '#lib/utils/pageActions.js';
+	import { createEventActions } from '#lib/utils/eventActions.js';
 
 	import { slide } from 'svelte/transition';
 	import { onMount } from 'svelte';
@@ -32,6 +33,14 @@
 		saveEventImage,
 		deleteEventImages,
 		scrollToPage
+	});
+
+	const { addEvent, removeEvent, toggleReverse } = createEventActions({
+		pages,
+		createEvent,
+		deleteEventImages,
+		getSelectedEventId: () => selectedEventId,
+		clearSelectedEvent: () => (selectedEventId = null)
 	});
 
 	onMount(() => {
@@ -106,41 +115,6 @@
 		}
 
 		pages.current = pages.current.filter((page) => page.id !== pageId);
-	}
-
-	function addEvent(pageId) {
-		pages.current = pages.current.map((page) =>
-			page.id === pageId && page.events.length < 4
-				? {
-						...page,
-						events: [...page.events, createEvent()]
-					}
-				: page
-		);
-	}
-
-	async function removeEvent(pageId) {
-		const page = pages.current.find((page) => page.id === pageId);
-
-		if (!page || page.events.length <= 1) return;
-
-		const eventToRemove = page.events[page.events.length - 1];
-
-		await deleteEventImages([eventToRemove]);
-
-		if (eventToRemove.id === selectedEventId) {
-			selectedEventId = null;
-		}
-
-		pages.current = pages.current.map((page) =>
-			page.id === pageId ? { ...page, events: page.events.slice(0, -1) } : page
-		);
-	}
-
-	function toggleReverse(pageId, checked) {
-		pages.current = pages.current.map((page) =>
-			page.id === pageId ? { ...page, reverse: checked } : page
-		);
 	}
 
 	async function resetEvents() {
