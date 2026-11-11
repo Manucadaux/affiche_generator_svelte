@@ -37,7 +37,7 @@ function getDatabase() {
 /**
  * Enregistrer ou remplacer une image
  * @param {string} eventId
- * @param {File} file
+ * @param {Blob} file
  * @returns {Promise<void>}
  */
 export async function saveEventImage(eventId, file) {
