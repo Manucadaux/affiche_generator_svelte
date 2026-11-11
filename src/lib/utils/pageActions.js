@@ -27,6 +27,8 @@
  * @property {(eventId: string) => Promise<Blob | null>} getEventImage
  * @property {(eventId: string, image: Blob) => Promise<void>} saveEventImage
  * @property {(events: Event[]) => Promise<void>} deleteEventImages
+ * @property {() => string | null} getSelectedEventId
+ * @property {() => void} clearSelectedEvent
  * @property {(pageId: string) => Promise<void>} scrollToPage
  */
 
@@ -39,7 +41,9 @@ export function createPageActions(dependencies) {
 		getEventImage,
 		saveEventImage,
 		deleteEventImages,
-		scrollToPage
+		scrollToPage,
+		getSelectedEventId,
+		clearSelectedEvent
 	} = dependencies;
 
 	/** @param {string} pageId */
@@ -55,6 +59,27 @@ export function createPageActions(dependencies) {
 		pages.current = newPages;
 
 		await scrollToPage(newPage.id);
+	}
+
+	/** @param {string} pageId */
+	async function deletePage(pageId) {
+		const confirmation = confirm(
+			'Voulez-vous vraiment supprimer cette page et tous ses évènements ?'
+		);
+
+		if (!confirmation) return;
+
+		const page = pages.current.find((page) => page.id === pageId);
+
+		if (!page) return;
+
+		await deleteEventImages(page.events);
+
+		if (page.events.some((event) => event.id === getSelectedEventId())) {
+			clearSelectedEvent();
+		}
+
+		pages.current = pages.current.filter((page) => page.id !== pageId);
 	}
 
 	/** @param {string} pageId */
@@ -103,5 +128,5 @@ export function createPageActions(dependencies) {
 		}
 	}
 
-	return { addPage, duplicatePage };
+	return { addPage, duplicatePage, deletePage };
 }

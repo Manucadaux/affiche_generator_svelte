@@ -25,14 +25,16 @@
 	const selectedMonth = useLocalStorage('selectedMonthId', null);
 	const pages = useLocalStorage('pages', [createPage()]);
 
-	const { addPage, duplicatePage } = createPageActions({
+	const { addPage, duplicatePage, deletePage } = createPageActions({
 		pages,
 		createPage,
 		generateId,
 		getEventImage,
 		saveEventImage,
 		deleteEventImages,
-		scrollToPage
+		scrollToPage,
+		getSelectedEventId: () => selectedEventId,
+		clearSelectedEvent: () => (selectedEventId = null)
 	});
 
 	const { addEvent, removeEvent, toggleReverse } = createEventActions({
@@ -95,26 +97,6 @@
 				console.error('Erreur lors de la suppression d’une image :', result.reason);
 			}
 		});
-	}
-
-	async function deletePage(pageId) {
-		const confirmation = confirm(
-			'Voulez-vous vraiment supprimer cette page et tous ses évènements ?'
-		);
-
-		if (!confirmation) return;
-
-		const page = pages.current.find((page) => page.id === pageId);
-
-		if (!page) return;
-
-		await deleteEventImages(page.events);
-
-		if (page.events.some((event) => event.id === selectedEventId)) {
-			selectedEventId = null;
-		}
-
-		pages.current = pages.current.filter((page) => page.id !== pageId);
 	}
 
 	async function resetEvents() {
