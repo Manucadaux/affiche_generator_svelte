@@ -54,8 +54,15 @@
 
 	let nbPages = $derived(pages.current.length);
 
-	function addPage() {
-		pages.current = [...pages.current, createPage()];
+	function addPage(pageId) {
+		const index = pages.current.findIndex((page) => page.id === pageId);
+
+		if (index === -1) return;
+
+		const newPages = [...pages.current];
+		newPages.splice(index + 1, 0, createPage());
+
+		pages.current = newPages;
 	}
 
 	async function deleteEventImages(events) {
@@ -157,7 +164,6 @@
 
 <Generator
 	{nbPages}
-	{addPage}
 	{optionsLibrary}
 	{optionsMonth}
 	bind:selectedLibrary={selectedLibrary.current}
@@ -183,6 +189,7 @@
 				onToggleReverse={toggleReverse}
 				onSelectEvent={selectEvent}
 				isEditing={selectedEvent !== null}
+				onAddPage={addPage}
 			/>
 		</div>
 	{/each}

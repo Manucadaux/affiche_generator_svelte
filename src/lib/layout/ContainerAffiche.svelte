@@ -17,7 +17,8 @@
 		onRemoveEvent,
 		onToggleReverse,
 		onSelectEvent,
-		isEditing
+		isEditing,
+		onAddPage
 	} = $props();
 </script>
 
@@ -30,6 +31,7 @@
 		{onAddEvent}
 		{onRemoveEvent}
 		{onToggleReverse}
+		{onAddPage}
 	/>
 
 	<div

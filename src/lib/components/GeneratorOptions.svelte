@@ -2,7 +2,6 @@
 	import { Palette, ChevronDown } from 'lucide-svelte';
 	let {
 		nbPages,
-		addPage,
 		optionsLibrary,
 		optionsMonth,
 		selectedLibrary = $bindable(),
@@ -23,7 +22,7 @@
 
 <div class="generatorOptions">
 	<div class="generalHeader">
-		<h3>Général</h3>
+		<h3>Nombre de pages : {nbPages}</h3>
 
 		<div class="dropdown dropdown-end">
 			<button tabindex="0" class="btn btn-neutral btn-sm" aria-label="Choisir un thème">
@@ -66,11 +65,6 @@
 			oninput={(e) => (styles.zoom = Number(e.currentTarget.value))}
 			class="range range-primary"
 		/>
-	</div>
-	<div>
-		<button onclick={addPage} class="btn btn-block btn-neutral">
-			Ajouter page {nbPages + 1}
-		</button>
 	</div>
 
 	<div>

@@ -5,7 +5,6 @@
 
 	let {
 		nbPages,
-		addPage,
 		optionsLibrary,
 		optionsMonth,
 		selectedLibrary = $bindable(),
@@ -19,7 +18,6 @@
 <div class="generator bg-base-300">
 	<GeneratorOptions
 		{nbPages}
-		{addPage}
 		{optionsLibrary}
 		{optionsMonth}
 		bind:selectedLibrary

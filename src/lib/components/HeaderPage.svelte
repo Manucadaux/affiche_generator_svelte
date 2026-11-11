@@ -1,6 +1,17 @@
 <script>
-	let { pageNumber, page, canDelete, onDeletePage, onAddEvent, onRemoveEvent, onToggleReverse } =
-		$props();
+	import { Trash2, FilePlus, Copy } from 'lucide-svelte';
+
+	let {
+		pageNumber,
+		page,
+		canDelete,
+		onDeletePage,
+		onAddEvent,
+		onRemoveEvent,
+		onToggleReverse,
+		onAddPage,
+		onDuplicatePage
+	} = $props();
 </script>
 
 <div class="headerPageContainer bg-base-300">
@@ -14,7 +25,7 @@
 					checked={page.reverse ?? false}
 					onchange={(event) => onToggleReverse(page.id, event.currentTarget.checked)}
 				/>
-				Inversé
+				Layout inversé
 			</label>
 		</p>
 
@@ -39,10 +50,37 @@
 			</button>
 		</p>
 	</div>
-	<div>
-		<button class="btn btn-sm" disabled={!canDelete} onclick={() => onDeletePage(page.id)}>
-			Supprimer la page
-		</button>
+	<div class="flex gap-3">
+		<div class="tooltip tooltip-bottom" data-tip="Supprimer la page">
+			<button
+				class="btn btn-error btn-md"
+				disabled={!canDelete}
+				onclick={() => onDeletePage(page.id)}
+				aria-label="Supprimer cette page"
+			>
+				<Trash2 size={22} />
+			</button>
+		</div>
+
+		<div class="tooltip tooltip-bottom" data-tip="Dupliquer la page">
+			<button
+				class="btn btn-neutral btn-md"
+				onclick={() => onDuplicatePage(page.id)}
+				aria-label="Dupliquer cette page"
+			>
+				<Copy size={22} />
+			</button>
+		</div>
+
+		<div class="tooltip tooltip-bottom" data-tip="Nouvelle page">
+			<button
+				class="btn btn-neutral btn-md"
+				onclick={() => onAddPage(page.id)}
+				aria-label="Ajouter une page après celle-ci"
+			>
+				<FilePlus size={22} />
+			</button>
+		</div>
 	</div>
 </div>
 
