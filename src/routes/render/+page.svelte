@@ -1,8 +1,10 @@
 <script>
+	// @ts-nocheck
 	import { onMount, tick } from 'svelte';
 	import { useLocalStorage } from '#lib/utils/useLocalStorage.svelte.js';
 	import { optionsLibrary, optionsMonth } from '#lib/data/options.js';
 	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
 	import PageAffiche from '../../lib/components/PageAffiche.svelte';
 
 	// Récupération des données sauvegardées
@@ -94,7 +96,7 @@
 
 			// Retour à l'accueil après un court délai
 			setTimeout(() => {
-				goto('/');
+				goto(resolve('/'));
 			}, 1500);
 		} catch (error) {
 			console.error('Erreur lors de la génération du PDF :', error);
