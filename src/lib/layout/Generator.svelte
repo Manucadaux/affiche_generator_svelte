@@ -24,6 +24,7 @@
 		{optionsMonth}
 		bind:selectedLibrary
 		bind:selectedMonth
+		bind:styles
 	/>
 
 	<GeneratorColors bind:styles />

@@ -7,7 +7,7 @@
 	let { selectedLibrary, selectedMonth, page, styles, onSelectEvent } = $props();
 </script>
 
-<div class="page" style:zoom={styles.zoom}>
+<div class="page" style:zoom={`${styles.zoom}%`}>
 	<Decoration {styles} />
 
 	<header class="headerPage">

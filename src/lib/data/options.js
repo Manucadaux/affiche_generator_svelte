@@ -31,5 +31,5 @@ export const defaultStyles = {
 	colorDate: '#FFFFFF',
 	colorTitle: '#FFFFFF',
 	colorContent: '#003288',
-	zoom: '40%'
+	zoom: 40
 };

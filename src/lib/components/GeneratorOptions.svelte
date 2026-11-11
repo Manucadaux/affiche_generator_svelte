@@ -5,12 +5,29 @@
 		optionsLibrary,
 		optionsMonth,
 		selectedLibrary = $bindable(),
-		selectedMonth = $bindable()
+		selectedMonth = $bindable(),
+		styles = $bindable()
 	} = $props();
 </script>
 
 <div>
 	<h3>Général</h3>
+	<div class="zoomControl">
+		<label for="zoom">
+			Zoom de l'affiche : <strong>{styles.zoom}%</strong>
+		</label>
+
+		<input
+			id="zoom"
+			type="range"
+			min="30"
+			max="100"
+			step="5"
+			value={styles.zoom}
+			oninput={(e) => (styles.zoom = Number(e.currentTarget.value))}
+			class="range range-primary"
+		/>
+	</div>
 	<div>
 		<button onclick={addPage} class="btn btn-block btn-neutral">
 			Ajouter page {nbPages + 1}
