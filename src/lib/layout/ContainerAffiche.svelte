@@ -3,8 +3,6 @@
 	import PageAffiche from '#lib/components/PageAffiche.svelte';
 	import HeaderPage from '#lib/components/HeaderPage.svelte';
 
-	import { innerHeight } from 'svelte/reactivity/window';
-
 	let {
 		pageNumber,
 		selectedLibrary,
@@ -36,11 +34,7 @@
 		{onDuplicatePage}
 	/>
 
-	<div
-		class="pageContainer"
-		class:editing={isEditing}
-		style="height: {innerHeight.current - 140}px;"
-	>
+	<div class="pageContainer" class:editing={isEditing}>
 		<PageAffiche {selectedLibrary} {selectedMonth} {page} {styles} {onSelectEvent} />
 	</div>
 </div>
@@ -48,14 +42,12 @@
 <style>
 	.pageContainer {
 		width: 100%;
-		height: 100%;
-		overflow: scroll;
+		height: fit-content;
+		overflow: auto;
 		box-sizing: border-box;
 		position: relative;
 		padding: 20px 0;
-		transition:
-			transform 500ms ease,
-			width 500ms ease;
+		transition: transform 500ms ease;
 	}
 
 	.pageContainer.editing {
