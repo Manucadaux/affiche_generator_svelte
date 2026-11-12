@@ -20,19 +20,11 @@
 		<p>
 			Page {pageNumber}
 			<span class="text-sm text-base-content/60">sur {totalPages}</span>
-			<label class="label">
-				<input
-					type="checkbox"
-					class="checkbox checkbox-xs"
-					checked={page.reverse ?? false}
-					onchange={(event) => onToggleReverse(page.id, event.currentTarget.checked)}
-				/>
-				Layout inversé
-			</label>
 		</p>
 
-		<p>
+		<p class="flex items-center gap-2">
 			Nombre d'évènements :
+
 			<button
 				class="btn btn-sm"
 				disabled={page.events.length <= 1}
@@ -50,6 +42,16 @@
 			>
 				+
 			</button>
+
+			<label class="ml-4 flex cursor-pointer items-center gap-2 text-base-content">
+				<span>Layout inversé</span>
+				<input
+					type="checkbox"
+					class="checkbox checkbox-sm"
+					checked={page.reverse ?? false}
+					onchange={(event) => onToggleReverse(page.id, event.currentTarget.checked)}
+				/>
+			</label>
 		</p>
 	</div>
 	<div class="mr-5 flex gap-3">
@@ -94,9 +96,5 @@
 		padding: 8px;
 		width: 100%;
 		box-sizing: border-box;
-	}
-
-	label {
-		margin-left: 20px;
 	}
 </style>
