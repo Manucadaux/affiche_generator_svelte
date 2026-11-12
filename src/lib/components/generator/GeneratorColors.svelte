@@ -61,6 +61,18 @@
 	/>
 </div>
 
+<p class="mt-3 text-sm text-base-content/60">
+	Besoin d'inspiration ?
+	<a
+		href="https://coolors.co/palettes/trending"
+		target="_blank"
+		rel="noopener noreferrer"
+		class="link"
+	>
+		Coolors.co
+	</a>
+</p>
+
 <style>
 	.colors :global(.input-container input) {
 		color: #1f1e1e;
