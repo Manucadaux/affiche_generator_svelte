@@ -87,22 +87,30 @@
 		/>
 	</div>
 
-	<div>
-		<label for="libraries">Sélectionnez une médiathèque</label>
-		<select id="libraries" class="select" bind:value={selectedLibrary}>
-			{#each optionsLibrary as option (option.id)}
-				<option value={option.id}>{option.label}</option>
-			{/each}
-		</select>
-	</div>
+	<div class="collapse-arrow collapse rounded-box border border-base-content/20">
+		<input type="checkbox" checked />
 
-	<div>
-		<label for="months">Sélectionnez un mois</label>
-		<select id="months" class="select" bind:value={selectedMonth}>
-			{#each optionsMonth as option (option.id)}
-				<option value={option.id}>{option.label}</option>
-			{/each}
-		</select>
+		<div class="collapse-title font-medium">Informations</div>
+
+		<div class="collapse-content">
+			<div>
+				<label for="libraries">Sélectionnez une médiathèque</label>
+				<select id="libraries" class="select" bind:value={selectedLibrary}>
+					{#each optionsLibrary as option (option.id)}
+						<option value={option.id}>{option.label}</option>
+					{/each}
+				</select>
+			</div>
+
+			<div class="mt-4">
+				<label for="months">Sélectionnez un mois</label>
+				<select id="months" class="select" bind:value={selectedMonth}>
+					{#each optionsMonth as option (option.id)}
+						<option value={option.id}>{option.label}</option>
+					{/each}
+				</select>
+			</div>
+		</div>
 	</div>
 </div>
 
@@ -142,5 +150,12 @@
 
 	.dropdown {
 		position: relative;
+	}
+
+	.collapse > input[type='checkbox'] {
+		position: absolute;
+		inset: 0 0 auto 0;
+		width: 100%;
+		height: 56px;
 	}
 </style>

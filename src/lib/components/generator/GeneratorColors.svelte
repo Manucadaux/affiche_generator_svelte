@@ -19,61 +19,76 @@
 	];
 </script>
 
-<div class="colors">
-	<ColorPicker
-		bind:hex={styles.bgDate}
-		{swatches}
-		label="Couleur fond date"
-		isAlpha={false}
-		textInputModes={['hex']}
-	/>
+<div class="collapse-arrow collapse rounded-box border border-base-content/20">
+	<input type="checkbox" checked />
 
-	<ColorPicker
-		bind:hex={styles.bgTitle}
-		{swatches}
-		label="Couleur fond titre"
-		isAlpha={false}
-		textInputModes={['hex']}
-	/>
+	<div class="collapse-title font-medium">Couleurs</div>
 
-	<ColorPicker
-		bind:hex={styles.colorDate}
-		{swatches}
-		label="Couleur texte date"
-		isAlpha={false}
-		textInputModes={['hex']}
-	/>
+	<div class="collapse-content">
+		<div class="colors">
+			<ColorPicker
+				bind:hex={styles.bgDate}
+				{swatches}
+				label="Couleur fond date"
+				isAlpha={false}
+				textInputModes={['hex']}
+			/>
 
-	<ColorPicker
-		bind:hex={styles.colorTitle}
-		{swatches}
-		label="Couleur texte titre"
-		isAlpha={false}
-		textInputModes={['hex']}
-	/>
+			<ColorPicker
+				bind:hex={styles.bgTitle}
+				{swatches}
+				label="Couleur fond titre"
+				isAlpha={false}
+				textInputModes={['hex']}
+			/>
 
-	<ColorPicker
-		bind:hex={styles.colorContent}
-		{swatches}
-		label="Couleur texte"
-		isAlpha={false}
-		textInputModes={['hex']}
-	/>
+			<ColorPicker
+				bind:hex={styles.colorDate}
+				{swatches}
+				label="Couleur texte date"
+				isAlpha={false}
+				textInputModes={['hex']}
+			/>
+
+			<ColorPicker
+				bind:hex={styles.colorTitle}
+				{swatches}
+				label="Couleur texte titre"
+				isAlpha={false}
+				textInputModes={['hex']}
+			/>
+
+			<ColorPicker
+				bind:hex={styles.colorContent}
+				{swatches}
+				label="Couleur texte"
+				isAlpha={false}
+				textInputModes={['hex']}
+			/>
+		</div>
+
+		<p class="mt-3 text-sm text-base-content/60">
+			Besoin d'inspiration ?
+			<a
+				href="https://coolors.co/palettes/trending"
+				target="_blank"
+				rel="noopener noreferrer"
+				class="link"
+			>
+				Coolors.co
+			</a>
+		</p>
+	</div>
 </div>
 
-<p class="mt-3 text-sm text-base-content/60">
-	Besoin d'inspiration ?
-	<a
-		href="https://coolors.co/palettes/trending"
-		target="_blank"
-		rel="noopener noreferrer"
-		class="link"
-	>
-		Coolors.co
-	</a>
-</p>
-
 <style>
+	.collapse > input[type='checkbox'] {
+		position: absolute;
+		inset: 0 0 auto 0;
+		width: 100%;
+		height: 56px;
+	}
+
 	.colors :global(.input-container input) {
 		color: #1f1e1e;
 	}
