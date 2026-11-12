@@ -7,6 +7,7 @@
 	let imageUrl = $state(null);
 	let imageError = $state('');
 	let currentObjectUrl = null;
+	let eventId = $derived(event.id);
 
 	function update(field, value) {
 		onUpdateEvent(event.id, field, value);
@@ -14,12 +15,12 @@
 
 	// Charger l'image existante
 	$effect(() => {
-		const eventId = event.id;
+		const currentEventId = eventId;
 		let cancelled = false;
 
 		imageUrl = null;
 
-		getEventImage(eventId)
+		getEventImage(currentEventId)
 			.then((blob) => {
 				if (cancelled || !blob) return;
 

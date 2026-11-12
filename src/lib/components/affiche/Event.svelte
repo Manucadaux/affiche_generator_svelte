@@ -13,11 +13,16 @@
 
 	let imageUrl = $state(null);
 	let imageReady = $state(false);
+	let eventId = $derived(event.id);
+	let imageVersion = $derived(event.imageVersion ?? 0);
 
 	// Charger l'image depuis IndexedDB
+	// Charger l'image depuis IndexedDB uniquement si l'identifiant change
 	$effect(() => {
-		const currentEvent = event;
-		const eventId = currentEvent.id;
+		const currentEventId = eventId;
+		const currentImageVersion = imageVersion;
+
+		void currentImageVersion;
 
 		let cancelled = false;
 		let objectUrl = null;
@@ -25,7 +30,7 @@
 		imageUrl = null;
 		imageReady = false;
 
-		getEventImage(eventId)
+		getEventImage(currentEventId)
 			.then((blob) => {
 				if (cancelled) return;
 
@@ -37,6 +42,8 @@
 				imageReady = true;
 			})
 			.catch((error) => {
+				if (cancelled) return;
+
 				console.error('Erreur lors du chargement de l’image :', error);
 				imageReady = true;
 			});

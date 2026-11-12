@@ -65,12 +65,19 @@ export function createEventActions(dependencies) {
 	 * @param {Event[K]} value
 	 */
 	function updateEvent(eventId, field, value) {
-		pages.current = pages.current.map((page) => ({
-			...page,
-			events: page.events.map((event) =>
-				event.id === eventId ? { ...event, [field]: value } : event
-			)
-		}));
+		pages.current = pages.current.map((page) => {
+			// Ne pas toucher aux pages qui ne contiennent pas cet évènement
+			if (!page.events.some((event) => event.id === eventId)) {
+				return page;
+			}
+
+			return {
+				...page,
+				events: page.events.map((event) =>
+					event.id === eventId ? { ...event, [field]: value } : event
+				)
+			};
+		});
 	}
 
 	return { addEvent, removeEvent, toggleReverse, updateEvent };
