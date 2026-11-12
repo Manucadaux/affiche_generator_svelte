@@ -35,7 +35,7 @@
 		{onDuplicatePage}
 	/>
 
-	<div class="pageContainer" class:editing={isEditing}>
+	<div class="pageContainer bg-base-200" class:editing={isEditing}>
 		<PageAffiche
 			{selectedLibrary}
 			{selectedMonth}
