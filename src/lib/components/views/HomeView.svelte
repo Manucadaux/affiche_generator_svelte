@@ -29,6 +29,7 @@
 	const pages = useLocalStorage('pages', [createPage()]);
 	const styles = useLocalStorage('styles', defaultStyles);
 	const selectedTheme = useLocalStorage('selectedTheme', 'system');
+	const documentName = useLocalStorage('documentName', 'Mon document');
 
 	let selectedEventId = $state(null);
 	let systemPrefersDark = $state(null);
@@ -125,7 +126,8 @@
 			styles.ready &&
 			selectedLibrary.ready &&
 			selectedMonth.ready &&
-			selectedTheme.ready
+			selectedTheme.ready &&
+			documentName.ready
 	);
 
 	let nbPages = $derived(pages.current.length);
@@ -141,6 +143,7 @@
 		bind:selectedMonth={selectedMonth.current}
 		bind:styles={styles.current}
 		bind:selectedTheme={selectedTheme.current}
+		bind:documentName={documentName.current}
 		onResetEvents={resetEvents}
 		onResetAll={resetAll}
 	/>

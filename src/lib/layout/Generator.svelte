@@ -11,6 +11,7 @@
 		selectedMonth = $bindable(),
 		styles = $bindable(),
 		selectedTheme = $bindable(),
+		documentName = $bindable(),
 		onResetEvents,
 		onResetAll,
 		renderHref
@@ -26,6 +27,7 @@
 		bind:selectedMonth
 		bind:styles
 		bind:selectedTheme
+		bind:documentName
 	/>
 
 	<GeneratorColors bind:styles />

@@ -11,6 +11,7 @@
 	const selectedMonthId = useLocalStorage('selectedMonthId', null);
 	const styles = useLocalStorage('styles', {});
 	const pages = useLocalStorage('pages', []);
+	const documentName = useLocalStorage('documentName', 'Mon document');
 
 	// Retrouver les objets complets à partir des identifiants
 	let selectedLibrary = $derived(
@@ -89,7 +90,14 @@
 			}
 
 			// Télécharger le PDF
-			pdf.save('document-A3.pdf');
+			const safeDocumentName =
+				(documentName.current || 'Mon document')
+					.trim()
+					.replace(/[<>:"/\\|?*]/g, '-')
+					.replace(/\s+$/g, '')
+					.replace(/[. ]+$/, '') || 'Mon document';
+
+			pdf.save(`${safeDocumentName}.pdf`);
 
 			status = 'PDF généré avec succès !';
 
@@ -105,6 +113,10 @@
 	}
 
 	onMount(async () => {
+		while (!documentName.ready) {
+			await new Promise((resolve) => requestAnimationFrame(resolve));
+		}
+
 		await tick();
 
 		// Attendre le rendu du navigateur
