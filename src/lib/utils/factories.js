@@ -11,7 +11,7 @@ export function createEvent() {
 		date: 'Sa. 31 oct.',
 		hour: '10h',
 		content: 'Me gusta banana',
-		sizeDescription: 25,
+		sizeDescription: 30,
 		condition: 'tout public',
 		inscription: true
 	};
