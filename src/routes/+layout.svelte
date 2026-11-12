@@ -1,4 +1,5 @@
 <script>
+	import DevTools from '#lib/components/DevTools.svelte';
 	import './layout.css';
 	import favicon from '#lib/assets/favicon.svg';
 
@@ -10,3 +11,4 @@
 </svelte:head>
 
 {@render children()}
+<DevTools />
