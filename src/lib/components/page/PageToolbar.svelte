@@ -50,7 +50,7 @@
 			</button>
 		</p>
 	</div>
-	<div class="flex gap-3">
+	<div class="mr-5 flex gap-3">
 		<div class="tooltip tooltip-bottom" data-tip="Supprimer la page">
 			<button
 				class="btn btn-error btn-md"
