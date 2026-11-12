@@ -19,7 +19,7 @@
 	import { onMount } from 'svelte';
 
 	import Generator from '#lib/layout/Generator.svelte';
-	import ContainerAffiche from '../layout/ContainerAffiche.svelte';
+	import ContainerAffiche from '#lib/layout/ContainerAffiche.svelte';
 	import EventEditor from '#lib/components/affiche/EventEditor.svelte';
 
 	let { renderHref = '/render' } = $props();

@@ -1,6 +1,6 @@
 <script>
-	import HomeView from '../src/lib/components/HomeView.svelte';
-	import RenderView from '../src/lib/components/RenderView.svelte';
+	import HomeView from '../src/lib/components/views/HomeView.svelte';
+	import RenderView from '../src/lib/components/views/RenderView.svelte';
 
 	let currentView = $state(window.location.hash === '#render' ? 'render' : 'home');
 

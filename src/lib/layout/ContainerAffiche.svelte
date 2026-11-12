@@ -1,7 +1,7 @@
 <script>
 	// @ts-nocheck
-	import PageAffiche from '#lib/components/PageAffiche.svelte';
-	import HeaderPage from '#lib/components/HeaderPage.svelte';
+	import PageAffiche from '#lib/components/page/PageAffiche.svelte';
+	import PageToolbar from '#lib/components/page/PageToolbar.svelte';
 
 	let {
 		pageNumber,
@@ -23,7 +23,7 @@
 </script>
 
 <div class="afficheCard card border border-base-300 bg-base-100">
-	<HeaderPage
+	<PageToolbar
 		{pageNumber}
 		{page}
 		{canDelete}

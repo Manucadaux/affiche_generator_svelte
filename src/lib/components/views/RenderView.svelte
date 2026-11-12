@@ -3,7 +3,7 @@
 	import { onMount, tick } from 'svelte';
 	import { useLocalStorage } from '#lib/utils/useLocalStorage.svelte.js';
 	import { optionsLibrary, optionsMonth } from '#lib/data/options.js';
-	import PageAffiche from './PageAffiche.svelte';
+	import PageAffiche from '#lib/components/page/PageAffiche.svelte';
 	let { onFinish } = $props();
 
 	// Récupération des données sauvegardées

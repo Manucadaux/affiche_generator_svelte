@@ -1,7 +1,7 @@
 <script>
-	import GeneratorOptions from '../components/GeneratorOptions.svelte';
-	import GeneratorColors from '../components/GeneratorColors.svelte';
-	import GeneratorActions from '../components/GeneratorActions.svelte';
+	import GeneratorOptions from '#lib/components/generator/GeneratorOptions.svelte';
+	import GeneratorColors from '#lib/components/generator/GeneratorColors.svelte';
+	import GeneratorActions from '#lib/components/generator/GeneratorActions.svelte';
 
 	let {
 		nbPages,

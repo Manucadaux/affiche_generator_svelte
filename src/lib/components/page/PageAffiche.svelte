@@ -1,8 +1,8 @@
 <script>
-	import Header from './affiche/Header.svelte';
-	import Event from './affiche/Event.svelte';
-	import Footer from './affiche/Footer.svelte';
-	import Decoration from './affiche/Decoration.svelte';
+	import Decoration from '#lib/components/affiche/Decoration.svelte';
+	import Event from '#lib/components/affiche/Event.svelte';
+	import Footer from '#lib/components/affiche/Footer.svelte';
+	import Header from '#lib/components/affiche/Header.svelte';
 
 	let { selectedLibrary, selectedMonth, page, styles, onSelectEvent, selectedEventId } = $props();
 </script>
