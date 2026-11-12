@@ -6,17 +6,22 @@
 		optionsMonth,
 		selectedLibrary = $bindable(),
 		selectedMonth = $bindable(),
-		styles = $bindable()
+		styles = $bindable(),
+		selectedTheme = $bindable()
 	} = $props();
 
 	const themes = [
+		{ label: 'System', value: 'system' },
 		{ label: 'Light', value: 'light' },
 		{ label: 'Dark', value: 'dark' },
 		{ label: 'Cupcake', value: 'cupcake' },
 		{ label: 'Retro', value: 'retro' },
 		{ label: 'Cyberpunk', value: 'cyberpunk' },
 		{ label: 'Valentine', value: 'valentine' },
-		{ label: 'Aqua', value: 'aqua' }
+		{ label: 'Aqua', value: 'aqua' },
+		{ label: 'Synthwave', value: 'synthwave' },
+		{ label: 'Dracula', value: 'dracula' },
+		{ label: 'Caramellatte', value: 'caramellatte' }
 	];
 </script>
 
@@ -44,6 +49,8 @@
 							class="theme-controller btn btn-block justify-start btn-ghost btn-sm"
 							aria-label={theme.label}
 							value={theme.value}
+							checked={selectedTheme === theme.value}
+							onchange={() => (selectedTheme = theme.value)}
 						/>
 					</li>
 				{/each}

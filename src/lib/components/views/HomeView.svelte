@@ -28,8 +28,10 @@
 	const selectedMonth = useLocalStorage('selectedMonthId', null);
 	const pages = useLocalStorage('pages', [createPage()]);
 	const styles = useLocalStorage('styles', defaultStyles);
+	const selectedTheme = useLocalStorage('selectedTheme', 'system');
 
 	let selectedEventId = $state(null);
+	let systemPrefersDark = $state(null);
 
 	const { addPage, duplicatePage, deletePage } = createPageActions({
 		pages,
@@ -70,6 +72,37 @@
 		});
 	});
 
+	onMount(() => {
+		const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+
+		// Lire la préférence initiale du système
+		systemPrefersDark = mediaQuery.matches;
+
+		// Suivre les changements du système
+		const handleSystemChange = (event) => {
+			systemPrefersDark = event.matches;
+		};
+
+		mediaQuery.addEventListener('change', handleSystemChange);
+
+		return () => {
+			mediaQuery.removeEventListener('change', handleSystemChange);
+		};
+	});
+
+	$effect(() => {
+		if (!selectedTheme.ready || systemPrefersDark === null) return;
+
+		const theme =
+			selectedTheme.current === 'system'
+				? systemPrefersDark
+					? 'dark'
+					: 'light'
+				: selectedTheme.current;
+
+		document.documentElement.setAttribute('data-theme', theme);
+	});
+
 	let selectedLibraryData = $derived(
 		optionsLibrary.find((option) => option.id === selectedLibrary.current) ?? null
 	);
@@ -88,7 +121,11 @@
 	);
 
 	let isReady = $derived(
-		pages.ready && styles.ready && selectedLibrary.ready && selectedMonth.ready
+		pages.ready &&
+			styles.ready &&
+			selectedLibrary.ready &&
+			selectedMonth.ready &&
+			selectedTheme.ready
 	);
 
 	let nbPages = $derived(pages.current.length);
@@ -103,6 +140,7 @@
 		bind:selectedLibrary={selectedLibrary.current}
 		bind:selectedMonth={selectedMonth.current}
 		bind:styles={styles.current}
+		bind:selectedTheme={selectedTheme.current}
 		onResetEvents={resetEvents}
 		onResetAll={resetAll}
 	/>
