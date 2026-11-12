@@ -12,6 +12,7 @@
 	let descriptionSize = $derived(`${event.sizeDescription ?? 25}px`);
 
 	let imageUrl = $state(null);
+	let imageReady = $state(false);
 
 	// Charger l'image depuis IndexedDB
 	$effect(() => {
@@ -22,16 +23,22 @@
 		let objectUrl = null;
 
 		imageUrl = null;
+		imageReady = false;
 
 		getEventImage(eventId)
 			.then((blob) => {
-				if (cancelled || !blob) return;
+				if (cancelled) return;
 
-				objectUrl = URL.createObjectURL(blob);
-				imageUrl = objectUrl;
+				if (blob) {
+					objectUrl = URL.createObjectURL(blob);
+					imageUrl = objectUrl;
+				}
+
+				imageReady = true;
 			})
 			.catch((error) => {
 				console.error('Erreur lors du chargement de l’image :', error);
+				imageReady = true;
 			});
 
 		return () => {
@@ -59,6 +66,7 @@
 			onSelectEvent?.(event.id);
 		}
 	}}
+	data-image-ready={imageReady}
 >
 	<div class="imgContainer" style:background-image={imageUrl ? `url("${imageUrl}")` : 'none'}></div>
 

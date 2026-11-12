@@ -11,7 +11,8 @@
 		selectedMonth = $bindable(),
 		styles = $bindable(),
 		onResetEvents,
-		onResetAll
+		onResetAll,
+		renderHref
 	} = $props();
 </script>
 
@@ -27,7 +28,7 @@
 
 	<GeneratorColors bind:styles />
 
-	<GeneratorActions {onResetEvents} {onResetAll} />
+	<GeneratorActions {onResetEvents} {onResetAll} {renderHref} />
 </div>
 
 <style>

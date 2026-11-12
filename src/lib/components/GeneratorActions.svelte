@@ -1,12 +1,11 @@
 <script>
-	import { resolve } from '$app/paths';
-
-	let { onResetEvents, onResetAll } = $props();
+	let { onResetEvents, onResetAll, renderHref } = $props();
 </script>
 
 <div>
 	<div>
-		<a href={resolve('/render')} class="btn btn-block btn-primary"> Générer PDF </a>
+		<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
+		<a href={renderHref} class="btn btn-block btn-primary"> Générer PDF </a>
 	</div>
 
 	<div>
