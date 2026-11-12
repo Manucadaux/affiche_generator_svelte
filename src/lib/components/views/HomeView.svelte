@@ -153,6 +153,7 @@
 			<div id={`page-${page.id}`} out:slide={{ duration: 500 }}>
 				<ContainerAffiche
 					pageNumber={i + 1}
+					totalPages={nbPages}
 					selectedLibrary={selectedLibraryData}
 					selectedMonth={selectedMonthData}
 					{page}

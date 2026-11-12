@@ -3,6 +3,7 @@
 
 	let {
 		pageNumber,
+		totalPages,
 		page,
 		canDelete,
 		onDeletePage,
@@ -17,7 +18,8 @@
 <div class="headerPageContainer bg-base-300">
 	<div>
 		<p>
-			Page n° {pageNumber}
+			Page {pageNumber}
+			<span class="text-sm text-base-content/60">sur {totalPages}</span>
 			<label class="label">
 				<input
 					type="checkbox"

@@ -5,6 +5,7 @@
 
 	let {
 		pageNumber,
+		totalPages,
 		selectedLibrary,
 		selectedMonth,
 		page,
@@ -25,6 +26,7 @@
 <div class="afficheCard card border border-base-300 bg-base-100">
 	<PageToolbar
 		{pageNumber}
+		{totalPages}
 		{page}
 		{canDelete}
 		{onDeletePage}
