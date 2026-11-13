@@ -63,7 +63,7 @@
 
 			for (let i = 0; i < divs.length; i++) {
 				const canvas = await html2canvas(divs[i], {
-					scale: 2,
+					scale: 3.125,
 					useCORS: true,
 					backgroundColor: '#ffffff',
 					logging: false
