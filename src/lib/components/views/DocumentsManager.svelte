@@ -80,7 +80,12 @@
 	/>
 
 	<main class="flex-1">
-		<DocumentsContent />
+		<DocumentsContent
+			documents={documents.current}
+			{createDocument}
+			{updateDocument}
+			{deleteDocument}
+		/>
 	</main>
 
 	<DocumentsFooter />
