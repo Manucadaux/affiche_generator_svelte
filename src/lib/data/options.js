@@ -33,3 +33,15 @@ export const defaultStyles = {
 	colorContent: '#003288',
 	zoom: 40
 };
+
+export const defaultEventOptions = {
+	imageVersion: 0,
+	title: 'banana',
+	sizeTitle: 36,
+	date: 'Sa. 31 oct.',
+	hour: '10h',
+	content: 'Me gusta banana',
+	sizeDescription: 30,
+	condition: 'Tout public',
+	inscription: true
+};
