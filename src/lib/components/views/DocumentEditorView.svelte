@@ -1,5 +1,8 @@
 <script>
-	// @ts-nocheck
+	/** @typedef {import('#lib/utils/types.js').AppDocument} AppDocument */
+	/** @typedef {import('#lib/utils/types.js').Page} Page */
+	/** @typedef {import('#lib/utils/types.js').Styles} Styles */
+
 	import { optionsLibrary, optionsMonth, defaultStyles } from '#lib/data/options.js';
 
 	import { useLocalStorage } from '#lib/utils/useLocalStorage.svelte.js';
@@ -22,16 +25,155 @@
 	import ContainerAffiche from '#lib/layout/ContainerAffiche.svelte';
 	import EventEditor from '#lib/components/affiche/EventEditor.svelte';
 
-	let { renderHref = '/render' } = $props();
+	let { documentId, renderHref = '/render' } = $props();
 
-	const selectedLibrary = useLocalStorage('selectedLibraryId', null);
-	const selectedMonth = useLocalStorage('selectedMonthId', null);
-	const pages = useLocalStorage('pages', [createPage()]);
-	const styles = useLocalStorage('styles', defaultStyles);
+	/** @type {AppDocument[]} */
+	const initialDocuments = [];
+
+	const documents = useLocalStorage('documents', initialDocuments);
 	const selectedTheme = useLocalStorage('selectedTheme', 'system');
-	const documentName = useLocalStorage('documentName', 'Mon document');
 
+	/** @type {AppDocument | null} */
+	let activeDocument = $state(null);
+
+	let loadedDocumentId = $state(undefined);
+	let lastSavedSnapshot = '';
+
+	// Chargement du document demandé
+	$effect(() => {
+		if (!documents.ready || loadedDocumentId === documentId) return;
+
+		const document = documents.current.find((item) => item.id === documentId) ?? null;
+
+		activeDocument = document;
+		loadedDocumentId = documentId;
+
+		if (document) {
+			lastSavedSnapshot = JSON.stringify(document);
+		}
+	});
+
+	const documentReady = $derived(
+		documents.ready && loadedDocumentId === documentId && activeDocument !== null
+	);
+
+	const documentMissing = $derived(
+		documents.ready && loadedDocumentId === documentId && activeDocument === null
+	);
+
+	// Stores compatibles avec les actions et le Generator existants
+	const pages = {
+		get current() {
+			return activeDocument?.pages ?? [];
+		},
+		set current(value) {
+			if (activeDocument) {
+				activeDocument = { ...activeDocument, pages: value };
+			}
+		},
+		get ready() {
+			return documentReady;
+		}
+	};
+
+	const styles = {
+		get current() {
+			return activeDocument?.styles ?? defaultStyles;
+		},
+		set current(value) {
+			if (activeDocument) {
+				activeDocument = { ...activeDocument, styles: value };
+			}
+		},
+		get ready() {
+			return documentReady;
+		}
+	};
+
+	const selectedLibrary = {
+		get current() {
+			return activeDocument?.libraryId ?? null;
+		},
+		set current(value) {
+			if (activeDocument) {
+				activeDocument = { ...activeDocument, libraryId: value };
+			}
+		},
+		get ready() {
+			return documentReady;
+		}
+	};
+
+	const selectedMonth = {
+		get current() {
+			return activeDocument?.monthId ?? null;
+		},
+		set current(value) {
+			if (activeDocument) {
+				activeDocument = { ...activeDocument, monthId: value };
+			}
+		},
+		get ready() {
+			return documentReady;
+		}
+	};
+
+	const documentName = {
+		get current() {
+			return activeDocument?.name ?? '';
+		},
+		set current(value) {
+			if (activeDocument) {
+				activeDocument = { ...activeDocument, name: value };
+			}
+		},
+		get ready() {
+			return documentReady;
+		}
+	};
+
+	// Sauvegarde automatique dans le document correspondant
+	$effect(() => {
+		const currentDocument = activeDocument;
+
+		if (!documentReady || !currentDocument) return;
+
+		const snapshot = JSON.stringify(currentDocument);
+
+		if (snapshot === lastSavedSnapshot) return;
+
+		lastSavedSnapshot = snapshot;
+
+		documents.current = documents.current.map((document) =>
+			document.id === documentId
+				? {
+						...currentDocument,
+						updatedAt: new Date().toISOString()
+					}
+				: document
+		);
+	});
+
+	// Nettoyage des images en tenant compte de tous les documents
+	let hasCleanedImages = false;
+
+	$effect(() => {
+		if (!documents.ready || hasCleanedImages) return;
+
+		hasCleanedImages = true;
+
+		const validEventIds = documents.current.flatMap((document) =>
+			document.pages.flatMap((page) => page.events.map((event) => event.id))
+		);
+
+		cleanupOrphanedImages(validEventIds).catch((error) => {
+			console.error('Erreur lors du nettoyage des images :', error);
+		});
+	});
+
+	/** @type {string | null} */
 	let selectedEventId = $state(null);
+	/** @type {boolean | null} */
 	let systemPrefersDark = $state(null);
 
 	const { addPage, duplicatePage, deletePage } = createPageActions({
@@ -66,20 +208,11 @@
 	});
 
 	onMount(() => {
-		const validEventIds = pages.current.flatMap((page) => page.events.map((event) => event.id));
-
-		cleanupOrphanedImages(validEventIds).catch((error) => {
-			console.error('Erreur lors du nettoyage des images :', error);
-		});
-	});
-
-	onMount(() => {
 		const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
 
-		// Lire la préférence initiale du système
 		systemPrefersDark = mediaQuery.matches;
 
-		// Suivre les changements du système
+		/** @param {MediaQueryListEvent} event */
 		const handleSystemChange = (event) => {
 			systemPrefersDark = event.matches;
 		};
@@ -112,6 +245,7 @@
 		optionsMonth.find((option) => option.id === selectedMonth.current) ?? null
 	);
 
+	/** @param {string} eventId */
 	function selectEvent(eventId) {
 		selectedEventId = eventId;
 	}
@@ -121,14 +255,7 @@
 			null
 	);
 
-	let isReady = $derived(
-		pages.ready &&
-			styles.ready &&
-			selectedLibrary.ready &&
-			selectedMonth.ready &&
-			selectedTheme.ready &&
-			documentName.ready
-	);
+	let isReady = $derived(documentReady && selectedTheme.ready);
 
 	let nbPages = $derived(pages.current.length);
 </script>
@@ -171,6 +298,13 @@
 				/>
 			</div>
 		{/each}
+	</div>
+{:else if documentMissing}
+	<div class="loaderContainer">
+		<p>Ce document est introuvable.</p>
+
+		<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
+		<a href="/" class="link">Retour aux documents</a>
 	</div>
 {:else}
 	<div class="loaderContainer">

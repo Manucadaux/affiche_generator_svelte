@@ -1,5 +1,8 @@
 <script>
-	import HomeView from '#lib/components/views/HomeView.svelte';
+	import { page } from '$app/state';
+	import DocumentEditorView from '#lib/components/views/DocumentEditorView.svelte';
+
+	let documentId = $derived(page.url.searchParams.get('documentId'));
 </script>
 
-<HomeView />
+<DocumentEditorView {documentId} />
