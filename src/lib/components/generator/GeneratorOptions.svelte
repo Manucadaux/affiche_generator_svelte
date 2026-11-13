@@ -1,4 +1,5 @@
 <script>
+	import { themes } from '#lib/data/themes.js';
 	import { Palette, ChevronDown, PencilLine } from 'lucide-svelte';
 	let {
 		nbPages,
@@ -10,20 +11,6 @@
 		selectedTheme = $bindable(),
 		documentName = $bindable()
 	} = $props();
-
-	const themes = [
-		{ label: 'System', value: 'system' },
-		{ label: 'Light', value: 'light' },
-		{ label: 'Dark', value: 'dark' },
-		{ label: 'Cupcake', value: 'cupcake' },
-		{ label: 'Retro', value: 'retro' },
-		{ label: 'Cyberpunk', value: 'cyberpunk' },
-		{ label: 'Valentine', value: 'valentine' },
-		{ label: 'Aqua', value: 'aqua' },
-		{ label: 'Synthwave', value: 'synthwave' },
-		{ label: 'Dracula', value: 'dracula' },
-		{ label: 'Caramellatte', value: 'caramellatte' }
-	];
 </script>
 
 <div class="generatorOptions">
