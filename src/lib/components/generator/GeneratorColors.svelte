@@ -89,6 +89,11 @@
 		height: 56px;
 	}
 
+	.collapse {
+		position: relative;
+		z-index: 10;
+	}
+
 	.colors :global(.input-container input) {
 		color: #1f1e1e;
 	}

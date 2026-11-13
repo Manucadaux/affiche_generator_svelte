@@ -34,4 +34,11 @@
 	.containerBtnPdf {
 		margin: 25px 0;
 	}
+
+	.collapse > input[type='checkbox'] {
+		position: absolute;
+		inset: 0 0 auto 0;
+		width: 100%;
+		height: 56px;
+	}
 </style>
