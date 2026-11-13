@@ -3,6 +3,9 @@
 	/** @typedef {import('#lib/utils/types.js').DocumentUpdates} DocumentUpdates */
 	/** @typedef {import('#lib/utils/types.js').Styles} Styles */
 
+	import { tick } from 'svelte';
+	import { goto } from '$app/navigation';
+
 	import DocumentsToolbar from '#lib/components/documents-manager/content/DocumentsToolbar.svelte';
 	import DocumentsGrid from '#lib/components/documents-manager/content/DocumentsGrid.svelte';
 	import EmptyDocuments from '#lib/components/documents-manager/content/EmptyDocuments.svelte';
@@ -64,13 +67,19 @@
 	});
 
 	/**
-	 * Crée un document puis ferme la modale.
+	 * Crée un document puis ouvre son éditeur.
 	 * @param {NewDocumentOptions} options
-	 * @returns {void}
+	 * @returns {Promise<void>}
 	 */
-	function handleCreateDocument(options) {
-		createDocument(options);
+	async function handleCreateDocument(options) {
+		const newDocument = createDocument(options);
+
 		isCreateModalOpen = false;
+
+		// Laisser le temps au store de sauvegarder le document
+		await tick();
+		// eslint-disable-next-line svelte/no-navigation-without-resolve
+		await goto(`/document-editor?documentId=${encodeURIComponent(newDocument.id)}`);
 	}
 </script>
 
