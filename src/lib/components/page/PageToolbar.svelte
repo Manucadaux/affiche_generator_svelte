@@ -22,38 +22,43 @@
 			<span class="text-sm text-base-content/60">sur {totalPages}</span>
 		</p>
 
-		<p class="flex items-center gap-2">
+		<div class="flex items-center gap-2">
 			Nombre d'évènements :
 
-			<button
-				class="btn btn-sm"
-				disabled={page.events.length <= 1}
-				onclick={() => onRemoveEvent(page.id)}
-			>
-				-
-			</button>
+			<div class="eventCounter">
+				<button
+					class="eventCounterBtn"
+					disabled={page.events.length <= 1}
+					onclick={() => onRemoveEvent(page.id)}
+					aria-label="Retirer un évènement"
+				>
+					−
+				</button>
 
-			{page.events.length}
+				<span class="eventCounterValue">{page.events.length}</span>
 
-			<button
-				class="btn btn-sm"
-				disabled={page.events.length >= 4}
-				onclick={() => onAddEvent(page.id)}
-			>
-				+
-			</button>
+				<button
+					class="eventCounterBtn"
+					disabled={page.events.length >= 4}
+					onclick={() => onAddEvent(page.id)}
+					aria-label="Ajouter un évènement"
+				>
+					+
+				</button>
+			</div>
 
 			<label class="ml-4 flex cursor-pointer items-center gap-2 text-base-content">
-				<span>Layout inversé</span>
+				<span>Disposition inversé</span>
 				<input
 					type="checkbox"
-					class="checkbox checkbox-sm"
+					class="checkbox"
 					checked={page.reverse ?? false}
 					onchange={(event) => onToggleReverse(page.id, event.currentTarget.checked)}
 				/>
 			</label>
-		</p>
+		</div>
 	</div>
+
 	<div class="mr-5 flex gap-3">
 		<div class="tooltip tooltip-bottom" data-tip="Supprimer la page">
 			<button
@@ -96,5 +101,45 @@
 		padding: 8px;
 		width: 100%;
 		box-sizing: border-box;
+	}
+
+	.eventCounter {
+		display: inline-flex;
+		align-items: center;
+		border: 1px solid;
+		border-color: color-mix(in oklch, var(--color-base-content) 50%, transparent);
+		border-radius: 999px;
+		padding: 2px 5px;
+		gap: 4px;
+	}
+
+	.eventCounterBtn {
+		width: 28px;
+		height: 28px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		border-radius: 50%;
+		font-size: 18px;
+		cursor: pointer;
+		transition: background-color 0.2s;
+	}
+
+	.eventCounterBtn:hover:not(:disabled) {
+		background-color: hsl(var(--bc) / 0.1);
+	}
+
+	.eventCounterBtn:disabled {
+		opacity: 0.3;
+		cursor: not-allowed;
+	}
+
+	.eventCounterValue {
+		width: 35px;
+		text-align: center;
+		font-weight: 600;
+		font-variant-numeric: tabular-nums;
+		border-left: 1px solid color-mix(in oklch, var(--color-base-content) 50%, transparent);
+		border-right: 1px solid color-mix(in oklch, var(--color-base-content) 50%, transparent);
 	}
 </style>
