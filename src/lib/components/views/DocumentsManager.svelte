@@ -14,6 +14,13 @@
 	const selectedTheme = useLocalStorage('selectedTheme', 'system');
 	const documents = useLocalStorage('documents', []);
 
+	const { createDocument, getDocument, updateDocument, deleteDocument } = createDocumentActions({
+		documents,
+		createPage,
+		generateId,
+		defaultStyles
+	});
+
 	let systemPrefersDark = $state(false);
 
 	onMount(() => {
