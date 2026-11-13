@@ -8,7 +8,7 @@
 	import DocumentsContent from '#lib/components/documents-manager/DocumentsContent.svelte';
 	import DocumentsFooter from '#lib/components/documents-manager/DocumentsFooter.svelte';
 
-	const selectedLibrary = useLocalStorage('selectedLibraryId', null);
+	const selectedLibraryForNewDocument = useLocalStorage('newDocumentLibraryId', null);
 	const selectedTheme = useLocalStorage('selectedTheme', 'system');
 
 	let systemPrefersDark = $state(false);
@@ -47,7 +47,7 @@
 <div class="flex min-h-screen flex-col">
 	<DocumentsHeader
 		{optionsLibrary}
-		bind:selectedLibrary={selectedLibrary.current}
+		bind:selectedLibrary={selectedLibraryForNewDocument.current}
 		bind:selectedTheme={selectedTheme.current}
 	/>
 
