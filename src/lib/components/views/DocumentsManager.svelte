@@ -3,8 +3,8 @@
 
 	import { onMount } from 'svelte';
 
+	import { optionsLibrary, defaultStyles, defaultEventOptions } from '#lib/data/options.js';
 	import { useLocalStorage } from '#lib/utils/useLocalStorage.svelte.js';
-	import { optionsLibrary, defaultStyles } from '#lib/data/options.js';
 	import { createPage, generateId } from '#lib/utils/factories.js';
 	import { createDocumentActions } from '#lib/utils/documentActions.js';
 	import { migrateLegacyDocument } from '#lib/utils/documentMigration.js';
@@ -66,7 +66,8 @@
 		migrateLegacyDocument({
 			documents,
 			generateId,
-			defaultStyles
+			defaultStyles,
+			defaultEvent: defaultEventOptions
 		});
 	});
 </script>
