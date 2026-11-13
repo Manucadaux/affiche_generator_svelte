@@ -3,7 +3,12 @@
 
 	import { onMount } from 'svelte';
 
-	import { optionsLibrary, defaultStyles, defaultEventOptions } from '#lib/data/options.js';
+	import {
+		optionsLibrary,
+		optionsMonth,
+		defaultStyles,
+		defaultEventOptions
+	} from '#lib/data/options.js';
 	import { useLocalStorage } from '#lib/utils/useLocalStorage.svelte.js';
 	import { createPage, generateId } from '#lib/utils/factories.js';
 	import { createDocumentActions } from '#lib/utils/documentActions.js';
@@ -85,6 +90,10 @@
 			{createDocument}
 			{updateDocument}
 			{deleteDocument}
+			defaultLibraryId={selectedLibraryForNewDocument.current}
+			{defaultStyles}
+			{optionsLibrary}
+			{optionsMonth}
 		/>
 	</main>
 

@@ -1,5 +1,8 @@
 <script>
 	import { FilePlusCorner } from 'lucide-svelte';
+
+	/** @type {{ onCreate: () => void }} */
+	let { onCreate } = $props();
 </script>
 
 <div class="flex flex-col items-center justify-center gap-4 py-20 text-center">
@@ -14,10 +17,12 @@
 		</p>
 	</div>
 
-	<div
+	<button
+		type="button"
 		class="flex items-center gap-2 rounded-lg border border-dashed border-base-300 px-5 py-3 font-medium text-base-content/60"
+		onclick={onCreate}
 	>
 		<FilePlusCorner size={18} />
 		Créer un document
-	</div>
+	</button>
 </div>
