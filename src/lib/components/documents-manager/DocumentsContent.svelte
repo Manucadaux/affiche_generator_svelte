@@ -3,6 +3,8 @@
 	/** @typedef {import('#lib/utils/types.js').DocumentUpdates} DocumentUpdates */
 
 	import DocumentsToolbar from '#lib/components/documents-manager/content/DocumentsToolbar.svelte';
+	import DocumentsGrid from '#lib/components/documents-manager/content/DocumentsGrid.svelte';
+	import EmptyDocuments from '#lib/components/documents-manager/content/EmptyDocuments.svelte';
 
 	/** @type {{
 		documents: AppDocument[],
@@ -30,13 +32,10 @@
 			switch (sortOrder) {
 				case 'updated-asc':
 					return new Date(a.updatedAt).getTime() - new Date(b.updatedAt).getTime();
-
 				case 'name-asc':
 					return a.name.localeCompare(b.name, 'fr');
-
 				case 'name-desc':
 					return b.name.localeCompare(a.name, 'fr');
-
 				case 'updated-desc':
 				default:
 					return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
@@ -45,6 +44,18 @@
 	});
 </script>
 
-<div class="space-y-6 px-6 py-8">
-	<DocumentsToolbar bind:searchQuery bind:sortOrder />
-</div>
+{#if documents.length === 0}
+	<EmptyDocuments />
+{:else}
+	<div class="space-y-6 px-6 py-8">
+		<DocumentsToolbar bind:searchQuery bind:sortOrder />
+
+		{#if filteredDocuments.length > 0}
+			<DocumentsGrid documents={filteredDocuments} />
+		{:else}
+			<p class="py-12 text-center text-sm text-base-content/60">
+				Aucun document ne correspond à ta recherche.
+			</p>
+		{/if}
+	</div>
+{/if}
