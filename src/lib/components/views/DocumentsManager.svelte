@@ -2,7 +2,9 @@
 	import { onMount } from 'svelte';
 
 	import { useLocalStorage } from '#lib/utils/useLocalStorage.svelte.js';
-	import { optionsLibrary } from '#lib/data/options.js';
+	import { optionsLibrary, defaultStyles } from '#lib/data/options.js';
+	import { createPage, generateId } from '#lib/utils/factories.js';
+	import { createDocumentActions } from '#lib/utils/documentActions.js';
 
 	import DocumentsHeader from '#lib/components/documents-manager/DocumentsHeader.svelte';
 	import DocumentsContent from '#lib/components/documents-manager/DocumentsContent.svelte';
@@ -10,6 +12,7 @@
 
 	const selectedLibraryForNewDocument = useLocalStorage('newDocumentLibraryId', null);
 	const selectedTheme = useLocalStorage('selectedTheme', 'system');
+	const documents = useLocalStorage('documents', []);
 
 	let systemPrefersDark = $state(false);
 
