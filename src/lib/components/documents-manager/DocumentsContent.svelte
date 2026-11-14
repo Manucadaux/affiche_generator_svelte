@@ -18,9 +18,10 @@
 
 	/** @type {{
 		documents: AppDocument[],
-		createDocument: (options: NewDocumentOptions) => AppDocument,
-		updateDocument: (documentId: string, updates: DocumentUpdates) => void,
-		deleteDocument: (documentId: string) => void,
+		createDocument: (options: NewDocumentOptions) => Promise<AppDocument>,
+		updateDocument: (documentId: string, updates: DocumentUpdates) => Promise<void>,
+		deleteDocument: (documentId: string) => Promise<void>,
+		refreshDocuments: () => Promise<void>,
 		defaultLibraryId: number | null,
 		defaultStyles: Styles,
 		optionsLibrary: { id: number, label: string }[],
@@ -31,6 +32,7 @@
 		createDocument,
 		updateDocument,
 		deleteDocument,
+		refreshDocuments,
 		defaultLibraryId,
 		defaultStyles,
 		optionsLibrary,
@@ -79,14 +81,29 @@
 	/**
 	 * Crée un document puis ouvre son éditeur dans un nouvel onglet.
 	 * @param {NewDocumentOptions} options
-	 * @returns {void}
+	 * @returns {Promise<void>}
 	 */
-	function handleCreateDocument(options) {
-		const newDocument = createDocument(options);
+	async function handleCreateDocument(options) {
+		const editorTab = window.open('about:blank', '_blank');
 
-		isCreateModalOpen = false;
+		if (editorTab) {
+			editorTab.opener = null;
+		}
 
-		openDocumentInNewTab(newDocument.id);
+		try {
+			const newDocument = await createDocument(options);
+
+			await refreshDocuments();
+
+			isCreateModalOpen = false;
+
+			if (editorTab) {
+				editorTab.location.href = `/document-editor?documentId=${encodeURIComponent(newDocument.id)}`;
+			}
+		} catch (error) {
+			editorTab?.close();
+			console.error('Erreur lors de la création du document :', error);
+		}
 	}
 
 	/**

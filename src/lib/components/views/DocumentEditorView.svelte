@@ -6,17 +6,29 @@
 	import { optionsLibrary, optionsMonth, defaultStyles } from '#lib/data/options.js';
 
 	import { useLocalStorage } from '#lib/utils/useLocalStorage.svelte.js';
+
 	import { createPage, createEvent, generateId } from '#lib/utils/factories.js';
+
 	import {
 		deleteEventImages,
 		cleanupOrphanedImages,
 		getEventImage,
 		saveEventImage
 	} from '#lib/utils/imageStorage.js';
+
 	import { scrollToPage } from '#lib/utils/scroll.js';
+
 	import { createPageActions } from '#lib/utils/pageActions.js';
+
 	import { createEventActions } from '#lib/utils/eventActions.js';
+
 	import { createResetActions } from '#lib/utils/resetActions.js';
+
+	import {
+		getDocument as getStoredDocument,
+		updateDocument as saveStoredDocument,
+		getAllDocuments
+	} from '#lib/utils/documentStorage.js';
 
 	import { slide } from 'svelte/transition';
 	import { onMount } from 'svelte';
@@ -27,10 +39,6 @@
 
 	let { documentId, renderHref = '/render' } = $props();
 
-	/** @type {AppDocument[]} */
-	const initialDocuments = [];
-
-	const documents = useLocalStorage('documents', initialDocuments);
 	const selectedTheme = useLocalStorage('selectedTheme', 'system');
 
 	/** @type {AppDocument | null} */
@@ -41,25 +49,37 @@
 
 	// Chargement du document demandé
 	$effect(() => {
-		if (!documents.ready || loadedDocumentId === documentId) return;
+		if (!documentId || loadedDocumentId === documentId) return;
 
-		const document = documents.current.find((item) => item.id === documentId) ?? null;
+		let cancelled = false;
 
-		activeDocument = document;
-		loadedDocumentId = documentId;
+		async function loadDocument() {
+			try {
+				const document = await getStoredDocument(documentId);
 
-		if (document) {
-			lastSavedSnapshot = JSON.stringify(document);
+				if (cancelled) return;
+
+				activeDocument = document;
+				loadedDocumentId = documentId;
+
+				if (document) {
+					lastSavedSnapshot = JSON.stringify(document);
+				}
+			} catch (error) {
+				console.error('Erreur lors du chargement du document :', error);
+			}
 		}
+
+		loadDocument();
+
+		return () => {
+			cancelled = true;
+		};
 	});
 
-	const documentReady = $derived(
-		documents.ready && loadedDocumentId === documentId && activeDocument !== null
-	);
+	const documentReady = $derived(loadedDocumentId === documentId && activeDocument !== null);
 
-	const documentMissing = $derived(
-		documents.ready && loadedDocumentId === documentId && activeDocument === null
-	);
+	const documentMissing = $derived(loadedDocumentId === documentId && activeDocument === null);
 
 	// Stores compatibles avec les actions et le Generator existants
 	const pages = {
@@ -132,7 +152,9 @@
 		}
 	};
 
-	// Sauvegarde automatique dans le document correspondant
+	// Sauvegarde automatique dans IndexedDB
+	let saveQueue = Promise.resolve();
+
 	$effect(() => {
 		const currentDocument = activeDocument;
 
@@ -142,37 +164,50 @@
 
 		if (snapshot === lastSavedSnapshot) return;
 
-		lastSavedSnapshot = snapshot;
+		const updatedDocument = JSON.parse(snapshot);
+		updatedDocument.updatedAt = new Date().toISOString();
 
-		documents.current = documents.current.map((document) =>
-			document.id === documentId
-				? {
-						...currentDocument,
-						updatedAt: new Date().toISOString()
-					}
-				: document
-		);
+		saveQueue = saveQueue
+			.then(async () => {
+				await saveStoredDocument(updatedDocument);
+
+				lastSavedSnapshot = snapshot;
+
+				console.info(`Document "${updatedDocument.name}" sauvegardé.`);
+			})
+			.catch((error) => {
+				console.error('Erreur lors de la sauvegarde du document :', error);
+			});
 	});
 
 	// Nettoyage des images en tenant compte de tous les documents
 	let hasCleanedImages = false;
 
 	$effect(() => {
-		if (!documents.ready || hasCleanedImages) return;
+		if (!documentReady || hasCleanedImages) return;
 
 		hasCleanedImages = true;
 
-		const validEventIds = documents.current.flatMap((document) =>
-			document.pages.flatMap((page) => page.events.map((event) => event.id))
-		);
+		async function cleanImages() {
+			try {
+				const documents = await getAllDocuments();
 
-		cleanupOrphanedImages(validEventIds).catch((error) => {
-			console.error('Erreur lors du nettoyage des images :', error);
-		});
+				const validEventIds = documents.flatMap((document) =>
+					document.pages.flatMap((page) => page.events.map((event) => event.id))
+				);
+
+				await cleanupOrphanedImages(validEventIds);
+			} catch (error) {
+				console.error('Erreur lors du nettoyage des images :', error);
+			}
+		}
+
+		cleanImages();
 	});
 
 	/** @type {string | null} */
 	let selectedEventId = $state(null);
+
 	/** @type {boolean | null} */
 	let systemPrefersDark = $state(null);
 

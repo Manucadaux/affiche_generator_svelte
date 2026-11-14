@@ -3,15 +3,21 @@
 /** @typedef {import('./types.js').Styles} Styles */
 /** @typedef {import('./types.js').Page} Page */
 
+import {
+	addDocument,
+	getDocument as getStoredDocument,
+	updateDocument as saveStoredDocument,
+	deleteDocument as deleteStoredDocument
+} from './documentStorage.js';
+
 /**
  * @param {Object} dependencies
- * @param {{ current: AppDocument[] }} dependencies.documents
  * @param {() => Page} dependencies.createPage
  * @param {() => string} dependencies.generateId
  * @param {Styles} dependencies.defaultStyles
  */
 export function createDocumentActions(dependencies) {
-	const { documents, createPage, generateId, defaultStyles } = dependencies;
+	const { createPage, generateId, defaultStyles } = dependencies;
 
 	/**
 	 * @param {Object} options
@@ -19,9 +25,9 @@ export function createDocumentActions(dependencies) {
 	 * @param {number | null} options.libraryId
 	 * @param {number | null} options.monthId
 	 * @param {Styles} [options.styles]
-	 * @returns {AppDocument}
+	 * @returns {Promise<AppDocument>}
 	 */
-	function createDocument({ name, libraryId, monthId, styles = defaultStyles }) {
+	async function createDocument({ name, libraryId, monthId, styles = defaultStyles }) {
 		const now = new Date().toISOString();
 
 		const newDocument = {
@@ -36,42 +42,47 @@ export function createDocumentActions(dependencies) {
 			updatedAt: now
 		};
 
-		documents.current = [...documents.current, newDocument];
+		await addDocument(newDocument);
 
 		return newDocument;
 	}
 
-	/** @param {string} documentId */
-	function getDocument(documentId) {
-		return documents.current.find((document) => document.id === documentId) ?? null;
+	/**
+	 * @param {string} documentId
+	 * @returns {Promise<AppDocument | null>}
+	 */
+	async function getDocument(documentId) {
+		return getStoredDocument(documentId);
 	}
 
 	/**
 	 * @param {string} documentId
 	 * @param {DocumentUpdates} updates
+	 * @returns {Promise<void>}
 	 */
-	function updateDocument(documentId, updates) {
-		const exists = getDocument(documentId);
+	async function updateDocument(documentId, updates) {
+		const existingDocument = await getDocument(documentId);
 
-		if (!exists) return;
+		if (!existingDocument) return;
 
 		const updatedDocument = {
-			...exists,
+			...existingDocument,
 			...updates,
-			id: exists.id,
-			version: exists.version,
-			createdAt: exists.createdAt,
+			id: existingDocument.id,
+			version: existingDocument.version,
+			createdAt: existingDocument.createdAt,
 			updatedAt: new Date().toISOString()
 		};
 
-		documents.current = documents.current.map((document) =>
-			document.id === documentId ? updatedDocument : document
-		);
+		await saveStoredDocument(updatedDocument);
 	}
 
-	/** @param {string} documentId */
-	function deleteDocument(documentId) {
-		documents.current = documents.current.filter((document) => document.id !== documentId);
+	/**
+	 * @param {string} documentId
+	 * @returns {Promise<void>}
+	 */
+	async function deleteDocument(documentId) {
+		await deleteStoredDocument(documentId);
 	}
 
 	return {

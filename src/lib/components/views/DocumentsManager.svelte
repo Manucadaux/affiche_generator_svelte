@@ -3,16 +3,12 @@
 
 	import { onMount } from 'svelte';
 
-	import {
-		optionsLibrary,
-		optionsMonth,
-		defaultStyles,
-		defaultEventOptions
-	} from '#lib/data/options.js';
+	import { optionsLibrary, optionsMonth, defaultStyles } from '#lib/data/options.js';
 	import { useLocalStorage } from '#lib/utils/useLocalStorage.svelte.js';
 	import { createPage, generateId } from '#lib/utils/factories.js';
 	import { createDocumentActions } from '#lib/utils/documentActions.js';
-	import { migrateLegacyDocument } from '#lib/utils/documentMigration.js';
+	import { initializeDocuments } from '#lib/utils/initializeDocuments.js';
+	import { getAllDocuments } from '#lib/utils/documentStorage.js';
 
 	import DocumentsHeader from '#lib/components/documents-manager/DocumentsHeader.svelte';
 	import DocumentsContent from '#lib/components/documents-manager/DocumentsContent.svelte';
@@ -22,12 +18,12 @@
 	const selectedTheme = useLocalStorage('selectedTheme', 'system');
 
 	/** @type {AppDocument[]} */
-	const initialDocuments = [];
+	let documents = $state([]);
 
-	const documents = useLocalStorage('documents', initialDocuments);
+	let isInitialized = $state(false);
+	let initializationError = $state('');
 
 	const { createDocument, getDocument, updateDocument, deleteDocument } = createDocumentActions({
-		documents,
 		createPage,
 		generateId,
 		defaultStyles
@@ -52,6 +48,25 @@
 		};
 	});
 
+	/**
+	 * Recharge la liste des documents depuis IndexedDB.
+	 * @returns {Promise<void>}
+	 */
+	async function refreshDocuments() {
+		documents = await getAllDocuments();
+	}
+
+	onMount(async () => {
+		try {
+			await initializeDocuments();
+			await refreshDocuments();
+			isInitialized = true;
+		} catch (error) {
+			console.error("Erreur lors de l'initialisation des documents :", error);
+			initializationError = 'Impossible de charger les documents.';
+		}
+	});
+
 	$effect(() => {
 		if (!selectedTheme.ready) return;
 
@@ -64,17 +79,6 @@
 
 		document.documentElement.setAttribute('data-theme', theme);
 	});
-
-	$effect(() => {
-		if (!documents.ready) return;
-
-		migrateLegacyDocument({
-			documents,
-			generateId,
-			defaultStyles,
-			defaultEvent: defaultEventOptions
-		});
-	});
 </script>
 
 <div class="flex min-h-screen flex-col">
@@ -85,16 +89,21 @@
 	/>
 
 	<main class="flex-1">
-		<DocumentsContent
-			documents={documents.current}
-			{createDocument}
-			{updateDocument}
-			{deleteDocument}
-			defaultLibraryId={selectedLibraryForNewDocument.current}
-			{defaultStyles}
-			{optionsLibrary}
-			{optionsMonth}
-		/>
+		{#if initializationError}
+			<p class="p-8 text-center text-error">{initializationError}</p>
+		{:else if isInitialized}
+			<DocumentsContent
+				{documents}
+				{createDocument}
+				{updateDocument}
+				{deleteDocument}
+				{refreshDocuments}
+				defaultLibraryId={selectedLibraryForNewDocument.current}
+				{defaultStyles}
+				{optionsLibrary}
+				{optionsMonth}
+			/>
+		{/if}
 	</main>
 
 	<DocumentsFooter />
