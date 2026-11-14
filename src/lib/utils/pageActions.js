@@ -45,15 +45,20 @@ export function createPageActions(dependencies) {
 
 	/** @param {string} pageId */
 	async function deletePage(pageId) {
+		const page = pages.current.find((page) => page.id === pageId);
+
+		if (!page) return;
+
+		if (pages.current.length <= 1) {
+			alert('Un document doit contenir au moins une affiche.');
+			return;
+		}
+
 		const confirmation = confirm(
 			'Voulez-vous vraiment supprimer cette page et tous ses évènements ?'
 		);
 
 		if (!confirmation) return;
-
-		const page = pages.current.find((page) => page.id === pageId);
-
-		if (!page) return;
 
 		await deleteEventImages(page.events);
 
