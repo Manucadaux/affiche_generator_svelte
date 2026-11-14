@@ -1,32 +1,35 @@
 <script>
 	// @ts-nocheck
 	import { onMount, tick } from 'svelte';
-	import { useLocalStorage } from '#lib/utils/useLocalStorage.svelte.js';
+
 	import { optionsLibrary, optionsMonth } from '#lib/data/options.js';
+	import { getDocument as getStoredDocument } from '#lib/utils/documentStorage.js';
+
 	import PageAffiche from '#lib/components/page/PageAffiche.svelte';
-	let { onFinish } = $props();
 
-	// Récupération des données sauvegardées
-	const selectedLibraryId = useLocalStorage('selectedLibraryId', null);
-	const selectedMonthId = useLocalStorage('selectedMonthId', null);
-	const styles = useLocalStorage('styles', {});
-	const pages = useLocalStorage('pages', []);
-	const documentName = useLocalStorage('documentName', 'Mon document');
+	let { documentId, onFinish } = $props();
 
-	// Retrouver les objets complets à partir des identifiants
+	/** @type {import('#lib/utils/types.js').AppDocument | null} */
+	let activeDocument = $state(null);
+
+	// Récupérer les données du document chargé
+	let pages = $derived(activeDocument?.pages ?? []);
+
 	let selectedLibrary = $derived(
-		optionsLibrary.find((option) => option.id === selectedLibraryId.current) ?? null
+		optionsLibrary.find((option) => option.id === activeDocument?.libraryId) ?? null
 	);
 
 	let selectedMonth = $derived(
-		optionsMonth.find((option) => option.id === selectedMonthId.current) ?? null
+		optionsMonth.find((option) => option.id === activeDocument?.monthId) ?? null
 	);
 
 	// Affichage à taille réelle pour le PDF
 	let pdfStyles = $derived({
-		...styles.current,
+		...(activeDocument?.styles ?? {}),
 		zoom: '100%'
 	});
+
+	let documentName = $derived(activeDocument?.name ?? 'Mon document');
 
 	let target = $state(null);
 	let exporting = $state(false);
@@ -34,6 +37,14 @@
 
 	async function exportPdf() {
 		if (exporting || !target) return;
+
+		// Vérifier qu'il existe des affiches à exporter
+		const divs = target.querySelectorAll(':scope > .page');
+
+		if (divs.length === 0) {
+			status = 'Aucune affiche à exporter.';
+			return;
+		}
 
 		exporting = true;
 		status = 'Génération du PDF en cours...';
@@ -52,14 +63,6 @@
 				format: 'a3',
 				compress: true
 			});
-
-			// Récupérer les affiches à exporter
-			const divs = target.querySelectorAll(':scope > .page');
-
-			if (divs.length === 0) {
-				status = 'Aucune affiche à exporter.';
-				return;
-			}
 
 			for (let i = 0; i < divs.length; i++) {
 				const canvas = await html2canvas(divs[i], {
@@ -91,7 +94,7 @@
 
 			// Télécharger le PDF
 			const safeDocumentName =
-				(documentName.current || 'Mon document')
+				(documentName || 'Mon document')
 					.trim()
 					.replace(/[<>:"/\\|?*]/g, '-')
 					.replace(/\s+$/g, '')
@@ -113,8 +116,22 @@
 	}
 
 	onMount(async () => {
-		while (!documentName.ready) {
-			await new Promise((resolve) => requestAnimationFrame(resolve));
+		if (!documentId) {
+			status = 'Aucun document sélectionné pour l’export.';
+			return;
+		}
+
+		try {
+			activeDocument = await getStoredDocument(documentId);
+
+			if (!activeDocument) {
+				status = 'Ce document est introuvable. Il a peut-être été supprimé.';
+				return;
+			}
+		} catch (error) {
+			console.error('Erreur lors du chargement du document :', error);
+			status = 'Impossible de charger le document. Veuillez réessayer.';
+			return;
 		}
 
 		await tick();
@@ -157,11 +174,12 @@
 <!-- Barre d'information -->
 <div class="toolbar">
 	<p>{status}</p>
+	<button onclick={onFinish} disabled={exporting}> Retour à l'éditeur </button>
 </div>
 
 <!-- Affiches à exporter -->
 <div class="renderer" bind:this={target}>
-	{#each pages.current as page (page.id)}
+	{#each pages as page (page.id)}
 		<PageAffiche {selectedLibrary} {selectedMonth} {page} styles={pdfStyles} />
 	{/each}
 </div>

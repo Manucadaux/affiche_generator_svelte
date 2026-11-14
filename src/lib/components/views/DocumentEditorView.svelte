@@ -37,7 +37,9 @@
 	import ContainerAffiche from '#lib/layout/ContainerAffiche.svelte';
 	import EventEditor from '#lib/components/affiche/EventEditor.svelte';
 
-	let { documentId, renderHref = '/render' } = $props();
+	let { documentId } = $props();
+
+	let renderHref = $derived(`/render?documentId=${encodeURIComponent(documentId)}`);
 
 	const selectedTheme = useLocalStorage('selectedTheme', 'system');
 
