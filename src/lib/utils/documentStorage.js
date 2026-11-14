@@ -1,6 +1,7 @@
 /** @typedef {import('./types.js').AppDocument} AppDocument */
 
 import { getDatabase } from './database.js';
+import { notifyDocumentsChanged } from './documentSync.js';
 
 const STORE_NAME = 'documents';
 
@@ -50,7 +51,10 @@ export async function addDocument(document) {
 
 		transaction.objectStore(STORE_NAME).add(document);
 
-		transaction.oncomplete = () => resolve();
+		transaction.oncomplete = () => {
+			notifyDocumentsChanged();
+			resolve();
+		};
 		transaction.onerror = () => reject(transaction.error);
 		transaction.onabort = () => reject(transaction.error);
 	});
@@ -69,7 +73,10 @@ export async function updateDocument(document) {
 
 		transaction.objectStore(STORE_NAME).put(document);
 
-		transaction.oncomplete = () => resolve();
+		transaction.oncomplete = () => {
+			notifyDocumentsChanged();
+			resolve();
+		};
 		transaction.onerror = () => reject(transaction.error);
 		transaction.onabort = () => reject(transaction.error);
 	});
@@ -88,7 +95,10 @@ export async function deleteDocument(id) {
 
 		transaction.objectStore(STORE_NAME).delete(id);
 
-		transaction.oncomplete = () => resolve();
+		transaction.oncomplete = () => {
+			notifyDocumentsChanged();
+			resolve();
+		};
 		transaction.onerror = () => reject(transaction.error);
 		transaction.onabort = () => reject(transaction.error);
 	});

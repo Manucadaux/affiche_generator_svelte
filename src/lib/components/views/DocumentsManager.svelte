@@ -9,6 +9,7 @@
 	import { createDocumentActions } from '#lib/utils/documentActions.js';
 	import { initializeDocuments } from '#lib/utils/initializeDocuments.js';
 	import { getAllDocuments } from '#lib/utils/documentStorage.js';
+	import { subscribeToDocumentChanges } from '#lib/utils/documentSync.js';
 
 	import DocumentsHeader from '#lib/components/documents-manager/DocumentsHeader.svelte';
 	import DocumentsContent from '#lib/components/documents-manager/DocumentsContent.svelte';
@@ -65,6 +66,14 @@
 			console.error("Erreur lors de l'initialisation des documents :", error);
 			initializationError = 'Impossible de charger les documents.';
 		}
+	});
+
+	onMount(() => {
+		return subscribeToDocumentChanges(() => {
+			refreshDocuments().catch((error) => {
+				console.error('Erreur lors de la synchronisation des documents :', error);
+			});
+		});
 	});
 
 	$effect(() => {
