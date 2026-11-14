@@ -7,6 +7,7 @@
 	import DocumentsGrid from '#lib/components/documents-manager/content/DocumentsGrid.svelte';
 	import EmptyDocuments from '#lib/components/documents-manager/content/EmptyDocuments.svelte';
 	import NewDocumentModal from '#lib/components/documents-manager/content/NewDocumentModal.svelte';
+	import DeleteModal from '#lib/components/ui/DeleteModal.svelte';
 
 	/**
 	 * @typedef {Object} NewDocumentOptions
@@ -42,6 +43,8 @@
 	let searchQuery = $state('');
 	let sortOrder = $state('updated-desc');
 	let isCreateModalOpen = $state(false);
+	/** @type {AppDocument | null} */
+	let documentToDelete = $state(null);
 
 	let filteredDocuments = $derived.by(() => {
 		const query = searchQuery.trim().toLocaleLowerCase('fr');
@@ -114,6 +117,31 @@
 	function handleOpenDocument(documentId) {
 		openDocumentInNewTab(documentId);
 	}
+
+	/**
+	 * Ouvre la confirmation de suppression d'un document.
+	 * @param {string} documentId
+	 * @returns {void}
+	 */
+	function handleDeleteRequest(documentId) {
+		documentToDelete = documents.find((document) => document.id === documentId) ?? null;
+	}
+
+	/**
+	 * Supprime le document après confirmation.
+	 * @returns {Promise<void>}
+	 */
+	async function handleConfirmDelete() {
+		if (!documentToDelete) return;
+
+		try {
+			await deleteDocument(documentToDelete.id);
+			await refreshDocuments();
+			documentToDelete = null;
+		} catch (error) {
+			console.error('Erreur lors de la suppression du document :', error);
+		}
+	}
 </script>
 
 {#if documents.length === 0}
@@ -129,6 +157,7 @@
 				{optionsMonth}
 				onCreate={() => (isCreateModalOpen = true)}
 				onOpen={handleOpenDocument}
+				onDelete={handleDeleteRequest}
 			/>
 		{:else}
 			<p class="py-12 text-center text-sm text-base-content/60">
@@ -147,5 +176,15 @@
 		{optionsMonth}
 		onClose={() => (isCreateModalOpen = false)}
 		onCreate={handleCreateDocument}
+	/>
+{/if}
+
+{#if documentToDelete}
+	<DeleteModal
+		title="Supprimer le document"
+		itemName={documentToDelete.name}
+		message="Cette action est irréversible."
+		onClose={() => (documentToDelete = null)}
+		onConfirm={handleConfirmDelete}
 	/>
 {/if}

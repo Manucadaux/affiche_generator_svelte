@@ -62,21 +62,35 @@ export async function addDocument(document) {
 
 /**
  * Mettre à jour un document existant.
+ * Ne crée jamais de document si celui-ci a été supprimé.
  * @param {AppDocument} document
- * @returns {Promise<void>}
+ * @returns {Promise<boolean>} Indique si le document a été mis à jour.
  */
 export async function updateDocument(document) {
 	const db = await getDatabase();
 
 	return new Promise((resolve, reject) => {
 		const transaction = db.transaction(STORE_NAME, 'readwrite');
+		const store = transaction.objectStore(STORE_NAME);
+		const request = store.get(document.id);
 
-		transaction.objectStore(STORE_NAME).put(document);
+		let wasUpdated = false;
+
+		request.onsuccess = () => {
+			if (!request.result) return;
+
+			store.put(document);
+			wasUpdated = true;
+		};
 
 		transaction.oncomplete = () => {
-			notifyDocumentsChanged();
-			resolve();
+			if (wasUpdated) {
+				notifyDocumentsChanged();
+			}
+
+			resolve(wasUpdated);
 		};
+
 		transaction.onerror = () => reject(transaction.error);
 		transaction.onabort = () => reject(transaction.error);
 	});

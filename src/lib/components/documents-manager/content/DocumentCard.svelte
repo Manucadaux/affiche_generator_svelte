@@ -10,8 +10,9 @@
 		libraryName: string | null,
 		monthName: string | null,
 		onOpen: () => void
+		onDelete: (documentId: string) => void
 	}} */
-	let { document, libraryName, monthName, onOpen } = $props();
+	let { document, libraryName, monthName, onOpen, onDelete } = $props();
 
 	let isMenuOpen = $state(false);
 	/** @type {HTMLButtonElement | undefined} */
@@ -182,7 +183,16 @@
 			>
 				<!-- Les actions seront branchées à l'étape suivante. -->
 				<div class="px-3 py-2 text-sm">Dupliquer</div>
-				<div class="px-3 py-2 text-sm">Supprimer</div>
+				<button
+					type="button"
+					class="w-full rounded-md px-3 py-2 text-left text-sm text-error transition hover:bg-base-200"
+					onclick={() => {
+						isMenuOpen = false;
+						onDelete(document.id);
+					}}
+				>
+					Supprimer
+				</button>
 			</div>
 		{/if}
 	</div>

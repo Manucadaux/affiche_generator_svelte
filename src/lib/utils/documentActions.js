@@ -9,6 +9,7 @@ import {
 	updateDocument as saveStoredDocument,
 	deleteDocument as deleteStoredDocument
 } from './documentStorage.js';
+import { deleteEventImages } from './imageStorage.js';
 
 /**
  * @param {Object} dependencies
@@ -78,11 +79,19 @@ export function createDocumentActions(dependencies) {
 	}
 
 	/**
+	 * Supprime un document et les images associées à ses événements.
 	 * @param {string} documentId
 	 * @returns {Promise<void>}
 	 */
 	async function deleteDocument(documentId) {
+		const existingDocument = await getDocument(documentId);
+
+		if (!existingDocument) return;
+
+		const events = existingDocument.pages.flatMap((page) => page.events);
+
 		await deleteStoredDocument(documentId);
+		await deleteEventImages(events);
 	}
 
 	return {

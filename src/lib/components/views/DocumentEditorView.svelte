@@ -22,6 +22,7 @@
 		updateDocument as saveStoredDocument,
 		getAllDocuments
 	} from '#lib/utils/documentStorage.js';
+	import { subscribeToDocumentChanges } from '#lib/utils/documentSync.js';
 
 	import { slide } from 'svelte/transition';
 	import { onMount, tick } from 'svelte';
@@ -38,6 +39,8 @@
 
 	/** @type {AppDocument | null} */
 	let activeDocument = $state(null);
+
+	let isDocumentDeleted = $state(false);
 
 	let loadedDocumentId = $state(undefined);
 	let lastSavedSnapshot = '';
@@ -311,12 +314,33 @@
 			null
 	);
 
-	let isReady = $derived(documentReady && selectedTheme.ready);
+	const isReady = $derived(documentReady && selectedTheme.ready && !isDocumentDeleted);
 
 	let nbPages = $derived(pages.current.length);
+
+	onMount(() => {
+		return subscribeToDocumentChanges(async () => {
+			try {
+				const document = await getStoredDocument(documentId);
+
+				if (!document) {
+					isDocumentDeleted = true;
+				}
+			} catch (error) {
+				console.error('Erreur lors de la vérification du document :', error);
+			}
+		});
+	});
 </script>
 
-{#if isReady}
+{#if isDocumentDeleted}
+	<div class="loaderContainer">
+		<p>Ce document a été supprimé dans un autre onglet.</p>
+
+		<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
+		<a href="/" class="link">Retour aux documents</a>
+	</div>
+{:else if isReady}
 	<Generator
 		{nbPages}
 		{optionsLibrary}

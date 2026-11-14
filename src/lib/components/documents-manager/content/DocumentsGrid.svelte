@@ -8,10 +8,11 @@
 		documents: AppDocument[],
 		onCreate: () => void,
 		onOpen: (documentId: string) => void,
+		onDelete: (documentId: string) => void,
 		optionsLibrary: { id: number, label: string }[],
 		optionsMonth: { id: number, label: string }[]
 	}} */
-	let { documents, onCreate, onOpen, optionsLibrary, optionsMonth } = $props();
+	let { documents, onCreate, onOpen, onDelete, optionsLibrary, optionsMonth } = $props();
 </script>
 
 <div class="grid grid-cols-[repeat(auto-fill,220px)] gap-5">
@@ -24,6 +25,12 @@
 		{@const monthName =
 			optionsMonth.find((option) => option.id === document.monthId)?.label ?? null}
 
-		<DocumentCard {document} {libraryName} {monthName} onOpen={() => onOpen(document.id)} />
+		<DocumentCard
+			{document}
+			{libraryName}
+			{monthName}
+			onOpen={() => onOpen(document.id)}
+			{onDelete}
+		/>
 	{/each}
 </div>
