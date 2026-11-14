@@ -49,7 +49,7 @@
 			</div>
 
 			<label class="ml-4 flex cursor-pointer items-center gap-2 text-base-content">
-				<span>Disposition inversé</span>
+				<span>Disposition inversée</span>
 				<input
 					type="checkbox"
 					class="checkbox"

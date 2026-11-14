@@ -2,7 +2,7 @@
 	// @ts-nocheck
 	import { onMount, tick } from 'svelte';
 
-	import { optionsLibrary, optionsMonth } from '#lib/data/options.js';
+	import { optionsLibrary, optionsMonth, defaultStyles } from '#lib/data/options.js';
 	import { getDocument as getStoredDocument } from '#lib/utils/documentStorage.js';
 
 	import PageAffiche from '#lib/components/page/PageAffiche.svelte';
@@ -25,6 +25,7 @@
 
 	// Affichage à taille réelle pour le PDF
 	let pdfStyles = $derived({
+		...defaultStyles,
 		...(activeDocument?.styles ?? {}),
 		zoom: '100%'
 	});
