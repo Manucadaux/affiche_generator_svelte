@@ -27,7 +27,7 @@
 	import { onMount, tick } from 'svelte';
 
 	import Generator from '#lib/components/document-editor/Generator.svelte';
-	import ContainerAffiche from '#lib/components/document-editor/ContainerAffiche.svelte';
+	import PageEditor from '#lib/components/document-editor/PageEditor.svelte';
 	import EventEditor from '#lib/components/document-editor/EventEditor.svelte';
 
 	let { documentId } = $props();
@@ -334,7 +334,7 @@
 	<div class="container">
 		{#each pages.current as page, i (page.id)}
 			<div id={`page-${page.id}`} out:slide={{ duration: isResetting ? 0 : 500 }}>
-				<ContainerAffiche
+				<PageEditor
 					pageNumber={i + 1}
 					totalPages={nbPages}
 					selectedLibrary={selectedLibraryData}
