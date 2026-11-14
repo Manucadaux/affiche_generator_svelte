@@ -4,8 +4,12 @@
 	import { Plus } from 'lucide-svelte';
 	import DocumentCard from './DocumentCard.svelte';
 
-	/** @type {{ documents: AppDocument[], onCreate: () => void }} */
-	let { documents, onCreate } = $props();
+	/** @type {{
+		documents: AppDocument[],
+		onCreate: () => void,
+		onOpen: (documentId: string) => void
+	}} */
+	let { documents, onCreate, onOpen } = $props();
 </script>
 
 <div class="grid grid-cols-[repeat(auto-fill,220px)] gap-5">
@@ -22,6 +26,6 @@
 	</button>
 
 	{#each documents as document (document.id)}
-		<DocumentCard {document} />
+		<DocumentCard {document} onOpen={() => onOpen(document.id)} />
 	{/each}
 </div>

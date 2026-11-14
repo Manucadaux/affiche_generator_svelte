@@ -3,9 +3,6 @@
 	/** @typedef {import('#lib/utils/types.js').DocumentUpdates} DocumentUpdates */
 	/** @typedef {import('#lib/utils/types.js').Styles} Styles */
 
-	import { tick } from 'svelte';
-	import { goto } from '$app/navigation';
-
 	import DocumentsToolbar from '#lib/components/documents-manager/content/DocumentsToolbar.svelte';
 	import DocumentsGrid from '#lib/components/documents-manager/content/DocumentsGrid.svelte';
 	import EmptyDocuments from '#lib/components/documents-manager/content/EmptyDocuments.svelte';
@@ -67,19 +64,38 @@
 	});
 
 	/**
-	 * Crée un document puis ouvre son éditeur.
-	 * @param {NewDocumentOptions} options
-	 * @returns {Promise<void>}
+	 * Ouvre l'éditeur d'un document dans un nouvel onglet.
+	 * @param {string} documentId
+	 * @returns {void}
 	 */
-	async function handleCreateDocument(options) {
+	function openDocumentInNewTab(documentId) {
+		window.open(
+			`/document-editor?documentId=${encodeURIComponent(documentId)}`,
+			'_blank',
+			'noopener,noreferrer'
+		);
+	}
+
+	/**
+	 * Crée un document puis ouvre son éditeur dans un nouvel onglet.
+	 * @param {NewDocumentOptions} options
+	 * @returns {void}
+	 */
+	function handleCreateDocument(options) {
 		const newDocument = createDocument(options);
 
 		isCreateModalOpen = false;
 
-		// Laisser le temps au store de sauvegarder le document
-		await tick();
-		// eslint-disable-next-line svelte/no-navigation-without-resolve
-		await goto(`/document-editor?documentId=${encodeURIComponent(newDocument.id)}`);
+		openDocumentInNewTab(newDocument.id);
+	}
+
+	/**
+	 * Ouvre l'éditeur du document sélectionné dans un nouvel onglet.
+	 * @param {string} documentId
+	 * @returns {void}
+	 */
+	function handleOpenDocument(documentId) {
+		openDocumentInNewTab(documentId);
 	}
 </script>
 
@@ -90,7 +106,11 @@
 		<DocumentsToolbar bind:searchQuery bind:sortOrder />
 
 		{#if filteredDocuments.length > 0}
-			<DocumentsGrid documents={filteredDocuments} onCreate={() => (isCreateModalOpen = true)} />
+			<DocumentsGrid
+				documents={filteredDocuments}
+				onCreate={() => (isCreateModalOpen = true)}
+				onOpen={handleOpenDocument}
+			/>
 		{:else}
 			<p class="py-12 text-center text-sm text-base-content/60">
 				Aucun document ne correspond à ta recherche.
