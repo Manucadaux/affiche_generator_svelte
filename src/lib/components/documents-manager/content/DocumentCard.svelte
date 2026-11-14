@@ -187,7 +187,7 @@
 			>
 				<button
 					type="button"
-					class="w-full rounded-md px-3 py-2 text-left text-sm transition hover:bg-base-200"
+					class="w-full cursor-pointer rounded-md px-3 py-2 text-left text-sm transition hover:bg-base-200"
 					onclick={() => {
 						isMenuOpen = false;
 						onDuplicate(document.id);
@@ -197,7 +197,7 @@
 				</button>
 				<button
 					type="button"
-					class="w-full rounded-md px-3 py-2 text-left text-sm text-error transition hover:bg-base-200"
+					class="w-full cursor-pointer rounded-md px-3 py-2 text-left text-sm text-error transition hover:bg-base-200"
 					onclick={() => {
 						isMenuOpen = false;
 						onDelete(document.id);
