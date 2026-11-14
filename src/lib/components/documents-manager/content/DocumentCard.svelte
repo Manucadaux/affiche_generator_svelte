@@ -3,8 +3,13 @@
 
 	import { FileText } from 'lucide-svelte';
 
-	/** @type {{ document: AppDocument, onOpen: () => void }} */
-	let { document, onOpen } = $props();
+	/** @type {{
+		document: AppDocument,
+		libraryName: string | null,
+		monthName: string | null,
+		onOpen: () => void
+	}} */
+	let { document, libraryName, monthName, onOpen } = $props();
 
 	const formattedDate = $derived(
 		new Date(document.updatedAt).toLocaleDateString('fr-FR', {
@@ -17,7 +22,7 @@
 
 <button
 	type="button"
-	class="flex h-72.5 w-55 flex-col overflow-hidden rounded-xl border border-base-300 bg-base-100 text-left shadow-sm transition hover:shadow-md"
+	class="flex h-72.5 w-55 cursor-pointer flex-col overflow-hidden rounded-xl border border-base-300 bg-base-100 text-left shadow-sm transition hover:shadow-md"
 	onclick={onOpen}
 	aria-label={`Ouvrir le document ${document.name}`}
 >
@@ -30,7 +35,19 @@
 			{document.name}
 		</h3>
 
-		<p class="text-xs text-base-content/60">
+		{#if libraryName}
+			<p class="truncate text-xs text-base-content/70" title={libraryName}>
+				{libraryName}
+			</p>
+		{/if}
+
+		{#if monthName}
+			<p class="text-xs text-base-content/70">
+				{monthName}
+			</p>
+		{/if}
+
+		<p class="pt-1 text-xs text-base-content/50">
 			Modifié le {formattedDate}
 		</p>
 	</div>

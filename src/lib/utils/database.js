@@ -50,3 +50,25 @@ export function getDatabase() {
 
 	return dbPromise;
 }
+
+/**
+ * Fermer la connexion et supprimer entièrement la base IndexedDB.
+ * @returns {Promise<void>}
+ */
+export async function deleteDatabase() {
+	const db = dbPromise ? await dbPromise.catch(() => null) : null;
+
+	db?.close();
+	dbPromise = null;
+
+	return new Promise((resolve, reject) => {
+		const request = indexedDB.deleteDatabase(DB_NAME);
+
+		request.onsuccess = () => resolve();
+		request.onerror = () => reject(request.error);
+
+		request.onblocked = () => {
+			console.warn('La suppression de la base IndexedDB est bloquée par une autre connexion.');
+		};
+	});
+}

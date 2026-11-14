@@ -125,6 +125,8 @@
 		{#if filteredDocuments.length > 0}
 			<DocumentsGrid
 				documents={filteredDocuments}
+				{optionsLibrary}
+				{optionsMonth}
 				onCreate={() => (isCreateModalOpen = true)}
 				onOpen={handleOpenDocument}
 			/>
