@@ -24,7 +24,7 @@
 	} from '#lib/utils/documentStorage.js';
 
 	import { slide } from 'svelte/transition';
-	import { onMount } from 'svelte';
+	import { onMount, tick } from 'svelte';
 
 	import Generator from '#lib/components/document-editor/Generator.svelte';
 	import ContainerAffiche from '#lib/components/document-editor/ContainerAffiche.svelte';
@@ -41,6 +41,32 @@
 
 	let loadedDocumentId = $state(undefined);
 	let lastSavedSnapshot = '';
+
+	let isResetting = $state(false);
+
+	/** @returns {Promise<void>} */
+	async function handleResetEvents() {
+		isResetting = true;
+
+		try {
+			await resetEvents();
+		} finally {
+			await tick();
+			isResetting = false;
+		}
+	}
+
+	/** @returns {Promise<void>} */
+	async function handleResetAll() {
+		isResetting = true;
+
+		try {
+			await resetAll();
+		} finally {
+			await tick();
+			isResetting = false;
+		}
+	}
 
 	// Chargement du document demandé
 	$effect(() => {
@@ -301,13 +327,13 @@
 		bind:styles={styles.current}
 		bind:selectedTheme={selectedTheme.current}
 		bind:documentName={documentName.current}
-		onResetEvents={resetEvents}
-		onResetAll={resetAll}
+		onResetEvents={handleResetEvents}
+		onResetAll={handleResetAll}
 	/>
 
 	<div class="container">
 		{#each pages.current as page, i (page.id)}
-			<div id={`page-${page.id}`} out:slide={{ duration: 500 }}>
+			<div id={`page-${page.id}`} out:slide={{ duration: isResetting ? 0 : 500 }}>
 				<ContainerAffiche
 					pageNumber={i + 1}
 					totalPages={nbPages}
