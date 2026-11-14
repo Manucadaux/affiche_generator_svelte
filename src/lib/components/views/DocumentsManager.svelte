@@ -24,11 +24,12 @@
 	let isInitialized = $state(false);
 	let initializationError = $state('');
 
-	const { createDocument, getDocument, updateDocument, deleteDocument } = createDocumentActions({
-		createPage,
-		generateId,
-		defaultStyles
-	});
+	const { createDocument, updateDocument, deleteDocument, duplicateDocument } =
+		createDocumentActions({
+			createPage,
+			generateId,
+			defaultStyles
+		});
 
 	let systemPrefersDark = $state(false);
 
@@ -106,6 +107,7 @@
 				{createDocument}
 				{updateDocument}
 				{deleteDocument}
+				{duplicateDocument}
 				{refreshDocuments}
 				defaultLibraryId={selectedLibraryForNewDocument.current}
 				{defaultStyles}

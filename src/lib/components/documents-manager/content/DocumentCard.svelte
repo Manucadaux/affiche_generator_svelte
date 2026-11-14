@@ -9,10 +9,11 @@
 		document: AppDocument,
 		libraryName: string | null,
 		monthName: string | null,
-		onOpen: () => void
-		onDelete: (documentId: string) => void
+		onOpen: () => void,
+		onDelete: (documentId: string) => void,
+		onDuplicate: (documentId: string) => void
 	}} */
-	let { document, libraryName, monthName, onOpen, onDelete } = $props();
+	let { document, libraryName, monthName, onOpen, onDelete, onDuplicate } = $props();
 
 	let isMenuOpen = $state(false);
 	/** @type {HTMLButtonElement | undefined} */
@@ -26,12 +27,15 @@
 	$effect(() => {
 		if (!isMenuOpen || !menuButton || !menuElement) return;
 
+		const referenceElement = menuButton;
+		const floatingElement = menuElement;
+
 		// Point de référence : coin inférieur droit du bouton.
 		const reference = {
-			contextElement: menuButton,
+			contextElement: referenceElement,
 
 			getBoundingClientRect() {
-				const rect = menuButton.getBoundingClientRect();
+				const rect = referenceElement.getBoundingClientRect();
 
 				return {
 					x: rect.right,
@@ -53,7 +57,7 @@
 		 * @returns {void}
 		 */
 		function updatePosition() {
-			computePosition(reference, menuElement, {
+			computePosition(reference, floatingElement, {
 				strategy: 'fixed',
 				placement: 'bottom-start',
 				middleware: [
@@ -70,7 +74,7 @@
 			});
 		}
 
-		const cleanup = autoUpdate(reference, menuElement, updatePosition);
+		const cleanup = autoUpdate(reference, floatingElement, updatePosition);
 
 		return () => {
 			isActive = false;
@@ -181,8 +185,16 @@
 				style={menuStyle}
 				class="fixed z-50 min-w-40 rounded-lg border border-base-300 bg-base-100 p-1 shadow-lg"
 			>
-				<!-- Les actions seront branchées à l'étape suivante. -->
-				<div class="px-3 py-2 text-sm">Dupliquer</div>
+				<button
+					type="button"
+					class="w-full rounded-md px-3 py-2 text-left text-sm transition hover:bg-base-200"
+					onclick={() => {
+						isMenuOpen = false;
+						onDuplicate(document.id);
+					}}
+				>
+					Dupliquer
+				</button>
 				<button
 					type="button"
 					class="w-full rounded-md px-3 py-2 text-left text-sm text-error transition hover:bg-base-200"

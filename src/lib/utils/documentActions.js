@@ -6,10 +6,12 @@
 import {
 	addDocument,
 	getDocument as getStoredDocument,
+	getAllDocuments,
 	updateDocument as saveStoredDocument,
 	deleteDocument as deleteStoredDocument
 } from './documentStorage.js';
-import { deleteEventImages } from './imageStorage.js';
+
+import { deleteEventImages, getEventImage, saveEventImage } from './imageStorage.js';
 
 /**
  * @param {Object} dependencies
@@ -79,6 +81,84 @@ export function createDocumentActions(dependencies) {
 	}
 
 	/**
+	 * Duplique un document avec de nouveaux identifiants et des images indépendantes.
+	 * @param {string} documentId
+	 * @returns {Promise<AppDocument | null>}
+	 */
+	async function duplicateDocument(documentId) {
+		const existingDocument = await getDocument(documentId);
+
+		if (!existingDocument) return null;
+
+		const documents = await getAllDocuments();
+		const existingNames = new Set(documents.map((document) => document.name));
+
+		let name = `${existingDocument.name} (copie)`;
+		let suffix = 1;
+
+		while (existingNames.has(name)) {
+			name = `${existingDocument.name} (copie ${suffix})`;
+			suffix++;
+		}
+
+		const now = new Date().toISOString();
+
+		// Crée de nouveaux identifiants pour chaque page et événement.
+		const newPages = existingDocument.pages.map((page) => ({
+			...page,
+			id: generateId(),
+			events: page.events.map((event) => ({
+				...event,
+				id: generateId()
+			}))
+		}));
+
+		const duplicatedDocument = {
+			...existingDocument,
+			id: generateId(),
+			name,
+			pages: newPages,
+			styles: { ...existingDocument.styles },
+			createdAt: now,
+			updatedAt: now
+		};
+
+		const imageCopies = existingDocument.pages.flatMap((page, pageIndex) =>
+			page.events.map((event, eventIndex) => ({
+				sourceId: event.id,
+				targetId: newPages[pageIndex].events[eventIndex].id
+			}))
+		);
+
+		try {
+			const results = await Promise.allSettled(
+				imageCopies.map(async ({ sourceId, targetId }) => {
+					const image = await getEventImage(sourceId);
+
+					if (image) {
+						await saveEventImage(targetId, image);
+					}
+				})
+			);
+
+			const failedCopy = results.find((result) => result.status === 'rejected');
+
+			if (failedCopy) {
+				throw failedCopy.reason;
+			}
+
+			await addDocument(duplicatedDocument);
+
+			return duplicatedDocument;
+		} catch (error) {
+			// Nettoie les éventuelles images déjà copiées en cas d'échec.
+			const newEvents = newPages.flatMap((page) => page.events);
+			await deleteEventImages(newEvents);
+			throw error;
+		}
+	}
+
+	/**
 	 * Supprime un document et les images associées à ses événements.
 	 * @param {string} documentId
 	 * @returns {Promise<void>}
@@ -98,6 +178,7 @@ export function createDocumentActions(dependencies) {
 		createDocument,
 		getDocument,
 		updateDocument,
-		deleteDocument
+		deleteDocument,
+		duplicateDocument
 	};
 }

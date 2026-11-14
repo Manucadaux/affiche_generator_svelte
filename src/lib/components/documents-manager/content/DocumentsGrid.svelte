@@ -9,10 +9,12 @@
 		onCreate: () => void,
 		onOpen: (documentId: string) => void,
 		onDelete: (documentId: string) => void,
+		onDuplicate: (documentId: string) => void,
 		optionsLibrary: { id: number, label: string }[],
 		optionsMonth: { id: number, label: string }[]
 	}} */
-	let { documents, onCreate, onOpen, onDelete, optionsLibrary, optionsMonth } = $props();
+	let { documents, onCreate, onOpen, onDelete, onDuplicate, optionsLibrary, optionsMonth } =
+		$props();
 </script>
 
 <div class="grid grid-cols-[repeat(auto-fill,220px)] gap-5">
@@ -31,6 +33,7 @@
 			{monthName}
 			onOpen={() => onOpen(document.id)}
 			{onDelete}
+			{onDuplicate}
 		/>
 	{/each}
 </div>

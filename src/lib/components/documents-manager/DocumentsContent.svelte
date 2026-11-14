@@ -22,6 +22,7 @@
 		createDocument: (options: NewDocumentOptions) => Promise<AppDocument>,
 		updateDocument: (documentId: string, updates: DocumentUpdates) => Promise<void>,
 		deleteDocument: (documentId: string) => Promise<void>,
+		duplicateDocument: (documentId: string) => Promise<AppDocument | null>,
 		refreshDocuments: () => Promise<void>,
 		defaultLibraryId: number | null,
 		defaultStyles: Styles,
@@ -33,6 +34,7 @@
 		createDocument,
 		updateDocument,
 		deleteDocument,
+		duplicateDocument,
 		refreshDocuments,
 		defaultLibraryId,
 		defaultStyles,
@@ -142,6 +144,20 @@
 			console.error('Erreur lors de la suppression du document :', error);
 		}
 	}
+
+	/**
+	 * Duplique un document.
+	 * @param {string} documentId
+	 * @returns {Promise<void>}
+	 */
+	async function handleDuplicateDocument(documentId) {
+		try {
+			await duplicateDocument(documentId);
+			await refreshDocuments();
+		} catch (error) {
+			console.error('Erreur lors de la duplication du document :', error);
+		}
+	}
 </script>
 
 {#if documents.length === 0}
@@ -158,6 +174,7 @@
 				onCreate={() => (isCreateModalOpen = true)}
 				onOpen={handleOpenDocument}
 				onDelete={handleDeleteRequest}
+				onDuplicate={handleDuplicateDocument}
 			/>
 		{:else}
 			<p class="py-12 text-center text-sm text-base-content/60">
