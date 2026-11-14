@@ -67,19 +67,21 @@ export function createEventActions(dependencies) {
 	 * @param {Event[K]} value
 	 */
 	function updateEvent(eventId, field, value) {
-		pages.current = pages.current.map((page) => {
-			// Ne pas toucher aux pages qui ne contiennent pas cet évènement
-			if (!page.events.some((event) => event.id === eventId)) {
-				return page;
-			}
+		const pageIndex = pages.current.findIndex((page) =>
+			page.events.some((event) => event.id === eventId)
+		);
 
-			return {
-				...page,
-				events: page.events.map((event) =>
-					event.id === eventId ? { ...event, [field]: value } : event
-				)
-			};
-		});
+		if (pageIndex === -1) return;
+
+		const page = pages.current[pageIndex];
+
+		pages.current = [...pages.current];
+		pages.current[pageIndex] = {
+			...page,
+			events: page.events.map((event) =>
+				event.id === eventId ? { ...event, [field]: value } : event
+			)
+		};
 	}
 
 	return { addEvent, removeEvent, toggleReverse, updateEvent };
