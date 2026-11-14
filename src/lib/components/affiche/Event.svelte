@@ -22,8 +22,6 @@
 		const currentEventId = eventId;
 		const currentImageVersion = imageVersion;
 
-		void currentImageVersion;
-
 		let cancelled = false;
 		let objectUrl = null;
 
@@ -32,7 +30,7 @@
 
 		getEventImage(currentEventId)
 			.then((blob) => {
-				if (cancelled) return;
+				if (cancelled || currentImageVersion !== imageVersion) return;
 
 				if (blob) {
 					objectUrl = URL.createObjectURL(blob);
@@ -42,7 +40,7 @@
 				imageReady = true;
 			})
 			.catch((error) => {
-				if (cancelled) return;
+				if (cancelled || currentImageVersion !== imageVersion) return;
 
 				console.error('Erreur lors du chargement de l’image :', error);
 				imageReady = true;
