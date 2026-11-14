@@ -1,6 +1,8 @@
 /** @typedef {import('./types.js').Event} Event */
 /** @typedef {import('./types.js').Page} Page */
 
+import { MAX_EVENTS_PER_PAGE } from '#lib/utils/constants.js';
+
 /**
  * @typedef {Object} Dependencies
  * @property {{ current: Page[] }} pages
@@ -18,7 +20,7 @@ export function createEventActions(dependencies) {
 	/** @param {string} pageId */
 	function addEvent(pageId) {
 		pages.current = pages.current.map((page) =>
-			page.id === pageId && page.events.length < 4
+			page.id === pageId && page.events.length < MAX_EVENTS_PER_PAGE
 				? {
 						...page,
 						events: [...page.events, createEvent()]

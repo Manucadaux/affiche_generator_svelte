@@ -1,4 +1,5 @@
 <script>
+	import { MAX_EVENTS_PER_PAGE } from '#lib/utils/constants.js';
 	import { Trash2, FilePlus, Copy } from 'lucide-svelte';
 
 	let {
@@ -39,7 +40,7 @@
 
 				<button
 					class="eventCounterBtn"
-					disabled={page.events.length >= 4}
+					disabled={page.events.length >= MAX_EVENTS_PER_PAGE}
 					onclick={() => onAddEvent(page.id)}
 					aria-label="Ajouter un évènement"
 				>
