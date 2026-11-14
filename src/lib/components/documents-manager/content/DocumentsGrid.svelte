@@ -1,7 +1,6 @@
 <script>
 	/** @typedef {import('#lib/utils/types.js').AppDocument} AppDocument */
 
-	import { Plus } from 'lucide-svelte';
 	import CreateDocumentCard from './CreateDocumentCard.svelte';
 	import DocumentCard from './DocumentCard.svelte';
 

@@ -1,7 +1,7 @@
 <script>
 	// @ts-nocheck
-	import PageAffiche from '#lib/components/page/PageAffiche.svelte';
-	import PageToolbar from '#lib/components/page/PageToolbar.svelte';
+	import PageAffiche from '#lib/components/affiche/PageAffiche.svelte';
+	import PageToolbar from '#lib/components/document-editor/PageToolbar.svelte';
 
 	let {
 		pageNumber,

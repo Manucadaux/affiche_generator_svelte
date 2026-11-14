@@ -6,24 +6,17 @@
 	import { optionsLibrary, optionsMonth, defaultStyles } from '#lib/data/options.js';
 
 	import { useLocalStorage } from '#lib/utils/useLocalStorage.svelte.js';
-
 	import { createPage, createEvent, generateId } from '#lib/utils/factories.js';
-
 	import {
 		deleteEventImages,
 		cleanupOrphanedImages,
 		getEventImage,
 		saveEventImage
 	} from '#lib/utils/imageStorage.js';
-
 	import { scrollToPage } from '#lib/utils/scroll.js';
-
 	import { createPageActions } from '#lib/utils/pageActions.js';
-
 	import { createEventActions } from '#lib/utils/eventActions.js';
-
 	import { createResetActions } from '#lib/utils/resetActions.js';
-
 	import {
 		getDocument as getStoredDocument,
 		updateDocument as saveStoredDocument,
@@ -33,9 +26,9 @@
 	import { slide } from 'svelte/transition';
 	import { onMount } from 'svelte';
 
-	import Generator from '#lib/layout/Generator.svelte';
-	import ContainerAffiche from '#lib/layout/ContainerAffiche.svelte';
-	import EventEditor from '#lib/components/affiche/EventEditor.svelte';
+	import Generator from '#lib/components/document-editor/Generator.svelte';
+	import ContainerAffiche from '#lib/components/document-editor/ContainerAffiche.svelte';
+	import EventEditor from '#lib/components/document-editor/EventEditor.svelte';
 
 	let { documentId } = $props();
 

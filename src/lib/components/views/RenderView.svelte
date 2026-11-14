@@ -5,7 +5,7 @@
 	import { optionsLibrary, optionsMonth, defaultStyles } from '#lib/data/options.js';
 	import { getDocument as getStoredDocument } from '#lib/utils/documentStorage.js';
 
-	import PageAffiche from '#lib/components/page/PageAffiche.svelte';
+	import PageAffiche from '#lib/components/affiche/PageAffiche.svelte';
 
 	let { documentId, onFinish } = $props();
 
