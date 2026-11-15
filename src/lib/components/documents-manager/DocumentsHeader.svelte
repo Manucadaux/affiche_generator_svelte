@@ -1,6 +1,5 @@
 <script>
-	import { Palette, ChevronDown } from 'lucide-svelte';
-	import { themes } from '#lib/data/themes.js';
+	import ThemeSelector from '#lib/components/ui/ThemeSelector.svelte';
 
 	let { optionsLibrary, selectedLibrary = $bindable(), selectedTheme = $bindable() } = $props();
 </script>
@@ -25,31 +24,6 @@
 			{/each}
 		</select>
 
-		<div class="dropdown dropdown-end">
-			<button class="btn btn-ghost btn-sm" aria-label="Choisir un thème">
-				<Palette size={18} />
-				<ChevronDown size={14} />
-			</button>
-
-			<ul
-				class="dropdown-content z-50 w-48 rounded-box border border-base-300 bg-base-100 p-2 shadow-xl"
-			>
-				<li class="menu-title">Choisir un thème</li>
-
-				{#each themes as theme (theme.value)}
-					<li>
-						<input
-							type="radio"
-							name="theme-dropdown"
-							class="theme-controller btn btn-block justify-start btn-ghost btn-sm"
-							aria-label={theme.label}
-							value={theme.value}
-							checked={selectedTheme === theme.value}
-							onchange={() => (selectedTheme = theme.value)}
-						/>
-					</li>
-				{/each}
-			</ul>
-		</div>
+		<ThemeSelector bind:selectedTheme />
 	</div>
 </header>

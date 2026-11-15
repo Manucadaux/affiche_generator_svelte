@@ -1,6 +1,6 @@
 <script>
-	import { themes } from '#lib/data/themes.js';
-	import { House, Palette, Menu } from 'lucide-svelte';
+	import { House, Menu } from 'lucide-svelte';
+	import ThemeSelector from '#lib/components/ui/ThemeSelector.svelte';
 
 	let { selectedTheme = $bindable(), onMenuClick } = $props();
 </script>
@@ -13,30 +13,7 @@
 	</a>
 
 	<div class="headerActions">
-		<div class="dropdown dropdown-end">
-			<button class="headerBtn" aria-label="Choisir un thème" aria-haspopup="true">
-				<Palette size={19} />
-			</button>
-
-			<ul
-				tabindex="-1"
-				class="dropdown-content z-50 mt-2 w-48 rounded-box border border-base-300 bg-base-100 p-2 shadow-xl"
-			>
-				<li class="menu-title">Choisir un thème</li>
-
-				{#each themes as theme (theme.value)}
-					<li>
-						<button
-							class="btn btn-block justify-start btn-ghost btn-sm"
-							class:active={selectedTheme === theme.value}
-							onclick={() => (selectedTheme = theme.value)}
-						>
-							{theme.label}
-						</button>
-					</li>
-				{/each}
-			</ul>
-		</div>
+		<ThemeSelector bind:selectedTheme />
 
 		<button class="headerBtn" aria-label="Ouvrir le menu" onclick={onMenuClick}>
 			<Menu size={21} />
