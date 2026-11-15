@@ -194,9 +194,11 @@
 	 * @returns {Promise<void>}
 	 */
 	function enqueueDocumentSave(document) {
-		const snapshot = JSON.stringify(document);
+		const plainDocument = $state.snapshot(document);
+		const snapshot = JSON.stringify(plainDocument);
+
 		const updatedDocument = {
-			...document,
+			...plainDocument,
 			updatedAt: new Date().toISOString()
 		};
 

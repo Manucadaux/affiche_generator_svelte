@@ -49,8 +49,6 @@
 
 	<GeneratorOptions {optionsLibrary} {optionsMonth} bind:selectedLibrary bind:selectedMonth />
 
-	<GeneratorOptions {optionsLibrary} {optionsMonth} bind:selectedLibrary bind:selectedMonth />
-
 	<GeneratorColors bind:styles />
 
 	<GeneratorActions {onResetEvents} {onResetAll} />
