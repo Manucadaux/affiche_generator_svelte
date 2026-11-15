@@ -465,78 +465,6 @@
 		});
 	}
 
-	/** @type {{ eventId: string, field: 'sizeTitle' | 'sizeDescription', value: number } | null} */
-	let sizeEditStart = null;
-
-	/**
-	 * Enregistre une modification de taille comme une seule action.
-	 *
-	 * @param {string} eventId
-	 * @param {'sizeTitle' | 'sizeDescription'} field
-	 * @param {number} previousValue
-	 * @param {number} newValue
-	 */
-	function recordEventSizeChange(eventId, field, previousValue, newValue) {
-		if (previousValue === newValue) return;
-
-		history.push({
-			undo: () => updateEvent(eventId, field, previousValue),
-			redo: () => updateEvent(eventId, field, newValue)
-		});
-	}
-
-	/**
-	 * Récupère la taille actuelle d'un événement.
-	 *
-	 * @param {string} eventId
-	 * @param {'sizeTitle' | 'sizeDescription'} field
-	 * @returns {number | undefined}
-	 */
-	function getEventSize(eventId, field) {
-		return pages.current.flatMap((page) => page.events).find((event) => event.id === eventId)?.[
-			field
-		];
-	}
-
-	/**
-	 * Mémorise la valeur initiale d'une taille.
-	 *
-	 * @param {string} eventId
-	 * @param {'sizeTitle' | 'sizeDescription'} field
-	 */
-	function handleStartSizeEdit(eventId, field) {
-		sizeEditStart = {
-			eventId,
-			field,
-			value: getEventSize(eventId, field) ?? 1
-		};
-	}
-
-	/**
-	 * Termine l'édition et enregistre une seule action.
-	 *
-	 * @param {string} eventId
-	 * @param {'sizeTitle' | 'sizeDescription'} field
-	 */
-	function handleFinishSizeEdit(eventId, field) {
-		if (!sizeEditStart) return;
-		if (sizeEditStart.eventId !== eventId || sizeEditStart.field !== field) return;
-
-		const { value: previousValue } = sizeEditStart;
-		const newValue = getEventSize(eventId, field) ?? previousValue;
-
-		recordEventSizeChange(eventId, field, previousValue, newValue);
-
-		sizeEditStart = null;
-	}
-
-	/** Termine l'édition de taille éventuellement en cours. */
-	function finishActiveSizeEdit() {
-		if (!sizeEditStart) return;
-
-		handleFinishSizeEdit(sizeEditStart.eventId, sizeEditStart.field);
-	}
-
 	/** Commence un groupe de modifications d'un événement. */
 	let isEventEditGroupOpen = false;
 
@@ -657,7 +585,6 @@
 	 * @returns {Promise<void>}
 	 */
 	async function handleUndo() {
-		finishActiveSizeEdit();
 		await history.undo();
 	}
 
@@ -666,7 +593,6 @@
 	 * @returns {Promise<void>}
 	 */
 	async function handleRedo() {
-		finishActiveSizeEdit();
 		await history.redo();
 	}
 
@@ -797,11 +723,8 @@
 		<EventEditor
 			event={selectedEvent}
 			onUpdateEvent={handleUpdateEvent}
-			onUpdateEventLive={updateEvent}
 			onBeginEdit={beginEventEdit}
 			onEndEdit={endEventEdit}
-			onStartSizeEdit={handleStartSizeEdit}
-			onFinishSizeEdit={handleFinishSizeEdit}
 			onClose={() => (selectedEventId = null)}
 		/>
 	</div>

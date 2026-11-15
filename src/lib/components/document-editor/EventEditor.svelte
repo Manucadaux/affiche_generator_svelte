@@ -2,16 +2,7 @@
 	// @ts-nocheck
 	import { saveEventImage, getEventImage } from '#lib/utils/imageStorage.js';
 
-	let {
-		event,
-		onUpdateEvent,
-		onBeginEdit,
-		onEndEdit,
-		onStartSizeEdit,
-		onFinishSizeEdit,
-		onUpdateEventLive,
-		onClose
-	} = $props();
+	let { event, onUpdateEvent, onBeginEdit, onEndEdit, onClose } = $props();
 
 	let imageUrl = $state(null);
 	let imageError = $state('');
@@ -86,10 +77,6 @@
 			console.error('Erreur lors de l’enregistrement de l’image :', error);
 			imageError = 'Impossible d’enregistrer cette image.';
 		}
-	}
-
-	function updateSize(field, value) {
-		onUpdateEventLive(event.id, field, value);
 	}
 </script>
 
@@ -169,9 +156,7 @@
 					type="number"
 					min="1"
 					value={event.sizeTitle}
-					oninput={(e) => updateSize('sizeTitle', Math.max(1, Number(e.currentTarget.value)))}
-					onfocus={() => onStartSizeEdit(event.id, 'sizeTitle')}
-					onblur={() => onFinishSizeEdit(event.id, 'sizeTitle')}
+					oninput={(e) => update('sizeTitle', Math.max(1, Number(e.currentTarget.value)))}
 				/>
 			</fieldset>
 
@@ -182,9 +167,7 @@
 					type="number"
 					min="1"
 					value={event.sizeDescription}
-					oninput={(e) => updateSize('sizeDescription', Math.max(1, Number(e.currentTarget.value)))}
-					onfocus={() => onStartSizeEdit(event.id, 'sizeDescription')}
-					onblur={() => onFinishSizeEdit(event.id, 'sizeDescription')}
+					oninput={(e) => update('sizeDescription', Math.max(1, Number(e.currentTarget.value)))}
 				/>
 			</fieldset>
 		</div>
