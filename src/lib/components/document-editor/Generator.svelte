@@ -1,6 +1,7 @@
 <script>
 	import GeneratorHeader from '#lib/components/document-editor/generator/GeneratorHeader.svelte';
 	import DocumentOptions from '#lib/components/document-editor/generator/DocumentOptions.svelte';
+	import DisplayOptions from '#lib/components/document-editor/generator/DisplayOptions.svelte';
 	import GeneratorOptions from '#lib/components/document-editor/generator/GeneratorOptions.svelte';
 	import GeneratorColors from '#lib/components/document-editor/generator/GeneratorColors.svelte';
 	import GeneratorActions from '#lib/components/document-editor/generator/GeneratorActions.svelte';
@@ -44,13 +45,11 @@
 
 	<DocumentOptions {nbPages} {documentName} {onAddPage} {onDeleteLastPage} {renderHref} />
 
-	<GeneratorOptions
-		{optionsLibrary}
-		{optionsMonth}
-		bind:selectedLibrary
-		bind:selectedMonth
-		bind:styles
-	/>
+	<DisplayOptions bind:styles />
+
+	<GeneratorOptions {optionsLibrary} {optionsMonth} bind:selectedLibrary bind:selectedMonth />
+
+	<GeneratorOptions {optionsLibrary} {optionsMonth} bind:selectedLibrary bind:selectedMonth />
 
 	<GeneratorColors bind:styles />
 

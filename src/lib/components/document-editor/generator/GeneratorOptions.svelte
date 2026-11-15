@@ -3,29 +3,11 @@
 		optionsLibrary,
 		optionsMonth,
 		selectedLibrary = $bindable(),
-		selectedMonth = $bindable(),
-		styles = $bindable()
+		selectedMonth = $bindable()
 	} = $props();
 </script>
 
 <div class="generatorOptions">
-	<div class="zoomControl">
-		<label for="zoom">
-			Zoom de l'affiche : <strong>{styles.zoom}%</strong>
-		</label>
-
-		<input
-			id="zoom"
-			type="range"
-			min="30"
-			max="100"
-			step="1"
-			value={styles.zoom}
-			oninput={(e) => (styles.zoom = Number(e.currentTarget.value))}
-			class="range range-primary"
-		/>
-	</div>
-
 	<div class="collapse-arrow collapse rounded-box border border-base-content/20">
 		<input type="checkbox" checked />
 
