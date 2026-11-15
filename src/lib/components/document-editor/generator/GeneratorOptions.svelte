@@ -3,7 +3,8 @@
 		optionsLibrary,
 		optionsMonth,
 		selectedLibrary = $bindable(),
-		selectedMonth = $bindable()
+		selectedMonth = $bindable(),
+		onUpdateDocument
 	} = $props();
 
 	let isOpen = $state(!selectedLibrary || !selectedMonth);
@@ -18,7 +19,12 @@
 		<div class="collapse-content">
 			<div>
 				<label for="libraries">Sélectionnez une médiathèque</label>
-				<select id="libraries" class="select" bind:value={selectedLibrary}>
+				<select
+					id="libraries"
+					class="select"
+					value={selectedLibrary}
+					onchange={(event) => onUpdateDocument('libraryId', Number(event.currentTarget.value))}
+				>
 					{#each optionsLibrary as option (option.id)}
 						<option value={option.id}>{option.label}</option>
 					{/each}
@@ -27,7 +33,12 @@
 
 			<div class="mt-4">
 				<label for="months">Sélectionnez un mois</label>
-				<select id="months" class="select" bind:value={selectedMonth}>
+				<select
+					id="months"
+					class="select"
+					value={selectedMonth}
+					onchange={(event) => onUpdateDocument('monthId', Number(event.currentTarget.value))}
+				>
 					{#each optionsMonth as option (option.id)}
 						<option value={option.id}>{option.label}</option>
 					{/each}

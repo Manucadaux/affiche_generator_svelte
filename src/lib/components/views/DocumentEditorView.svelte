@@ -23,12 +23,15 @@
 		getAllDocuments
 	} from '#lib/utils/documentStorage.js';
 	import { subscribeToDocumentChanges } from '#lib/utils/documentSync.js';
+	import { createHistory, recordChange } from '#lib/utils/history.js';
+	import { setupHistoryKeyboard } from '#lib/utils/historyKeyboard.js';
 
 	import { slide } from 'svelte/transition';
 	import { onMount, tick } from 'svelte';
 	import { goto } from '$app/navigation';
 
 	import Toast from '#lib/components/ui/Toast.svelte';
+	import EditorToolbar from '#lib/components/document-editor/EditorToolbar.svelte';
 	import Generator from '#lib/components/document-editor/Generator.svelte';
 	import PageEditor from '#lib/components/document-editor/PageEditor.svelte';
 	import EventEditor from '#lib/components/document-editor/EventEditor.svelte';
@@ -44,6 +47,19 @@
 
 	/** @type {AppDocument | null} */
 	let activeDocument = $state(null);
+
+	/** @type {{ canUndo: boolean, canRedo: boolean }} */
+	let historyState = $state({
+		canUndo: false,
+		canRedo: false
+	});
+
+	const history = createHistory({
+		limit: 50,
+		onChange: (state) => {
+			historyState = state;
+		}
+	});
 
 	let isDocumentDeleted = $state(false);
 
@@ -349,7 +365,8 @@
 
 			// Le conteneur commence à 10px du haut de la fenêtre.
 			// On réserve également 40px pour le padding et 20px en bas.
-			const availableHeight = window.innerHeight - 10 - pageContainer.offsetTop - 60;
+			const pageTop = pageContainer.getBoundingClientRect().top;
+			const availableHeight = window.innerHeight - pageTop - 60;
 
 			if (availableWidth <= 0 || availableHeight <= 0) return;
 
@@ -514,6 +531,68 @@
 			}
 		});
 	});
+
+	$effect(() => {
+		if (!documentReady) return;
+
+		history.clear();
+	});
+
+	/**
+	 * Annule la dernière action.
+	 * @returns {Promise<void>}
+	 */
+	async function handleUndo() {
+		await history.undo();
+	}
+
+	/**
+	 * Rétablit la dernière action annulée.
+	 * @returns {Promise<void>}
+	 */
+	async function handleRedo() {
+		await history.redo();
+	}
+
+	/**
+	 * Met à jour une propriété du document et enregistre le changement dans l'historique.
+	 *
+	 * @template {keyof AppDocument} K
+	 * @param {K} property
+	 * @param {AppDocument[K]} newValue
+	 * @returns {boolean}
+	 */
+	function updateDocumentProperty(property, newValue) {
+		if (!activeDocument) return false;
+
+		const previousValue = activeDocument[property];
+
+		/** @type {Partial<AppDocument>} */
+		const previousValues = { [property]: previousValue };
+
+		/** @type {Partial<AppDocument>} */
+		const newValues = { [property]: newValue };
+
+		recordChange(history, previousValues, newValues, (values) => {
+			if (!activeDocument) return;
+
+			activeDocument = {
+				...activeDocument,
+				...values
+			};
+		});
+
+		return true;
+	}
+
+	onMount(() => {
+		return setupHistoryKeyboard({
+			undo: handleUndo,
+			redo: handleRedo,
+			canUndo: () => historyState.canUndo,
+			canRedo: () => historyState.canRedo
+		});
+	});
 </script>
 
 {#if isDocumentDeleted}
@@ -542,9 +621,16 @@
 		onDeleteLastPage={deleteLastPage}
 		onNavigateHome={handleNavigateHome}
 		onNavigate={handleNavigate}
+		onUpdateDocument={updateDocumentProperty}
 	/>
 
 	<div class="container">
+		<EditorToolbar
+			canUndo={historyState.canUndo}
+			canRedo={historyState.canRedo}
+			onUndo={handleUndo}
+			onRedo={handleRedo}
+		/>
 		{#each pages.current as page, i (page.id)}
 			<div id={`page-${page.id}`} out:slide={{ duration: isResetting ? 0 : 500 }}>
 				<PageEditor
@@ -617,7 +703,7 @@
 		gap: 40px;
 		width: calc(100% - 360px);
 		position: absolute;
-		top: 10px;
+		top: 54px;
 		left: 350px;
 		padding-bottom: 40px;
 	}

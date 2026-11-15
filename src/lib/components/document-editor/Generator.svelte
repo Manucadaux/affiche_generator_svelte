@@ -24,7 +24,8 @@
 		documents = [],
 		currentDocumentId,
 		onNavigateHome,
-		onNavigate
+		onNavigate,
+		onUpdateDocument
 	} = $props();
 
 	let isMenuOpen = $state(false);
@@ -43,11 +44,24 @@
 		/>
 	{/if}
 
-	<DocumentOptions {nbPages} bind:documentName {onAddPage} {onDeleteLastPage} {renderHref} />
+	<DocumentOptions
+		{nbPages}
+		bind:documentName
+		{onAddPage}
+		{onDeleteLastPage}
+		{onUpdateDocument}
+		{renderHref}
+	/>
 
 	<DisplayOptions bind:styles />
 
-	<GeneratorOptions {optionsLibrary} {optionsMonth} bind:selectedLibrary bind:selectedMonth />
+	<GeneratorOptions
+		{optionsLibrary}
+		{optionsMonth}
+		bind:selectedLibrary
+		bind:selectedMonth
+		{onUpdateDocument}
+	/>
 
 	<GeneratorColors bind:styles />
 
