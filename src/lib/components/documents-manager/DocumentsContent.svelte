@@ -158,6 +158,21 @@
 			console.error('Erreur lors de la duplication du document :', error);
 		}
 	}
+
+	/**
+	 * Renomme un document.
+	 * @param {string} documentId
+	 * @param {string} name
+	 * @returns {Promise<void>}
+	 */
+	async function handleRenameDocument(documentId, name) {
+		try {
+			await updateDocument(documentId, { name });
+			await refreshDocuments();
+		} catch (error) {
+			console.error('Erreur lors du renommage du document :', error);
+		}
+	}
 </script>
 
 {#if documents.length === 0}
@@ -175,6 +190,7 @@
 				onOpen={handleOpenDocument}
 				onDelete={handleDeleteRequest}
 				onDuplicate={handleDuplicateDocument}
+				onRename={handleRenameDocument}
 			/>
 		{:else}
 			<p class="py-12 text-center text-sm text-base-content/60">

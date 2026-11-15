@@ -2,7 +2,7 @@
 	/** @typedef {import('#lib/utils/types.js').AppDocument} AppDocument */
 	import { autoPlacement, autoUpdate, computePosition, shift } from '@floating-ui/dom';
 
-	import { onMount } from 'svelte';
+	import { onMount, tick } from 'svelte';
 	import { FileText, EllipsisVertical } from 'lucide-svelte';
 
 	/** @type {{
@@ -11,11 +11,16 @@
 		monthName: string | null,
 		onOpen: () => void,
 		onDelete: (documentId: string) => void,
-		onDuplicate: (documentId: string) => void
+		onDuplicate: (documentId: string) => void,
+		onRename: (name: string) => Promise<void>,
 	}} */
-	let { document, libraryName, monthName, onOpen, onDelete, onDuplicate } = $props();
+	let { document, libraryName, monthName, onOpen, onDelete, onDuplicate, onRename } = $props();
 
 	let isMenuOpen = $state(false);
+
+	let isRenaming = $state(false);
+	let nameDraft = $state('');
+
 	/** @type {HTMLButtonElement | undefined} */
 	let menuButton = $state();
 
@@ -23,6 +28,9 @@
 	let menuElement = $state();
 
 	let menuStyle = $state('left: 0; top: 0; visibility: hidden;');
+
+	/** @type {HTMLInputElement | undefined} */
+	let nameInput = $state();
 
 	$effect(() => {
 		if (!isMenuOpen || !menuButton || !menuElement) return;
@@ -125,13 +133,88 @@
 			window.document.removeEventListener('keydown', handleKeydown);
 		};
 	});
+
+	/**
+	 * Active le renommage et place le focus dans le champ.
+	 * @returns {Promise<void>}
+	 */
+	async function handleStartRenaming() {
+		nameDraft = document.name;
+		isRenaming = true;
+
+		await tick();
+
+		nameInput?.focus();
+		nameInput?.select();
+	}
+
+	/**
+	 * Annule le renommage et restaure le nom initial.
+	 * @returns {void}
+	 */
+	function handleCancelRenaming() {
+		nameDraft = document.name;
+		isRenaming = false;
+	}
+
+	/**
+	 * Valide et enregistre le nouveau nom du document.
+	 * @returns {Promise<void>}
+	 */
+	async function handleFinishRenaming() {
+		if (!isRenaming) return;
+
+		const name = nameDraft.trim();
+
+		// Refuse un nom vide
+		if (!name) {
+			nameDraft = document.name;
+			isRenaming = false;
+			return;
+		}
+
+		isRenaming = false;
+
+		// Aucun changement : pas besoin de sauvegarder
+		if (name === document.name) return;
+
+		await onRename(name);
+	}
+
+	/**
+	 * Gère les raccourcis clavier du champ de renommage.
+	 * @param {KeyboardEvent} event
+	 * @returns {void}
+	 */
+	function handleRenameKeydown(event) {
+		event.stopPropagation();
+
+		if (event.key === 'Enter') {
+			event.preventDefault();
+			handleFinishRenaming();
+		}
+
+		if (event.key === 'Escape') {
+			event.preventDefault();
+			handleCancelRenaming();
+		}
+	}
 </script>
 
 <div class="group relative h-72.5 w-55">
-	<button
-		type="button"
+	<div
+		role="button"
+		tabindex="0"
 		class="flex h-full w-full cursor-pointer flex-col overflow-hidden rounded-xl border border-base-300 bg-base-100 text-left shadow-sm transition hover:shadow-md"
 		onclick={onOpen}
+		onkeydown={(event) => {
+			if (event.target !== event.currentTarget) return;
+
+			if (event.key === 'Enter' || event.key === ' ') {
+				event.preventDefault();
+				onOpen();
+			}
+		}}
 		aria-label={`Ouvrir le document ${document.name}`}
 	>
 		<div
@@ -143,9 +226,30 @@
 
 		<div class="w-full space-y-1 px-3 pt-3 pb-5">
 			<div class="flex h-6 items-center">
-				<h3 class="truncate font-semibold" title={document.name}>
-					{document.name}
-				</h3>
+				{#if isRenaming}
+					<input
+						bind:this={nameInput}
+						type="text"
+						bind:value={nameDraft}
+						class="h-6 w-full min-w-0 rounded border border-base-300 bg-base-100 px-1 text-sm font-semibold outline-none focus:border-primary"
+						aria-label="Nom du document"
+						onclick={(event) => event.stopPropagation()}
+						onkeydown={handleRenameKeydown}
+						onblur={handleFinishRenaming}
+					/>
+				{:else}
+					<button
+						type="button"
+						class="w-full cursor-text truncate text-left font-semibold"
+						title={document.name}
+						onclick={(event) => {
+							event.stopPropagation();
+							handleStartRenaming();
+						}}
+					>
+						{document.name}
+					</button>
+				{/if}
 			</div>
 
 			{#if libraryName}
@@ -164,7 +268,7 @@
 				Modifié le {formattedDate}
 			</p>
 		</div>
-	</button>
+	</div>
 
 	<div class="absolute right-2 bottom-2 z-10">
 		<button

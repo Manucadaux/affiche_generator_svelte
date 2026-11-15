@@ -5,16 +5,34 @@
 	import DocumentCard from './DocumentCard.svelte';
 
 	/** @type {{
-		documents: AppDocument[],
-		onCreate: () => void,
-		onOpen: (documentId: string) => void,
-		onDelete: (documentId: string) => void,
-		onDuplicate: (documentId: string) => void,
-		optionsLibrary: { id: number, label: string }[],
-		optionsMonth: { id: number, label: string }[]
-	}} */
-	let { documents, onCreate, onOpen, onDelete, onDuplicate, optionsLibrary, optionsMonth } =
-		$props();
+        documents: AppDocument[],
+        optionsLibrary: { id: number, label: string }[],
+        optionsMonth: { id: number, label: string }[],
+        onCreate: () => void,
+        onOpen: (documentId: string) => void,
+        onDelete: (documentId: string) => void,
+        onDuplicate: (documentId: string) => void,
+        onRename: (documentId: string, name: string) => Promise<void>,
+    }} */
+	let {
+		documents,
+		optionsLibrary,
+		optionsMonth,
+		onCreate,
+		onOpen,
+		onDelete,
+		onDuplicate,
+		onRename
+	} = $props();
+
+	/**
+	 * Crée le callback de renommage d'un document.
+	 * @param {AppDocument} document
+	 * @returns {(name: string) => Promise<void>}
+	 */
+	function createRenameHandler(document) {
+		return (name) => onRename(document.id, name);
+	}
 </script>
 
 <div class="grid grid-cols-[repeat(auto-fill,220px)] gap-5">
@@ -34,6 +52,7 @@
 			onOpen={() => onOpen(document.id)}
 			{onDelete}
 			{onDuplicate}
+			onRename={createRenameHandler(document)}
 		/>
 	{/each}
 </div>
