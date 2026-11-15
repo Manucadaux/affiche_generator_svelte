@@ -10,6 +10,7 @@
 	import { createPage, createEvent, generateId } from '#lib/utils/factories.js';
 	import {
 		deleteEventImages,
+		deleteEventImage,
 		cleanupOrphanedImages,
 		getEventImage,
 		saveEventImage
@@ -465,6 +466,50 @@
 		});
 	}
 
+	/**
+	 * Remplace l'image d'un événement et enregistre le changement dans l'historique.
+	 * @param {string} eventId
+	 * @param {Blob} newImage
+	 * @returns {Promise<void>}
+	 */
+	async function handleImageChange(eventId, newImage) {
+		const event = pages.current
+			.flatMap((page) => page.events)
+			.find((event) => event.id === eventId);
+
+		if (!event) return;
+
+		const previousImage = await getEventImage(eventId);
+
+		/**
+		 * Applique une image et déclenche son rechargement.
+		 * @param {Blob | null} image
+		 * @returns {Promise<void>}
+		 */
+		async function applyImage(image) {
+			if (image) {
+				await saveEventImage(eventId, image);
+			} else {
+				await deleteEventImage(eventId);
+			}
+
+			const currentEvent = pages.current
+				.flatMap((page) => page.events)
+				.find((event) => event.id === eventId);
+
+			if (currentEvent) {
+				updateEvent(eventId, 'imageVersion', (currentEvent.imageVersion ?? 0) + 1);
+			}
+		}
+
+		await applyImage(newImage);
+
+		history.push({
+			undo: () => applyImage(previousImage),
+			redo: () => applyImage(newImage)
+		});
+	}
+
 	/** Commence un groupe de modifications d'un événement. */
 	let isEventEditGroupOpen = false;
 
@@ -723,6 +768,7 @@
 		<EventEditor
 			event={selectedEvent}
 			onUpdateEvent={handleUpdateEvent}
+			onChangeImage={handleImageChange}
 			onBeginEdit={beginEventEdit}
 			onEndEdit={endEventEdit}
 			onClose={() => (selectedEventId = null)}
@@ -733,6 +779,7 @@
 {#if toastMessage}
 	<Toast message={toastMessage} type={toastType} onClose={() => (toastMessage = '')} />
 {/if}
+```
 
 <style>
 	:global {

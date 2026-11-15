@@ -1,13 +1,14 @@
 <script>
 	// @ts-nocheck
-	import { saveEventImage, getEventImage } from '#lib/utils/imageStorage.js';
+	import { getEventImage } from '#lib/utils/imageStorage.js';
 
-	let { event, onUpdateEvent, onBeginEdit, onEndEdit, onClose } = $props();
+	let { event, onUpdateEvent, onChangeImage, onBeginEdit, onEndEdit, onClose } = $props();
 
 	let imageUrl = $state(null);
 	let imageError = $state('');
 	let currentObjectUrl = null;
 	let eventId = $derived(event.id);
+	let imageVersion = $derived(event.imageVersion ?? 0);
 
 	function update(field, value) {
 		onUpdateEvent(event.id, field, value);
@@ -16,13 +17,14 @@
 	// Charger l'image existante
 	$effect(() => {
 		const currentEventId = eventId;
+		const currentImageVersion = imageVersion;
 		let cancelled = false;
 
 		imageUrl = null;
 
 		getEventImage(currentEventId)
 			.then((blob) => {
-				if (cancelled || !blob) return;
+				if (cancelled || currentImageVersion !== imageVersion || !blob) return;
 
 				const newUrl = URL.createObjectURL(blob);
 
@@ -58,21 +60,8 @@
 		}
 
 		try {
-			await saveEventImage(event.id, file);
-
-			// Mettre à jour l'image dans l'éditeur
-			if (currentObjectUrl) {
-				URL.revokeObjectURL(currentObjectUrl);
-			}
-
-			const newUrl = URL.createObjectURL(file);
-
-			currentObjectUrl = newUrl;
-			imageUrl = newUrl;
+			await onChangeImage(event.id, file);
 			imageError = '';
-
-			// Signaler le changement à Event.svelte
-			update('imageVersion', (event.imageVersion ?? 0) + 1);
 		} catch (error) {
 			console.error('Erreur lors de l’enregistrement de l’image :', error);
 			imageError = 'Impossible d’enregistrer cette image.';
