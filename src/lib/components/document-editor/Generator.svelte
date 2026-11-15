@@ -43,7 +43,7 @@
 		/>
 	{/if}
 
-	<DocumentOptions {nbPages} {documentName} {onAddPage} {onDeleteLastPage} {renderHref} />
+	<DocumentOptions {nbPages} bind:documentName {onAddPage} {onDeleteLastPage} {renderHref} />
 
 	<DisplayOptions bind:styles />
 

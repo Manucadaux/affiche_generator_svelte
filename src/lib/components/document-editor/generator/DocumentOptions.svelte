@@ -1,21 +1,13 @@
 <script>
-	import { PencilLine } from 'lucide-svelte';
+	import EditableName from '#lib/components/ui/EditableName.svelte';
 
 	let { nbPages, documentName = $bindable(), onAddPage, onDeleteLastPage, renderHref } = $props();
 </script>
 
 <div class="documentOptions">
 	<div class="documentName">
-		<label for="documentName">Nom du document</label>
-		<div class="inputContainer">
-			<input
-				id="documentName"
-				type="text"
-				class="input-bordered input w-full text-base input-md"
-				bind:value={documentName}
-			/>
-			<PencilLine size={15} class="pencilIcon" />
-		</div>
+		<p>Nom du document</p>
+		<EditableName bind:value={documentName} size="editor" label="Nom du document" />
 	</div>
 
 	<div class="pageOptions">
@@ -44,19 +36,6 @@
 <style>
 	.documentOptions > div {
 		margin: 25px 0;
-	}
-
-	.inputContainer {
-		position: relative;
-	}
-
-	:global(.pencilIcon) {
-		position: absolute;
-		right: 10px;
-		top: 50%;
-		transform: translateY(-50%);
-		pointer-events: none;
-		opacity: 0.6;
 	}
 
 	.pageOptions {
