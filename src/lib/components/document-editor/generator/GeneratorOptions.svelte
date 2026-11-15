@@ -5,11 +5,13 @@
 		selectedLibrary = $bindable(),
 		selectedMonth = $bindable()
 	} = $props();
+
+	let isOpen = $state(!selectedLibrary || !selectedMonth);
 </script>
 
 <div class="generatorOptions">
 	<div class="collapse-arrow collapse rounded-box border border-base-content/20">
-		<input type="checkbox" checked />
+		<input type="checkbox" bind:checked={isOpen} />
 
 		<div class="collapse-title font-medium">Informations</div>
 
