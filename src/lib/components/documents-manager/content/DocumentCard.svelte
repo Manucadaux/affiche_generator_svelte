@@ -1,0 +1,222 @@
+<script>
+	/** @typedef {import('#lib/utils/types.js').AppDocument} AppDocument */
+	import { autoPlacement, autoUpdate, computePosition, shift } from '@floating-ui/dom';
+
+	import { onMount } from 'svelte';
+	import { FileText, EllipsisVertical } from 'lucide-svelte';
+
+	import EditableName from '#lib/components/ui/EditableName.svelte';
+
+	/** @type {{
+		document: AppDocument,
+		libraryName: string | null,
+		monthName: string | null,
+		onOpen: () => void,
+		onDelete: (documentId: string) => void,
+		onDuplicate: (documentId: string) => void,
+		onRename: (name: string) => Promise<boolean>,
+	}} */
+	let { document, libraryName, monthName, onOpen, onDelete, onDuplicate, onRename } = $props();
+
+	let isMenuOpen = $state(false);
+
+	/** @type {HTMLButtonElement | undefined} */
+	let menuButton = $state();
+
+	/** @type {HTMLDivElement | undefined} */
+	let menuElement = $state();
+
+	let menuStyle = $state('left: 0; top: 0; visibility: hidden;');
+
+	$effect(() => {
+		if (!isMenuOpen || !menuButton || !menuElement) return;
+
+		const referenceElement = menuButton;
+		const floatingElement = menuElement;
+
+		// Point de référence : coin inférieur droit du bouton.
+		const reference = {
+			contextElement: referenceElement,
+
+			getBoundingClientRect() {
+				const rect = referenceElement.getBoundingClientRect();
+
+				return {
+					x: rect.right,
+					y: rect.bottom,
+					top: rect.bottom,
+					right: rect.right,
+					bottom: rect.bottom,
+					left: rect.right,
+					width: 0,
+					height: 0
+				};
+			}
+		};
+
+		let isActive = true;
+
+		/**
+		 * Calcule et actualise la position du menu.
+		 * @returns {void}
+		 */
+		function updatePosition() {
+			computePosition(reference, floatingElement, {
+				strategy: 'fixed',
+				placement: 'bottom-start',
+				middleware: [
+					autoPlacement({
+						allowedPlacements: ['bottom-start', 'bottom-end', 'top-start', 'top-end'],
+						padding: 8
+					}),
+					shift({ padding: 8 })
+				]
+			}).then(({ x, y }) => {
+				if (!isActive) return;
+
+				menuStyle = `left: ${x}px; top: ${y}px; visibility: visible;`;
+			});
+		}
+
+		const cleanup = autoUpdate(reference, floatingElement, updatePosition);
+
+		return () => {
+			isActive = false;
+			cleanup();
+		};
+	});
+
+	const formattedDate = $derived(
+		new Date(document.updatedAt).toLocaleDateString('fr-FR', {
+			day: 'numeric',
+			month: 'short',
+			year: 'numeric'
+		})
+	);
+
+	onMount(() => {
+		/**
+		 * Ferme le menu si le clic est effectué à l'extérieur.
+		 * @param {PointerEvent} event
+		 */
+		function handleOutsideClick(event) {
+			const target = event.target;
+
+			if (
+				target instanceof Node &&
+				!menuElement?.contains(target) &&
+				!menuButton?.contains(target)
+			) {
+				isMenuOpen = false;
+			}
+		}
+
+		/**
+		 * Ferme le menu avec Échap.
+		 * @param {KeyboardEvent} event
+		 */
+		function handleKeydown(event) {
+			if (event.key === 'Escape') {
+				isMenuOpen = false;
+			}
+		}
+
+		window.document.addEventListener('pointerdown', handleOutsideClick);
+		window.document.addEventListener('keydown', handleKeydown);
+
+		return () => {
+			window.document.removeEventListener('pointerdown', handleOutsideClick);
+			window.document.removeEventListener('keydown', handleKeydown);
+		};
+	});
+</script>
+
+<div class="group relative h-72.5 w-55">
+	<div
+		role="button"
+		tabindex="0"
+		class="flex h-full w-full cursor-pointer flex-col overflow-hidden rounded-xl border border-base-300 bg-base-100 text-left shadow-sm transition hover:shadow-md"
+		onclick={onOpen}
+		onkeydown={(event) => {
+			if (event.target !== event.currentTarget) return;
+
+			if (event.key === 'Enter' || event.key === ' ') {
+				event.preventDefault();
+				onOpen();
+			}
+		}}
+		aria-label={`Ouvrir le document ${document.name}`}
+	>
+		<div
+			class="flex flex-1 items-center justify-center bg-base-200"
+			aria-label="Aperçu du document"
+		>
+			<FileText size={48} strokeWidth={1} class="text-base-content/30" />
+		</div>
+
+		<div class="w-full space-y-1 px-3 pt-3 pb-5">
+			<div class="flex h-6 items-center">
+				<EditableName value={document.name} size="card" label="Nom du document" onSave={onRename} />
+			</div>
+
+			{#if libraryName}
+				<p class="truncate text-xs text-base-content/70" title={libraryName}>
+					{libraryName}
+				</p>
+			{/if}
+
+			{#if monthName}
+				<p class="text-xs text-base-content/70">
+					{monthName}
+				</p>
+			{/if}
+
+			<p class="pt-1 text-xs text-base-content/50">
+				Modifié le {formattedDate}
+			</p>
+		</div>
+	</div>
+
+	<div class="absolute right-2 bottom-2 z-10">
+		<button
+			bind:this={menuButton}
+			type="button"
+			class="flex size-8 cursor-pointer items-center justify-center rounded-full border border-base-300 bg-base-100 text-base-content/60 transition hover:border-base-content/30 hover:bg-base-200 hover:text-base-content"
+			aria-label={`Actions du document ${document.name}`}
+			aria-expanded={isMenuOpen}
+			aria-haspopup="true"
+			onclick={() => (isMenuOpen = !isMenuOpen)}
+		>
+			<EllipsisVertical size={18} />
+		</button>
+
+		{#if isMenuOpen}
+			<div
+				bind:this={menuElement}
+				style={menuStyle}
+				class="fixed z-50 min-w-40 rounded-lg border border-base-300 bg-base-100 p-1 shadow-lg"
+			>
+				<button
+					type="button"
+					class="w-full cursor-pointer rounded-md px-3 py-2 text-left text-sm transition hover:bg-base-200"
+					onclick={() => {
+						isMenuOpen = false;
+						onDuplicate(document.id);
+					}}
+				>
+					Dupliquer
+				</button>
+				<button
+					type="button"
+					class="w-full cursor-pointer rounded-md px-3 py-2 text-left text-sm text-error transition hover:bg-base-200"
+					onclick={() => {
+						isMenuOpen = false;
+						onDelete(document.id);
+					}}
+				>
+					Supprimer
+				</button>
+			</div>
+		{/if}
+	</div>
+</div>

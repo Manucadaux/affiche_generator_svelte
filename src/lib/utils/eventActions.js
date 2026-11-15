@@ -1,6 +1,8 @@
 /** @typedef {import('./types.js').Event} Event */
 /** @typedef {import('./types.js').Page} Page */
 
+import { MAX_EVENTS_PER_PAGE } from '#lib/utils/constants.js';
+
 /**
  * @typedef {Object} Dependencies
  * @property {{ current: Page[] }} pages
@@ -18,7 +20,7 @@ export function createEventActions(dependencies) {
 	/** @param {string} pageId */
 	function addEvent(pageId) {
 		pages.current = pages.current.map((page) =>
-			page.id === pageId && page.events.length < 4
+			page.id === pageId && page.events.length < MAX_EVENTS_PER_PAGE
 				? {
 						...page,
 						events: [...page.events, createEvent()]
@@ -65,19 +67,21 @@ export function createEventActions(dependencies) {
 	 * @param {Event[K]} value
 	 */
 	function updateEvent(eventId, field, value) {
-		pages.current = pages.current.map((page) => {
-			// Ne pas toucher aux pages qui ne contiennent pas cet évènement
-			if (!page.events.some((event) => event.id === eventId)) {
-				return page;
-			}
+		const pageIndex = pages.current.findIndex((page) =>
+			page.events.some((event) => event.id === eventId)
+		);
 
-			return {
-				...page,
-				events: page.events.map((event) =>
-					event.id === eventId ? { ...event, [field]: value } : event
-				)
-			};
-		});
+		if (pageIndex === -1) return;
+
+		const page = pages.current[pageIndex];
+
+		pages.current = [...pages.current];
+		pages.current[pageIndex] = {
+			...page,
+			events: page.events.map((event) =>
+				event.id === eventId ? { ...event, [field]: value } : event
+			)
+		};
 	}
 
 	return { addEvent, removeEvent, toggleReverse, updateEvent };

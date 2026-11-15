@@ -1,13 +1,8 @@
 <script>
-	let { onResetEvents, onResetAll, renderHref } = $props();
+	let { onResetEvents, onResetAll } = $props();
 </script>
 
 <div>
-	<div class="containerBtnPdf">
-		<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
-		<a href={renderHref} class="btn btn-block btn-primary"> Générer PDF </a>
-	</div>
-
 	<div class="collapse-arrow collapse mt-4 rounded-box border border-base-content/20">
 		<input type="checkbox" />
 		<div class="collapse-title font-medium">Réinitialisation</div>
@@ -31,10 +26,6 @@
 </p>
 
 <style>
-	.containerBtnPdf {
-		margin: 25px 0;
-	}
-
 	.collapse > input[type='checkbox'] {
 		position: absolute;
 		inset: 0 0 auto 0;

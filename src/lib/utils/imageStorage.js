@@ -1,38 +1,6 @@
-const DB_NAME = 'affiche-generator';
-const DB_VERSION = 1;
+import { getDatabase } from './database.js';
+
 const STORE_NAME = 'eventImages';
-
-/** @type {Promise<IDBDatabase> | null} */
-let dbPromise = null;
-
-/**
- * Ouvrir la base de données IndexedDB
- * @returns {Promise<IDBDatabase>}
- */
-function getDatabase() {
-	if (dbPromise) return dbPromise;
-
-	dbPromise = new Promise((resolve, reject) => {
-		const request = indexedDB.open(DB_NAME, DB_VERSION);
-
-		request.onupgradeneeded = () => {
-			const db = request.result;
-
-			if (!db.objectStoreNames.contains(STORE_NAME)) {
-				db.createObjectStore(STORE_NAME);
-			}
-		};
-
-		request.onsuccess = () => resolve(request.result);
-
-		request.onerror = () => {
-			dbPromise = null;
-			reject(request.error);
-		};
-	});
-
-	return dbPromise;
-}
 
 /**
  * Enregistrer ou remplacer une image

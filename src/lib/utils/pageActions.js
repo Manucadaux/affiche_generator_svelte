@@ -14,6 +14,8 @@
  * @property {(pageId: string) => Promise<void>} scrollToPage
  */
 
+import { defaultEventOptions } from '#lib/data/options.js';
+
 /** @param {Dependencies} dependencies */
 export function createPageActions(dependencies) {
 	const {
@@ -28,11 +30,15 @@ export function createPageActions(dependencies) {
 		clearSelectedEvent
 	} = dependencies;
 
-	/** @param {string} pageId */
-	async function addPage(pageId) {
+	/**
+	 * Ajoute une page après celle indiquée.
+	 * @param {string} pageId
+	 * @returns {Page | null}
+	 */
+	function addPage(pageId) {
 		const index = pages.current.findIndex((page) => page.id === pageId);
 
-		if (index === -1) return;
+		if (index === -1) return null;
 
 		const newPage = createPage();
 		const newPages = [...pages.current];
@@ -40,28 +46,96 @@ export function createPageActions(dependencies) {
 		newPages.splice(index + 1, 0, newPage);
 		pages.current = newPages;
 
+		return newPage;
+	}
+
+	/**
+	 * Ajoute une page et défile jusqu'à celle-ci.
+	 * @param {string} pageId
+	 * @returns {Promise<void>}
+	 */
+	async function addPageAndScroll(pageId) {
+		const newPage = addPage(pageId);
+
+		if (!newPage) return;
+
 		await scrollToPage(newPage.id);
 	}
 
-	/** @param {string} pageId */
-	async function deletePage(pageId) {
-		const confirmation = confirm(
-			'Voulez-vous vraiment supprimer cette page et tous ses évènements ?'
+	/**
+	 * Vérifie si une page comporte des modifications.
+	 * @param {Page} page
+	 * @returns {boolean}
+	 */
+	function isPageModified(page) {
+		// Une page par défaut contient une seule affiche et n'est pas inversée.
+		if (page.reverse !== false || page.events.length !== 1) {
+			return true;
+		}
+
+		// On compare les options de chaque évènement aux valeurs par défaut.
+		return page.events.some((event) =>
+			Object.entries(defaultEventOptions).some(([key, value]) => Reflect.get(event, key) !== value)
 		);
+	}
 
-		if (!confirmation) return;
-
-		const page = pages.current.find((page) => page.id === pageId);
-
-		if (!page) return;
-
+	/**
+	 * Supprime une page et ses images associées.
+	 * @param {Page} page
+	 * @returns {Promise<void>}
+	 */
+	async function removePage(page) {
 		await deleteEventImages(page.events);
 
 		if (page.events.some((event) => event.id === getSelectedEventId())) {
 			clearSelectedEvent();
 		}
 
-		pages.current = pages.current.filter((page) => page.id !== pageId);
+		pages.current = pages.current.filter((item) => item.id !== page.id);
+	}
+
+	/**
+	 * Supprime une page après confirmation.
+	 * @param {string} pageId
+	 * @returns {Promise<void>}
+	 */
+	async function deletePage(pageId) {
+		const page = pages.current.find((page) => page.id === pageId);
+
+		if (!page) return;
+
+		if (pages.current.length <= 1) {
+			alert('Un document doit contenir au moins une affiche.');
+			return;
+		}
+
+		const confirmation = confirm(
+			'Voulez-vous vraiment supprimer cette page et tous ses évènements ?'
+		);
+
+		if (!confirmation) return;
+
+		await removePage(page);
+	}
+
+	/**
+	 * Supprime la dernière page, avec confirmation uniquement si elle a été modifiée.
+	 * @returns {Promise<void>}
+	 */
+	async function deleteLastPage() {
+		if (pages.current.length <= 1) return;
+
+		const lastPage = pages.current[pages.current.length - 1];
+
+		if (isPageModified(lastPage)) {
+			const confirmation = confirm(
+				'La dernière page comporte des modifications. Voulez-vous vraiment la supprimer ?'
+			);
+
+			if (!confirmation) return;
+		}
+
+		await removePage(lastPage);
 	}
 
 	/** @param {string} pageId */
@@ -110,5 +184,5 @@ export function createPageActions(dependencies) {
 		}
 	}
 
-	return { addPage, duplicatePage, deletePage };
+	return { addPage, addPageAndScroll, duplicatePage, deletePage, deleteLastPage };
 }
