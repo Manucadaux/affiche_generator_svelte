@@ -171,6 +171,7 @@
 			await refreshDocuments();
 		} catch (error) {
 			console.error('Erreur lors du renommage du document :', error);
+			throw error;
 		}
 	}
 </script>

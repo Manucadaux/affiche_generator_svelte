@@ -173,12 +173,12 @@
 			return;
 		}
 
-		isRenaming = false;
-
 		// Aucun changement : pas besoin de sauvegarder
 		if (name === document.name) return;
 
 		await onRename(name);
+
+		isRenaming = false;
 	}
 
 	/**
