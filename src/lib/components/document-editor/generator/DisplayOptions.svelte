@@ -1,6 +1,8 @@
 <script>
 	let { styles = $bindable() } = $props();
 
+	let autoZoom = $derived(styles.autoZoom !== false);
+
 	/**
 	 * @param {Event & { currentTarget: HTMLInputElement }} e
 	 */
@@ -44,7 +46,7 @@
 			<input
 				type="checkbox"
 				class="checkbox checkbox-primary"
-				checked={styles.autoZoom}
+				checked={autoZoom}
 				onchange={handleAutoZoomChange}
 			/>
 			Ajuster automatiquement le zoom

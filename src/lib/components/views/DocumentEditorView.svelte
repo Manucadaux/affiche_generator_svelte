@@ -91,15 +91,27 @@
 
 		async function loadDocument() {
 			try {
-				const document = await getStoredDocument(documentId);
+				let document = await getStoredDocument(documentId);
 
 				if (cancelled) return;
+
+				const originalSnapshot = document ? JSON.stringify(document) : '';
+
+				if (document && document.styles.autoZoom === undefined) {
+					document = {
+						...document,
+						styles: {
+							...document.styles,
+							autoZoom: true
+						}
+					};
+				}
 
 				activeDocument = document;
 				loadedDocumentId = documentId;
 
 				if (document) {
-					lastSavedSnapshot = JSON.stringify(document);
+					lastSavedSnapshot = originalSnapshot;
 				}
 			} catch (error) {
 				console.error('Erreur lors du chargement du document :', error);
@@ -322,7 +334,7 @@
 
 	// Calcul automatique du zoom pour afficher la page A3 entière.
 	$effect(() => {
-		if (!documentReady || !styles.current.autoZoom) return;
+		if (!documentReady || styles.current.autoZoom === false) return;
 
 		let cancelled = false;
 		/** @type {ResizeObserver | null} */
