@@ -2,6 +2,7 @@
 	/** @typedef {import('#lib/utils/types.js').AppDocument} AppDocument */
 	/** @typedef {import('#lib/utils/types.js').Page} Page */
 	/** @typedef {import('#lib/utils/types.js').Styles} Styles */
+	/** @typedef {import('#lib/utils/types.js').Event} Event */
 
 	import { optionsLibrary, optionsMonth, defaultStyles } from '#lib/data/options.js';
 
@@ -441,6 +442,119 @@
 		clearSelectedEvent: () => (selectedEventId = null)
 	});
 
+	/**
+	 * Met à jour une propriété d'événement et enregistre le changement.
+	 *
+	 * @template {keyof Event} K
+	 * @param {string} eventId
+	 * @param {K} field
+	 * @param {Event[K]} value
+	 * @returns {void}
+	 */
+	function handleUpdateEvent(eventId, field, value) {
+		const event = pages.current
+			.flatMap((page) => page.events)
+			.find((event) => event.id === eventId);
+
+		if (!event) return;
+
+		const previousValue = event[field];
+
+		recordChange(history, previousValue, value, (nextValue) => {
+			updateEvent(eventId, field, nextValue);
+		});
+	}
+
+	/** @type {{ eventId: string, field: 'sizeTitle' | 'sizeDescription', value: number } | null} */
+	let sizeEditStart = null;
+
+	/**
+	 * Enregistre une modification de taille comme une seule action.
+	 *
+	 * @param {string} eventId
+	 * @param {'sizeTitle' | 'sizeDescription'} field
+	 * @param {number} previousValue
+	 * @param {number} newValue
+	 */
+	function recordEventSizeChange(eventId, field, previousValue, newValue) {
+		if (previousValue === newValue) return;
+
+		history.push({
+			undo: () => updateEvent(eventId, field, previousValue),
+			redo: () => updateEvent(eventId, field, newValue)
+		});
+	}
+
+	/**
+	 * Récupère la taille actuelle d'un événement.
+	 *
+	 * @param {string} eventId
+	 * @param {'sizeTitle' | 'sizeDescription'} field
+	 * @returns {number | undefined}
+	 */
+	function getEventSize(eventId, field) {
+		return pages.current.flatMap((page) => page.events).find((event) => event.id === eventId)?.[
+			field
+		];
+	}
+
+	/**
+	 * Mémorise la valeur initiale d'une taille.
+	 *
+	 * @param {string} eventId
+	 * @param {'sizeTitle' | 'sizeDescription'} field
+	 */
+	function handleStartSizeEdit(eventId, field) {
+		sizeEditStart = {
+			eventId,
+			field,
+			value: getEventSize(eventId, field) ?? 1
+		};
+	}
+
+	/**
+	 * Termine l'édition et enregistre une seule action.
+	 *
+	 * @param {string} eventId
+	 * @param {'sizeTitle' | 'sizeDescription'} field
+	 */
+	function handleFinishSizeEdit(eventId, field) {
+		if (!sizeEditStart) return;
+		if (sizeEditStart.eventId !== eventId || sizeEditStart.field !== field) return;
+
+		const { value: previousValue } = sizeEditStart;
+		const newValue = getEventSize(eventId, field) ?? previousValue;
+
+		recordEventSizeChange(eventId, field, previousValue, newValue);
+
+		sizeEditStart = null;
+	}
+
+	/** Termine l'édition de taille éventuellement en cours. */
+	function finishActiveSizeEdit() {
+		if (!sizeEditStart) return;
+
+		handleFinishSizeEdit(sizeEditStart.eventId, sizeEditStart.field);
+	}
+
+	/** Commence un groupe de modifications d'un événement. */
+	let isEventEditGroupOpen = false;
+
+	function beginEventEdit() {
+		if (isEventEditGroupOpen) return;
+
+		history.beginGroup();
+		isEventEditGroupOpen = true;
+	}
+
+	/** Termine le groupe de modifications d'un événement. */
+	function endEventEdit() {
+		if (!isEventEditGroupOpen) return;
+
+		history.endGroup();
+		isEventEditGroupOpen = false;
+	}
+
 	const { resetEvents, resetAll } = createResetActions({
 		pages,
 		createPage,
@@ -543,6 +657,7 @@
 	 * @returns {Promise<void>}
 	 */
 	async function handleUndo() {
+		finishActiveSizeEdit();
 		await history.undo();
 	}
 
@@ -551,6 +666,7 @@
 	 * @returns {Promise<void>}
 	 */
 	async function handleRedo() {
+		finishActiveSizeEdit();
 		await history.redo();
 	}
 
@@ -566,6 +682,8 @@
 		if (!activeDocument) return false;
 
 		const previousValue = activeDocument[property];
+
+		if (previousValue === newValue) return true;
 
 		/** @type {Partial<AppDocument>} */
 		const previousValues = { [property]: previousValue };
@@ -678,7 +796,12 @@
 	<div class="editorContainer card border border-base-300 bg-base-100 shadow-xl">
 		<EventEditor
 			event={selectedEvent}
-			onUpdateEvent={updateEvent}
+			onUpdateEvent={handleUpdateEvent}
+			onUpdateEventLive={updateEvent}
+			onBeginEdit={beginEventEdit}
+			onEndEdit={endEventEdit}
+			onStartSizeEdit={handleStartSizeEdit}
+			onFinishSizeEdit={handleFinishSizeEdit}
 			onClose={() => (selectedEventId = null)}
 		/>
 	</div>

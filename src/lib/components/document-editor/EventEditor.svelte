@@ -2,7 +2,16 @@
 	// @ts-nocheck
 	import { saveEventImage, getEventImage } from '#lib/utils/imageStorage.js';
 
-	let { event, onUpdateEvent, onClose } = $props();
+	let {
+		event,
+		onUpdateEvent,
+		onBeginEdit,
+		onEndEdit,
+		onStartSizeEdit,
+		onFinishSizeEdit,
+		onUpdateEventLive,
+		onClose
+	} = $props();
 
 	let imageUrl = $state(null);
 	let imageError = $state('');
@@ -78,6 +87,10 @@
 			imageError = 'Impossible d’enregistrer cette image.';
 		}
 	}
+
+	function updateSize(field, value) {
+		onUpdateEventLive(event.id, field, value);
+	}
 </script>
 
 <div class="card-body gap-4 p-6">
@@ -102,6 +115,8 @@
 				class="input-bordered input w-full"
 				value={event.title}
 				oninput={(e) => update('title', e.currentTarget.value)}
+				onfocus={onBeginEdit}
+				onblur={onEndEdit}
 			/>
 		</fieldset>
 
@@ -112,6 +127,8 @@
 					class="input-bordered input w-full"
 					value={event.date}
 					oninput={(e) => update('date', e.currentTarget.value)}
+					onfocus={onBeginEdit}
+					onblur={onEndEdit}
 				/>
 			</fieldset>
 
@@ -121,7 +138,9 @@
 					class="textarea-bordered textarea w-full"
 					rows="2"
 					value={event.hour}
-					oninput={(e) => update('hour', e.currentTarget.value)}></textarea>
+					oninput={(e) => update('hour', e.currentTarget.value)}
+					onfocus={onBeginEdit}
+					onblur={onEndEdit}></textarea>
 			</fieldset>
 		</div>
 
@@ -130,7 +149,9 @@
 			<textarea
 				class="textarea-bordered textarea min-h-28 w-full"
 				value={event.content}
-				oninput={(e) => update('content', e.currentTarget.value)}></textarea>
+				oninput={(e) => update('content', e.currentTarget.value)}
+				onfocus={onBeginEdit}
+				onblur={onEndEdit}></textarea>
 		</fieldset>
 	</div>
 
@@ -148,7 +169,9 @@
 					type="number"
 					min="1"
 					value={event.sizeTitle}
-					oninput={(e) => update('sizeTitle', Math.max(1, Number(e.currentTarget.value)))}
+					oninput={(e) => updateSize('sizeTitle', Math.max(1, Number(e.currentTarget.value)))}
+					onfocus={() => onStartSizeEdit(event.id, 'sizeTitle')}
+					onblur={() => onFinishSizeEdit(event.id, 'sizeTitle')}
 				/>
 			</fieldset>
 
@@ -159,7 +182,9 @@
 					type="number"
 					min="1"
 					value={event.sizeDescription}
-					oninput={(e) => update('sizeDescription', Math.max(1, Number(e.currentTarget.value)))}
+					oninput={(e) => updateSize('sizeDescription', Math.max(1, Number(e.currentTarget.value)))}
+					onfocus={() => onStartSizeEdit(event.id, 'sizeDescription')}
+					onblur={() => onFinishSizeEdit(event.id, 'sizeDescription')}
 				/>
 			</fieldset>
 		</div>
@@ -177,6 +202,8 @@
 				class="input-bordered input w-full"
 				value={event.condition}
 				oninput={(e) => update('condition', e.currentTarget.value)}
+				onfocus={onBeginEdit}
+				onblur={onEndEdit}
 			/>
 		</fieldset>
 

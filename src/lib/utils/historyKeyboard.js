@@ -15,11 +15,26 @@ export function setupHistoryKeyboard({ undo, redo, canUndo, canRedo }) {
 	function handleKeydown(event) {
 		const target = event.target;
 
-		// Laisse les champs de saisie gérer leurs propres raccourcis.
+		const isTextInput =
+			target instanceof HTMLInputElement &&
+			![
+				'number',
+				'checkbox',
+				'radio',
+				'button',
+				'submit',
+				'reset',
+				'range',
+				'color',
+				'file'
+			].includes(target.type);
+
 		if (
-			target instanceof HTMLElement &&
-			(target.isContentEditable ||
-				target.closest('input, textarea, select, [contenteditable="true"], [role="textbox"]'))
+			isTextInput ||
+			target instanceof HTMLTextAreaElement ||
+			(target instanceof HTMLElement &&
+				(target.isContentEditable ||
+					target.closest('select, [contenteditable="true"], [role="textbox"]')))
 		) {
 			return;
 		}
