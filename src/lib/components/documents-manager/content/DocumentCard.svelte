@@ -12,7 +12,7 @@
 		onOpen: () => void,
 		onDelete: (documentId: string) => void,
 		onDuplicate: (documentId: string) => void,
-		onRename: (name: string) => Promise<void>,
+		onRename: (name: string) => Promise<boolean>,
 	}} */
 	let { document, libraryName, monthName, onOpen, onDelete, onDuplicate, onRename } = $props();
 
@@ -176,9 +176,11 @@
 		// Aucun changement : pas besoin de sauvegarder
 		if (name === document.name) return;
 
-		await onRename(name);
+		const success = await onRename(name);
 
-		isRenaming = false;
+		if (success) {
+			isRenaming = false;
+		}
 	}
 
 	/**

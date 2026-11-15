@@ -8,6 +8,7 @@
 	import EmptyDocuments from '#lib/components/documents-manager/content/EmptyDocuments.svelte';
 	import NewDocumentModal from '#lib/components/documents-manager/content/NewDocumentModal.svelte';
 	import DeleteModal from '#lib/components/ui/DeleteModal.svelte';
+	import Toast from '#lib/components/ui/Toast.svelte';
 
 	/**
 	 * @typedef {Object} NewDocumentOptions
@@ -47,6 +48,10 @@
 	let isCreateModalOpen = $state(false);
 	/** @type {AppDocument | null} */
 	let documentToDelete = $state(null);
+
+	let toastMessage = $state('');
+	/** @type {'success' | 'error' | 'info' | 'warning'} */
+	let toastType = $state('error');
 
 	let filteredDocuments = $derived.by(() => {
 		const query = searchQuery.trim().toLocaleLowerCase('fr');
@@ -163,15 +168,21 @@
 	 * Renomme un document.
 	 * @param {string} documentId
 	 * @param {string} name
-	 * @returns {Promise<void>}
+	 * @returns {Promise<boolean>}
 	 */
 	async function handleRenameDocument(documentId, name) {
 		try {
 			await updateDocument(documentId, { name });
 			await refreshDocuments();
+
+			return true;
 		} catch (error) {
 			console.error('Erreur lors du renommage du document :', error);
-			throw error;
+
+			toastType = 'error';
+			toastMessage = 'Impossible de renommer le document. Veuillez réessayer.';
+
+			return false;
 		}
 	}
 </script>
@@ -221,4 +232,8 @@
 		onClose={() => (documentToDelete = null)}
 		onConfirm={handleConfirmDelete}
 	/>
+{/if}
+
+{#if toastMessage}
+	<Toast message={toastMessage} type={toastType} onClose={() => (toastMessage = '')} />
 {/if}

@@ -12,7 +12,7 @@
         onOpen: (documentId: string) => void,
         onDelete: (documentId: string) => void,
         onDuplicate: (documentId: string) => void,
-        onRename: (documentId: string, name: string) => Promise<void>,
+        onRename: (documentId: string, name: string) => Promise<boolean>,
     }} */
 	let {
 		documents,
@@ -28,7 +28,7 @@
 	/**
 	 * Crée le callback de renommage d'un document.
 	 * @param {AppDocument} document
-	 * @returns {(name: string) => Promise<void>}
+	 * @returns {(name: string) => Promise<boolean>}
 	 */
 	function createRenameHandler(document) {
 		return (name) => onRename(document.id, name);
