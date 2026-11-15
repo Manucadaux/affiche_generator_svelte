@@ -35,6 +35,9 @@
 
 	let { documentId } = $props();
 
+	const A3_WIDTH_PX = (297 / 25.4) * 96;
+	const A3_HEIGHT_PX = (420 / 25.4) * 96;
+
 	let renderHref = $derived(`/render?documentId=${encodeURIComponent(documentId)}`);
 
 	const selectedTheme = useLocalStorage('selectedTheme', 'system');
@@ -315,6 +318,59 @@
 		}
 
 		cleanImages();
+	});
+
+	// Calcul automatique du zoom pour afficher la page A3 entière.
+	$effect(() => {
+		if (!documentReady || !styles.current.autoZoom) return;
+
+		let cancelled = false;
+		/** @type {ResizeObserver | null} */
+		let resizeObserver = null;
+
+		function updateAutoZoom() {
+			const pageContainer = document.querySelector('.pageContainer');
+
+			if (!(pageContainer instanceof HTMLElement)) return;
+
+			const availableWidth = pageContainer.clientWidth;
+
+			// Le conteneur commence à 10px du haut de la fenêtre.
+			// On réserve également 40px pour le padding et 20px en bas.
+			const availableHeight = window.innerHeight - 10 - pageContainer.offsetTop - 60;
+
+			if (availableWidth <= 0 || availableHeight <= 0) return;
+
+			const widthZoom = (availableWidth / A3_WIDTH_PX) * 100;
+			const heightZoom = (availableHeight / A3_HEIGHT_PX) * 100;
+
+			const zoom = Math.max(1, Math.floor(Math.min(widthZoom, heightZoom, 100)));
+
+			if (styles.current.autoZoom && styles.current.zoom !== zoom) {
+				styles.current = { ...styles.current, zoom };
+			}
+		}
+
+		tick().then(() => {
+			if (cancelled) return;
+
+			const pageContainer = document.querySelector('.pageContainer');
+
+			if (!(pageContainer instanceof HTMLElement)) return;
+
+			resizeObserver = new ResizeObserver(updateAutoZoom);
+			resizeObserver.observe(pageContainer);
+
+			window.addEventListener('resize', updateAutoZoom);
+
+			updateAutoZoom();
+		});
+
+		return () => {
+			cancelled = true;
+			resizeObserver?.disconnect();
+			window.removeEventListener('resize', updateAutoZoom);
+		};
 	});
 
 	/** @type {string | null} */
