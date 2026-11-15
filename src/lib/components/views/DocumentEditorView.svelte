@@ -26,7 +26,9 @@
 
 	import { slide } from 'svelte/transition';
 	import { onMount, tick } from 'svelte';
+	import { goto } from '$app/navigation';
 
+	import Toast from '#lib/components/ui/Toast.svelte';
 	import Generator from '#lib/components/document-editor/Generator.svelte';
 	import PageEditor from '#lib/components/document-editor/PageEditor.svelte';
 	import EventEditor from '#lib/components/document-editor/EventEditor.svelte';
@@ -46,6 +48,13 @@
 	let lastSavedSnapshot = '';
 
 	let isResetting = $state(false);
+
+	/** @type {'success' | 'error' | 'info' | 'warning'} */
+	let toastType = $state('error');
+	let toastMessage = $state('');
+
+	/** @type {AppDocument[]} */
+	let documents = $state([]);
 
 	/** @returns {Promise<void>} */
 	async function handleResetEvents() {
@@ -179,29 +188,106 @@
 	// Sauvegarde automatique dans IndexedDB
 	let saveQueue = Promise.resolve();
 
+	/**
+	 * Ajoute une sauvegarde à la file d'attente.
+	 * @param {AppDocument} document
+	 * @returns {Promise<void>}
+	 */
+	function enqueueDocumentSave(document) {
+		const snapshot = JSON.stringify(document);
+		const updatedDocument = {
+			...document,
+			updatedAt: new Date().toISOString()
+		};
+
+		// Une erreur précédente ne doit pas empêcher les sauvegardes suivantes.
+		const saveOperation = saveQueue
+			.catch(() => {})
+			.then(async () => {
+				const updated = await saveStoredDocument(updatedDocument);
+
+				if (!updated) {
+					throw new Error('Le document n’existe plus.');
+				}
+
+				lastSavedSnapshot = snapshot;
+			});
+
+		saveQueue = saveOperation;
+		return saveOperation;
+	}
+
+	/**
+	 * Enregistre le document courant avant une navigation.
+	 * @returns {Promise<boolean>}
+	 */
+	async function saveCurrentDocument() {
+		await tick();
+
+		if (!documentReady || !activeDocument || isDocumentDeleted) {
+			return false;
+		}
+
+		try {
+			// Attend les sauvegardes déjà en cours.
+			await saveQueue.catch(() => {});
+
+			// Vérifie à nouveau la version la plus récente après l'attente.
+			const snapshot = JSON.stringify(activeDocument);
+
+			if (snapshot !== lastSavedSnapshot) {
+				await enqueueDocumentSave(activeDocument);
+			}
+
+			return true;
+		} catch (error) {
+			console.error('Erreur lors de la sauvegarde avant navigation :', error);
+			toastType = 'error';
+			toastMessage =
+				'Impossible d’enregistrer le document. Veuillez réessayer avant de changer de document.';
+			return false;
+		}
+	}
+
+	/**
+	 * Retourne à la liste des documents après sauvegarde.
+	 * @returns {Promise<void>}
+	 */
+	async function handleNavigateHome() {
+		const saved = await saveCurrentDocument();
+
+		if (!saved) return;
+
+		// eslint-disable-next-line svelte/no-navigation-without-resolve
+		await goto('/');
+	}
+
+	/**
+	 * Ouvre un autre document après sauvegarde du document courant.
+	 * @param {string} nextDocumentId
+	 * @returns {Promise<void>}
+	 */
+	async function handleNavigate(nextDocumentId) {
+		const saved = await saveCurrentDocument();
+
+		if (!saved) return;
+
+		// eslint-disable-next-line svelte/no-navigation-without-resolve
+		await goto(`/document-editor?documentId=${encodeURIComponent(nextDocumentId)}`);
+	}
+
+	// Sauvegarde automatique : comportement d'erreur inchangé.
 	$effect(() => {
 		const currentDocument = activeDocument;
 
 		if (!documentReady || !currentDocument) return;
 
 		const snapshot = JSON.stringify(currentDocument);
-
 		if (snapshot === lastSavedSnapshot) return;
 
-		const updatedDocument = JSON.parse(snapshot);
-		updatedDocument.updatedAt = new Date().toISOString();
-
-		saveQueue = saveQueue
-			.then(async () => {
-				await saveStoredDocument(updatedDocument);
-
-				lastSavedSnapshot = snapshot;
-
-				console.info(`Document "${updatedDocument.name}" sauvegardé.`);
-			})
-			.catch((error) => {
-				console.error('Erreur lors de la sauvegarde du document :', error);
-			});
+		enqueueDocumentSave(currentDocument).catch((error) => {
+			console.error('Erreur lors de la sauvegarde du document :', error);
+		});
 	});
 
 	// Nettoyage des images en tenant compte de tous les documents
@@ -235,17 +321,30 @@
 	/** @type {boolean | null} */
 	let systemPrefersDark = $state(null);
 
-	const { addPage, duplicatePage, deletePage } = createPageActions({
-		pages,
-		createPage,
-		generateId,
-		getEventImage,
-		saveEventImage,
-		deleteEventImages,
-		scrollToPage,
-		getSelectedEventId: () => selectedEventId,
-		clearSelectedEvent: () => (selectedEventId = null)
-	});
+	const { addPage, addPageAndScroll, duplicatePage, deletePage, deleteLastPage } =
+		createPageActions({
+			pages,
+			createPage,
+			generateId,
+			getEventImage,
+			saveEventImage,
+			deleteEventImages,
+			scrollToPage,
+			getSelectedEventId: () => selectedEventId,
+			clearSelectedEvent: () => (selectedEventId = null)
+		});
+
+	/**
+	 * Ajoute une page à la fin du document, sans défilement.
+	 * @returns {Page | null}
+	 */
+	function handleAddPage() {
+		const lastPage = pages.current.at(-1);
+
+		if (!lastPage) return null;
+
+		return addPage(lastPage.id);
+	}
 
 	const { addEvent, removeEvent, toggleReverse, updateEvent } = createEventActions({
 		pages,
@@ -318,10 +417,24 @@
 
 	let nbPages = $derived(pages.current.length);
 
+	/**
+	 * Actualise la liste des documents.
+	 * @returns {Promise<void>}
+	 */
+	async function refreshDocuments() {
+		try {
+			documents = await getAllDocuments();
+		} catch (error) {
+			console.error('Erreur lors du chargement des documents :', error);
+		}
+	}
+
 	onMount(() => {
+		refreshDocuments();
+
 		return subscribeToDocumentChanges(async () => {
 			try {
-				const document = await getStoredDocument(documentId);
+				const [document] = await Promise.all([getStoredDocument(documentId), refreshDocuments()]);
 
 				if (!document) {
 					isDocumentDeleted = true;
@@ -346,6 +459,8 @@
 		{optionsLibrary}
 		{optionsMonth}
 		{renderHref}
+		{documents}
+		currentDocumentId={documentId}
 		bind:selectedLibrary={selectedLibrary.current}
 		bind:selectedMonth={selectedMonth.current}
 		bind:styles={styles.current}
@@ -353,6 +468,10 @@
 		bind:documentName={documentName.current}
 		onResetEvents={handleResetEvents}
 		onResetAll={handleResetAll}
+		onAddPage={handleAddPage}
+		onDeleteLastPage={deleteLastPage}
+		onNavigateHome={handleNavigateHome}
+		onNavigate={handleNavigate}
 	/>
 
 	<div class="container">
@@ -372,7 +491,7 @@
 					onToggleReverse={toggleReverse}
 					onSelectEvent={selectEvent}
 					isEditing={selectedEvent !== null}
-					onAddPage={addPage}
+					onAddPage={addPageAndScroll}
 					onDuplicatePage={duplicatePage}
 					{selectedEventId}
 				/>
@@ -407,6 +526,10 @@
 			onClose={() => (selectedEventId = null)}
 		/>
 	</div>
+{/if}
+
+{#if toastMessage}
+	<Toast message={toastMessage} type={toastType} onClose={() => (toastMessage = '')} />
 {/if}
 
 <style>

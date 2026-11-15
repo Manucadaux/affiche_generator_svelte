@@ -1,7 +1,10 @@
 <script>
+	import GeneratorHeader from '#lib/components/document-editor/generator/GeneratorHeader.svelte';
+	import DocumentOptions from '#lib/components/document-editor/generator/DocumentOptions.svelte';
 	import GeneratorOptions from '#lib/components/document-editor/generator/GeneratorOptions.svelte';
 	import GeneratorColors from '#lib/components/document-editor/generator/GeneratorColors.svelte';
 	import GeneratorActions from '#lib/components/document-editor/generator/GeneratorActions.svelte';
+	import GeneratorMenu from '#lib/components/document-editor/generator/GeneratorMenu.svelte';
 
 	let {
 		nbPages,
@@ -12,27 +15,46 @@
 		styles = $bindable(),
 		selectedTheme = $bindable(),
 		documentName = $bindable(),
+		onAddPage,
+		onDeleteLastPage,
 		onResetEvents,
 		onResetAll,
-		renderHref
+		renderHref,
+		documents = [],
+		currentDocumentId,
+		onNavigateHome,
+		onNavigate
 	} = $props();
+
+	let isMenuOpen = $state(false);
 </script>
 
 <div class="generator bg-base-300">
+	<GeneratorHeader bind:selectedTheme onMenuClick={() => (isMenuOpen = !isMenuOpen)} />
+
+	{#if isMenuOpen}
+		<GeneratorMenu
+			{documents}
+			{currentDocumentId}
+			{onNavigateHome}
+			{onNavigate}
+			onClose={() => (isMenuOpen = false)}
+		/>
+	{/if}
+
+	<DocumentOptions {nbPages} {documentName} {onAddPage} {onDeleteLastPage} {renderHref} />
+
 	<GeneratorOptions
-		{nbPages}
 		{optionsLibrary}
 		{optionsMonth}
 		bind:selectedLibrary
 		bind:selectedMonth
 		bind:styles
-		bind:selectedTheme
-		bind:documentName
 	/>
 
 	<GeneratorColors bind:styles />
 
-	<GeneratorActions {onResetEvents} {onResetAll} {renderHref} />
+	<GeneratorActions {onResetEvents} {onResetAll} />
 </div>
 
 <style>
