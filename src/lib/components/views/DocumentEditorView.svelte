@@ -27,6 +27,7 @@
 	import { subscribeToDocumentChanges } from '#lib/utils/documentSync.js';
 	import { createHistory, recordChange } from '#lib/utils/history.js';
 	import { setupHistoryKeyboard } from '#lib/utils/historyKeyboard.js';
+	import { applyTheme } from '#lib/utils/theme/applyTheme.svelte.js';
 
 	import { slide } from 'svelte/transition';
 	import { onMount, tick } from 'svelte';
@@ -46,6 +47,7 @@
 	let renderHref = $derived(`/render?documentId=${encodeURIComponent(documentId)}`);
 
 	const selectedTheme = useLocalStorage('selectedTheme', 'system');
+	applyTheme(selectedTheme);
 
 	/** @type {AppDocument | null} */
 	let activeDocument = $state(null);
@@ -407,9 +409,6 @@
 	/** @type {string | null} */
 	let selectedEventId = $state(null);
 
-	/** @type {boolean | null} */
-	let systemPrefersDark = $state(null);
-
 	const { addPage, addPageAndScroll, duplicatePage, deletePage, deleteLastPage } =
 		createPageActions({
 			pages,
@@ -592,36 +591,6 @@
 		styles,
 		defaultStyles,
 		history
-	});
-
-	onMount(() => {
-		const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-
-		systemPrefersDark = mediaQuery.matches;
-
-		/** @param {MediaQueryListEvent} event */
-		const handleSystemChange = (event) => {
-			systemPrefersDark = event.matches;
-		};
-
-		mediaQuery.addEventListener('change', handleSystemChange);
-
-		return () => {
-			mediaQuery.removeEventListener('change', handleSystemChange);
-		};
-	});
-
-	$effect(() => {
-		if (!selectedTheme.ready || systemPrefersDark === null) return;
-
-		const theme =
-			selectedTheme.current === 'system'
-				? systemPrefersDark
-					? 'dark'
-					: 'light'
-				: selectedTheme.current;
-
-		document.documentElement.setAttribute('data-theme', theme);
 	});
 
 	let selectedLibraryData = $derived(

@@ -10,6 +10,7 @@
 	import { initializeDocuments } from '#lib/utils/initializeDocuments.js';
 	import { getAllDocuments } from '#lib/utils/documentStorage.js';
 	import { subscribeToDocumentChanges } from '#lib/utils/documentSync.js';
+	import { applyTheme } from '#lib/utils/theme/applyTheme.svelte.js';
 
 	import DocumentsHeader from '#lib/components/documents-manager/DocumentsHeader.svelte';
 	import DocumentsContent from '#lib/components/documents-manager/DocumentsContent.svelte';
@@ -17,6 +18,7 @@
 
 	const selectedLibraryForNewDocument = useLocalStorage('newDocumentLibraryId', null);
 	const selectedTheme = useLocalStorage('selectedTheme', 'system');
+	applyTheme(selectedTheme);
 
 	/** @type {AppDocument[]} */
 	let documents = $state([]);
@@ -30,25 +32,6 @@
 			generateId,
 			defaultStyles
 		});
-
-	let systemPrefersDark = $state(false);
-
-	onMount(() => {
-		const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-
-		systemPrefersDark = mediaQuery.matches;
-
-		/** @param {MediaQueryListEvent} event */
-		const handleSystemChange = (event) => {
-			systemPrefersDark = event.matches;
-		};
-
-		mediaQuery.addEventListener('change', handleSystemChange);
-
-		return () => {
-			mediaQuery.removeEventListener('change', handleSystemChange);
-		};
-	});
 
 	/**
 	 * Recharge la liste des documents depuis IndexedDB.
@@ -75,19 +58,6 @@
 				console.error('Erreur lors de la synchronisation des documents :', error);
 			});
 		});
-	});
-
-	$effect(() => {
-		if (!selectedTheme.ready) return;
-
-		const theme =
-			selectedTheme.current === 'system'
-				? systemPrefersDark
-					? 'dark'
-					: 'light'
-				: selectedTheme.current;
-
-		document.documentElement.setAttribute('data-theme', theme);
 	});
 </script>
 
