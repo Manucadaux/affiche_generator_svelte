@@ -69,7 +69,7 @@
 		bind:selectedTheme={selectedTheme.current}
 	/>
 
-	<main class="flex-1">
+	<main class="flex flex-1 flex-col">
 		{#if initializationError}
 			<p class="p-8 text-center text-error">{initializationError}</p>
 		{:else if isInitialized}
