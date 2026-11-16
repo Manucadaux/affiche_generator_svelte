@@ -1,5 +1,5 @@
 <script>
-	import EditableName from '#lib/components/ui/EditableName.svelte';
+	import EditableField from '#lib/components/ui/EditableField.svelte';
 
 	let {
 		nbPages,
@@ -14,7 +14,7 @@
 <div class="documentOptions">
 	<div class="documentName">
 		<p>Nom du document</p>
-		<EditableName
+		<EditableField
 			bind:value={documentName}
 			size="editor"
 			label="Nom du document"
