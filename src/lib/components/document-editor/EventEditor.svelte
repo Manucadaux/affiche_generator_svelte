@@ -146,6 +146,8 @@
 					min="1"
 					value={event.sizeTitle}
 					oninput={(e) => update('sizeTitle', Math.max(1, Number(e.currentTarget.value)))}
+					onfocus={onBeginEdit}
+					onblur={onEndEdit}
 				/>
 			</fieldset>
 
@@ -157,6 +159,8 @@
 					min="1"
 					value={event.sizeDescription}
 					oninput={(e) => update('sizeDescription', Math.max(1, Number(e.currentTarget.value)))}
+					onfocus={onBeginEdit}
+					onblur={onEndEdit}
 				/>
 			</fieldset>
 		</div>

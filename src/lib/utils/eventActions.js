@@ -122,13 +122,33 @@ export function createEventActions(dependencies) {
 	}
 
 	/**
+	 * Inverse une page et enregistre le changement dans l'historique.
 	 * @param {string} pageId
 	 * @param {boolean} checked
 	 */
 	function toggleReverse(pageId, checked) {
-		pages.current = pages.current.map((page) =>
-			page.id === pageId ? { ...page, reverse: checked } : page
-		);
+		const page = pages.current.find((page) => page.id === pageId);
+
+		if (!page || page.reverse === checked) return;
+
+		/**
+		 * Applique l'inversion à une page.
+		 * @param {boolean} value
+		 */
+		function applyReverse(value) {
+			pages.current = pages.current.map((page) =>
+				page.id === pageId ? { ...page, reverse: value } : page
+			);
+		}
+
+		const previousValue = page.reverse;
+
+		applyReverse(checked);
+
+		history.push({
+			undo: () => applyReverse(previousValue),
+			redo: () => applyReverse(checked)
+		});
 	}
 
 	/**

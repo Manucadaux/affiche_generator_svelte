@@ -139,7 +139,7 @@ export function createResetActions(dependencies) {
 				pages.current = [resetPage];
 				selectedLibrary.current = null;
 				selectedMonth.current = null;
-				styles.current = { ...defaultStyles };
+				styles.current = { ...resetStyles };
 			}
 		});
 	}
