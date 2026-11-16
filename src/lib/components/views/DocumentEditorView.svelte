@@ -235,7 +235,7 @@
 		if (!saved) return;
 
 		// eslint-disable-next-line svelte/no-navigation-without-resolve
-		await goto('/');
+		await goto('/documents-manager');
 	}
 
 	/**
@@ -651,7 +651,7 @@
 		<p>Ce document a été supprimé dans un autre onglet.</p>
 
 		<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
-		<a href="/" class="link">Retour aux documents</a>
+		<a href="/documents-manager" class="link">Retour aux documents</a>
 	</div>
 {:else if isReady}
 	<Generator
@@ -713,7 +713,7 @@
 		<p>Ce document est introuvable.</p>
 
 		<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
-		<a href="/" class="link">Retour aux documents</a>
+		<a href="/documents-manager" class="link">Retour aux documents</a>
 	</div>
 {:else}
 	<div class="loaderContainer">

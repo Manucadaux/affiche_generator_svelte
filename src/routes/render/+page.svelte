@@ -8,7 +8,7 @@
 
 	function onFinish() {
 		if (!documentId) {
-			goto(resolve('/'));
+			goto(resolve('/documents-manager'));
 			return;
 		}
 
