@@ -12,7 +12,7 @@
 	import { subscribeToDocumentChanges } from '#lib/utils/documentSync.js';
 	import { applyTheme } from '#lib/utils/theme/applyTheme.svelte.js';
 
-	import DocumentsHeader from '#lib/components/documents-manager/DocumentsHeader.svelte';
+	import AppHeader from '#lib/components/layout/AppHeader.svelte';
 	import DocumentsContent from '#lib/components/documents-manager/DocumentsContent.svelte';
 	import DocumentsFooter from '#lib/components/documents-manager/DocumentsFooter.svelte';
 
@@ -62,7 +62,8 @@
 </script>
 
 <div class="flex min-h-screen flex-col">
-	<DocumentsHeader
+	<AppHeader
+		title="Gestionnaire d'affiches"
 		{optionsLibrary}
 		bind:selectedLibrary={selectedLibraryForNewDocument.current}
 		bind:selectedTheme={selectedTheme.current}
