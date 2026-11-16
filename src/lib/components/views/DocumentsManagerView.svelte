@@ -14,7 +14,7 @@
 
 	import AppHeader from '#lib/components/layout/AppHeader.svelte';
 	import DocumentsContent from '#lib/components/documents-manager/DocumentsContent.svelte';
-	import DocumentsFooter from '#lib/components/documents-manager/DocumentsFooter.svelte';
+	import AppFooter from '#lib/components/layout/AppFooter.svelte';
 
 	const selectedLibraryForNewDocument = useLocalStorage('newDocumentLibraryId', null);
 	const selectedTheme = useLocalStorage('selectedTheme', 'system');
@@ -89,5 +89,5 @@
 		{/if}
 	</main>
 
-	<DocumentsFooter />
+	<AppFooter />
 </div>
