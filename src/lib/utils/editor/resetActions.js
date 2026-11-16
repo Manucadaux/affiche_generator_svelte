@@ -1,7 +1,7 @@
-/** @typedef {import('./types.js').Event} Event */
-/** @typedef {import('./types.js').Page} Page */
-/** @typedef {import('./types.js').Styles} Styles */
-/** @typedef {ReturnType<import('./history.js').createHistory>} History */
+/** @typedef {import('../types.js').Event} Event */
+/** @typedef {import('../types.js').Page} Page */
+/** @typedef {import('../types.js').Styles} Styles */
+/** @typedef {ReturnType<import('../history.js').createHistory>} History */
 
 /**
  * @typedef {Object} Dependencies

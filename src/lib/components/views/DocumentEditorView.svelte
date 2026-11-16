@@ -16,9 +16,9 @@
 		saveEventImage
 	} from '#lib/utils/imageStorage.js';
 	import { scrollToPage } from '#lib/utils/scroll.js';
-	import { createPageActions } from '#lib/utils/pageActions.js';
-	import { createEventActions } from '#lib/utils/eventActions.js';
-	import { createResetActions } from '#lib/utils/resetActions.js';
+	import { createPageActions } from '#lib/utils/editor/pageActions.js';
+	import { createEventActions } from '#lib/utils/editor/eventActions.js';
+	import { createResetActions } from '#lib/utils/editor/resetActions.js';
 	import { getDocument as getStoredDocument, getAllDocuments } from '#lib/utils/documentStorage.js';
 	import { subscribeToDocumentChanges } from '#lib/utils/documentSync.js';
 	import { createHistory, recordChange } from '#lib/utils/history.js';

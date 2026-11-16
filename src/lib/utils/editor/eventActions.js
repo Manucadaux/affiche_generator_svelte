@@ -1,6 +1,6 @@
-/** @typedef {import('./types.js').Event} Event */
-/** @typedef {import('./types.js').Page} Page */
-/** @typedef {ReturnType<import('./history.js').createHistory>} History */
+/** @typedef {import('../types.js').Event} Event */
+/** @typedef {import('../types.js').Page} Page */
+/** @typedef {ReturnType<import('../history.js').createHistory>} History */
 
 import { MAX_EVENTS_PER_PAGE } from '#lib/utils/constants.js';
 
