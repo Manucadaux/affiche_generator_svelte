@@ -28,6 +28,8 @@
 	import { createHistory, recordChange } from '#lib/utils/history.js';
 	import { setupHistoryKeyboard } from '#lib/utils/historyKeyboard.js';
 	import { applyTheme } from '#lib/utils/theme/applyTheme.svelte.js';
+	import { createSaveQueue, createSnapshotTracker } from '#lib/utils/persistence.js';
+	import { createDocumentPersistence } from '#lib/utils/editor/documentPersistence.svelte.js';
 
 	import { slide } from 'svelte/transition';
 	import { onMount, tick } from 'svelte';
@@ -68,7 +70,7 @@
 	let isDocumentDeleted = $state(false);
 
 	let loadedDocumentId = $state(undefined);
-	let lastSavedSnapshot = '';
+	const snapshotTracker = createSnapshotTracker();
 
 	let isResetting = $state(false);
 
@@ -78,6 +80,8 @@
 
 	/** @type {AppDocument[]} */
 	let documents = $state([]);
+
+	const documentPersistence = createDocumentPersistence();
 
 	/** @returns {Promise<void>} */
 	async function handleResetEvents() {
@@ -111,7 +115,7 @@
 
 		async function loadDocument() {
 			try {
-				let document = await getStoredDocument(documentId);
+				let document = await documentPersistence.loadDocument(documentId);
 
 				if (cancelled) return;
 
@@ -131,7 +135,7 @@
 				loadedDocumentId = documentId;
 
 				if (document) {
-					lastSavedSnapshot = originalSnapshot;
+					snapshotTracker.reset(originalSnapshot);
 				}
 			} catch (error) {
 				console.error('Erreur lors du chargement du document :', error);
@@ -221,7 +225,27 @@
 	};
 
 	// Sauvegarde automatique dans IndexedDB
-	let saveQueue = Promise.resolve();
+
+	/**
+	 * @typedef {{ document: AppDocument, snapshot: string }} DocumentSave
+	 */
+
+	/**
+	 * Enregistre un document et actualise le snapshot après succès.
+	 * @param {DocumentSave} data
+	 * @returns {Promise<void>}
+	 */
+	async function persistDocument({ document, snapshot }) {
+		const updated = await saveStoredDocument(document);
+
+		if (!updated) {
+			throw new Error('Le document n’existe plus.');
+		}
+
+		snapshotTracker.markSaved(snapshot);
+	}
+
+	const saveQueue = createSaveQueue(persistDocument);
 
 	/**
 	 * Ajoute une sauvegarde à la file d'attente.
@@ -237,21 +261,10 @@
 			updatedAt: new Date().toISOString()
 		};
 
-		// Une erreur précédente ne doit pas empêcher les sauvegardes suivantes.
-		const saveOperation = saveQueue
-			.catch(() => {})
-			.then(async () => {
-				const updated = await saveStoredDocument(updatedDocument);
-
-				if (!updated) {
-					throw new Error('Le document n’existe plus.');
-				}
-
-				lastSavedSnapshot = snapshot;
-			});
-
-		saveQueue = saveOperation;
-		return saveOperation;
+		return saveQueue.enqueue({
+			document: updatedDocument,
+			snapshot
+		});
 	}
 
 	/**
@@ -267,12 +280,12 @@
 
 		try {
 			// Attend les sauvegardes déjà en cours.
-			await saveQueue.catch(() => {});
+			await saveQueue.wait();
 
 			// Vérifie à nouveau la version la plus récente après l'attente.
 			const snapshot = JSON.stringify(activeDocument);
 
-			if (snapshot !== lastSavedSnapshot) {
+			if (snapshotTracker.hasChanged(snapshot)) {
 				await enqueueDocumentSave(activeDocument);
 			}
 
@@ -320,7 +333,7 @@
 		if (!documentReady || !currentDocument) return;
 
 		const snapshot = JSON.stringify(currentDocument);
-		if (snapshot === lastSavedSnapshot) return;
+		if (!snapshotTracker.hasChanged(snapshot)) return;
 
 		enqueueDocumentSave(currentDocument).catch((error) => {
 			console.error('Erreur lors de la sauvegarde du document :', error);
