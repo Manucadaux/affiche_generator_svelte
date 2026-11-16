@@ -25,7 +25,10 @@
 		currentDocumentId,
 		onNavigateHome,
 		onNavigate,
-		onUpdateDocument
+		onUpdateDocument,
+		onUpdateStyle,
+		onBeginColorEdit,
+		onEndColorEdit
 	} = $props();
 
 	let isMenuOpen = $state(false);
@@ -63,7 +66,7 @@
 		{onUpdateDocument}
 	/>
 
-	<GeneratorColors bind:styles />
+	<GeneratorColors bind:styles {onUpdateStyle} {onBeginColorEdit} {onEndColorEdit} />
 
 	<GeneratorActions {onResetEvents} {onResetAll} />
 </div>

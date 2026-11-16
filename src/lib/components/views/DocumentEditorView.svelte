@@ -471,6 +471,23 @@
 	}
 
 	/**
+	 * Met à jour une couleur et enregistre le changement dans l'historique.
+	 * @param {'bgDate' | 'bgTitle' | 'colorDate' | 'colorTitle' | 'colorContent'} property
+	 * @param {string} newValue
+	 * @returns {void}
+	 */
+	function handleUpdateStyle(property, newValue) {
+		const previousValue = styles.current[property];
+
+		recordChange(history, previousValue, newValue, (value) => {
+			styles.current = {
+				...styles.current,
+				[property]: value
+			};
+		});
+	}
+
+	/**
 	 * Remplace l'image d'un événement et enregistre le changement dans l'historique.
 	 * @param {string} eventId
 	 * @param {Blob} newImage
@@ -514,13 +531,20 @@
 		});
 	}
 
-	/** Commence un groupe de modifications d'un événement. */
+	/** Indique si un groupe de modifications d'événement est ouvert. */
 	let isEventEditGroupOpen = false;
 
+	/** Indique si un groupe de modifications de couleur est ouvert. */
+	let isColorEditGroupOpen = false;
+
+	/** Commence un groupe de modifications d'un événement. */
 	function beginEventEdit() {
 		if (isEventEditGroupOpen) return;
 
-		history.beginGroup();
+		if (!isColorEditGroupOpen) {
+			history.beginGroup();
+		}
+
 		isEventEditGroupOpen = true;
 	}
 
@@ -528,10 +552,34 @@
 	function endEventEdit() {
 		if (!isEventEditGroupOpen) return;
 
-		history.endGroup();
 		isEventEditGroupOpen = false;
+
+		if (!isColorEditGroupOpen) {
+			history.endGroup();
+		}
 	}
 
+	/** Commence un groupe de modifications de couleur. */
+	function beginColorEdit() {
+		if (isColorEditGroupOpen) return;
+
+		if (!isEventEditGroupOpen) {
+			history.beginGroup();
+		}
+
+		isColorEditGroupOpen = true;
+	}
+
+	/** Termine le groupe de modifications de couleur. */
+	function endColorEdit() {
+		if (!isColorEditGroupOpen) return;
+
+		isColorEditGroupOpen = false;
+
+		if (!isEventEditGroupOpen) {
+			history.endGroup();
+		}
+	}
 	const { resetEvents, resetAll } = createResetActions({
 		pages,
 		createPage,
@@ -718,6 +766,9 @@
 		onNavigateHome={handleNavigateHome}
 		onNavigate={handleNavigate}
 		onUpdateDocument={updateDocumentProperty}
+		onUpdateStyle={handleUpdateStyle}
+		onBeginColorEdit={beginColorEdit}
+		onEndColorEdit={endColorEdit}
 	/>
 
 	<div class="container">
