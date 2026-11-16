@@ -2,6 +2,7 @@
 	/** @typedef {import('#lib/utils/types.js').AppDocument} AppDocument */
 	/** @typedef {import('#lib/utils/types.js').DocumentUpdates} DocumentUpdates */
 	/** @typedef {import('#lib/utils/types.js').Styles} Styles */
+	/** @import { DeletedDocument } from '../../utils/documentActions.js' */
 
 	import DocumentsToolbar from '#lib/components/documents-manager/content/DocumentsToolbar.svelte';
 	import DocumentsGrid from '#lib/components/documents-manager/content/DocumentsGrid.svelte';
@@ -22,7 +23,8 @@
 		documents: AppDocument[],
 		createDocument: (options: NewDocumentOptions) => Promise<AppDocument>,
 		updateDocument: (documentId: string, updates: DocumentUpdates) => Promise<void>,
-		deleteDocument: (documentId: string) => Promise<void>,
+		deleteDocument: (documentId: string) => Promise<DeletedDocument | null>,
+		restoreDocument: (deletedDocument: DeletedDocument) => Promise<void>,
 		duplicateDocument: (documentId: string) => Promise<AppDocument | null>,
 		refreshDocuments: () => Promise<void>,
 		defaultLibraryId: number | null,
@@ -35,6 +37,7 @@
 		createDocument,
 		updateDocument,
 		deleteDocument,
+		restoreDocument,
 		duplicateDocument,
 		refreshDocuments,
 		defaultLibraryId,
@@ -48,6 +51,9 @@
 	let isCreateModalOpen = $state(false);
 	/** @type {AppDocument | null} */
 	let documentToDelete = $state(null);
+
+	/** @type {DeletedDocument | null} */
+	let deletedDocument = $state(null);
 
 	let toastMessage = $state('');
 	/** @type {'success' | 'error' | 'info' | 'warning'} */
@@ -142,11 +148,40 @@
 		if (!documentToDelete) return;
 
 		try {
-			await deleteDocument(documentToDelete.id);
+			deletedDocument = await deleteDocument(documentToDelete.id);
+
 			await refreshDocuments();
+
+			if (deletedDocument) {
+				toastType = 'success';
+				toastMessage = `"${deletedDocument.document.name}" a été supprimé.`;
+			}
+
 			documentToDelete = null;
 		} catch (error) {
 			console.error('Erreur lors de la suppression du document :', error);
+		}
+	}
+
+	/**
+	 * Restaure le dernier document supprimé.
+	 * @returns {Promise<void>}
+	 */
+	async function handleUndoDelete() {
+		if (!deletedDocument) return;
+
+		try {
+			await restoreDocument($state.snapshot(deletedDocument));
+			await refreshDocuments();
+
+			deletedDocument = null;
+			toastMessage = '';
+		} catch (error) {
+			console.error('Erreur lors de la restauration du document :', error);
+
+			toastType = 'error';
+			toastMessage = 'Impossible de restaurer le document. Veuillez réessayer.';
+			deletedDocument = null;
 		}
 	}
 
@@ -228,12 +263,21 @@
 	<DeleteModal
 		title="Supprimer le document"
 		itemName={documentToDelete.name}
-		message="Cette action est irréversible."
+		message="Vous pourrez annuler cette suppression pendant quelques secondes."
 		onClose={() => (documentToDelete = null)}
 		onConfirm={handleConfirmDelete}
 	/>
 {/if}
 
 {#if toastMessage}
-	<Toast message={toastMessage} type={toastType} onClose={() => (toastMessage = '')} />
+	<Toast
+		message={toastMessage}
+		type={toastType}
+		actionLabel={deletedDocument ? 'Annuler' : undefined}
+		onAction={handleUndoDelete}
+		onClose={() => {
+			toastMessage = '';
+			deletedDocument = null;
+		}}
+	/>
 {/if}

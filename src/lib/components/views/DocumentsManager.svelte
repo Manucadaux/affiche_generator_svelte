@@ -24,7 +24,7 @@
 	let isInitialized = $state(false);
 	let initializationError = $state('');
 
-	const { createDocument, updateDocument, deleteDocument, duplicateDocument } =
+	const { createDocument, updateDocument, deleteDocument, restoreDocument, duplicateDocument } =
 		createDocumentActions({
 			createPage,
 			generateId,
@@ -107,6 +107,7 @@
 				{createDocument}
 				{updateDocument}
 				{deleteDocument}
+				{restoreDocument}
 				{duplicateDocument}
 				{refreshDocuments}
 				defaultLibraryId={selectedLibraryForNewDocument.current}
