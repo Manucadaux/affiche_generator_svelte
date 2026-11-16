@@ -1,6 +1,6 @@
 <script>
 	import { Trash2 } from 'lucide-svelte';
-	import { deleteDatabase } from '#lib/utils/database.js';
+	import { deleteDatabase } from '#lib/utils/indexedDB.js';
 
 	/**
 	 * @returns {Promise<void>}
