@@ -1,5 +1,5 @@
 <script>
-	import { Palette } from 'lucide-svelte';
+	import { Palette, Check } from 'lucide-svelte';
 	import { themes } from '#lib/data/themes.js';
 
 	let { selectedTheme = $bindable() } = $props();
@@ -20,10 +20,16 @@
 			<li>
 				<button
 					class="btn btn-block justify-start btn-ghost btn-sm"
-					class:active={selectedTheme === theme.value}
+					class:bg-base-200={selectedTheme === theme.value}
+					class:font-semibold={selectedTheme === theme.value}
+					aria-pressed={selectedTheme === theme.value}
 					onclick={() => (selectedTheme = theme.value)}
 				>
 					{theme.label}
+
+					{#if selectedTheme === theme.value}
+						<Check size={16} class="ml-auto" />
+					{/if}
 				</button>
 			</li>
 		{/each}
