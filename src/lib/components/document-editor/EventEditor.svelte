@@ -1,13 +1,16 @@
 <script>
 	// @ts-nocheck
-	import { saveEventImage, getEventImage } from '#lib/utils/imageStorage.js';
+	import { getEventImage } from '#lib/utils/imageStorage.js';
 
-	let { event, onUpdateEvent, onClose } = $props();
+	import EditableField from '#lib/components/ui/EditableField.svelte';
+
+	let { event, onUpdateEvent, onChangeImage, onBeginEdit, onEndEdit, onClose } = $props();
 
 	let imageUrl = $state(null);
 	let imageError = $state('');
 	let currentObjectUrl = null;
 	let eventId = $derived(event.id);
+	let imageVersion = $derived(event.imageVersion ?? 0);
 
 	function update(field, value) {
 		onUpdateEvent(event.id, field, value);
@@ -16,13 +19,14 @@
 	// Charger l'image existante
 	$effect(() => {
 		const currentEventId = eventId;
+		const currentImageVersion = imageVersion;
 		let cancelled = false;
 
 		imageUrl = null;
 
 		getEventImage(currentEventId)
 			.then((blob) => {
-				if (cancelled || !blob) return;
+				if (cancelled || currentImageVersion !== imageVersion || !blob) return;
 
 				const newUrl = URL.createObjectURL(blob);
 
@@ -58,21 +62,8 @@
 		}
 
 		try {
-			await saveEventImage(event.id, file);
-
-			// Mettre à jour l'image dans l'éditeur
-			if (currentObjectUrl) {
-				URL.revokeObjectURL(currentObjectUrl);
-			}
-
-			const newUrl = URL.createObjectURL(file);
-
-			currentObjectUrl = newUrl;
-			imageUrl = newUrl;
+			await onChangeImage(event.id, file);
 			imageError = '';
-
-			// Signaler le changement à Event.svelte
-			update('imageVersion', (event.imageVersion ?? 0) + 1);
 		} catch (error) {
 			console.error('Erreur lors de l’enregistrement de l’image :', error);
 			imageError = 'Impossible d’enregistrer cette image.';
@@ -98,39 +89,59 @@
 
 		<fieldset class="fieldset">
 			<legend class="fieldset-legend">Titre</legend>
-			<input
-				class="input-bordered input w-full"
+			<EditableField
 				value={event.title}
-				oninput={(e) => update('title', e.currentTarget.value)}
+				label="Titre"
+				mode="always"
+				inputClass="input input-bordered w-full"
+				onInput={(value) => update('title', String(value))}
+				{onBeginEdit}
+				{onEndEdit}
 			/>
 		</fieldset>
 
 		<div class="grid grid-cols-2 gap-3">
 			<fieldset class="fieldset">
 				<legend class="fieldset-legend">Date</legend>
-				<input
-					class="input-bordered input w-full"
+				<EditableField
 					value={event.date}
-					oninput={(e) => update('date', e.currentTarget.value)}
+					label="Date"
+					mode="always"
+					inputClass="input input-bordered w-full"
+					onInput={(value) => update('date', String(value))}
+					{onBeginEdit}
+					{onEndEdit}
 				/>
 			</fieldset>
 
 			<fieldset class="fieldset">
 				<legend class="fieldset-legend">Horaire</legend>
-				<textarea
-					class="textarea-bordered textarea w-full"
-					rows="2"
+				<EditableField
 					value={event.hour}
-					oninput={(e) => update('hour', e.currentTarget.value)}></textarea>
+					label="Horaire"
+					mode="always"
+					multiline
+					rows={2}
+					inputClass="textarea textarea-bordered w-full"
+					onInput={(value) => update('hour', String(value))}
+					{onBeginEdit}
+					{onEndEdit}
+				/>
 			</fieldset>
 		</div>
 
 		<fieldset class="fieldset">
 			<legend class="fieldset-legend">Description</legend>
-			<textarea
-				class="textarea-bordered textarea min-h-28 w-full"
+			<EditableField
 				value={event.content}
-				oninput={(e) => update('content', e.currentTarget.value)}></textarea>
+				label="Description"
+				mode="always"
+				multiline
+				inputClass="textarea textarea-bordered min-h-28 w-full"
+				onInput={(value) => update('content', String(value))}
+				{onBeginEdit}
+				{onEndEdit}
+			/>
 		</fieldset>
 	</div>
 
@@ -143,23 +154,31 @@
 		<div class="grid grid-cols-2 gap-3">
 			<fieldset class="fieldset">
 				<legend class="fieldset-legend">Taille du titre</legend>
-				<input
-					class="input-bordered input w-full"
-					type="number"
-					min="1"
+				<EditableField
 					value={event.sizeTitle}
-					oninput={(e) => update('sizeTitle', Math.max(1, Number(e.currentTarget.value)))}
+					label="Taille du titre"
+					mode="always"
+					inputType="number"
+					min={1}
+					inputClass="input input-bordered w-full"
+					onInput={(value) => update('sizeTitle', Math.max(1, Number(value)))}
+					{onBeginEdit}
+					{onEndEdit}
 				/>
 			</fieldset>
 
 			<fieldset class="fieldset">
 				<legend class="fieldset-legend">Taille du texte</legend>
-				<input
-					class="input-bordered input w-full"
-					type="number"
-					min="1"
+				<EditableField
 					value={event.sizeDescription}
-					oninput={(e) => update('sizeDescription', Math.max(1, Number(e.currentTarget.value)))}
+					label="Taille du texte"
+					mode="always"
+					inputType="number"
+					min={1}
+					inputClass="input input-bordered w-full"
+					onInput={(value) => update('sizeDescription', Math.max(1, Number(value)))}
+					{onBeginEdit}
+					{onEndEdit}
 				/>
 			</fieldset>
 		</div>
@@ -173,10 +192,14 @@
 
 		<fieldset class="fieldset">
 			<legend class="fieldset-legend">Public concerné</legend>
-			<input
-				class="input-bordered input w-full"
+			<EditableField
 				value={event.condition}
-				oninput={(e) => update('condition', e.currentTarget.value)}
+				label="Public concerné"
+				mode="always"
+				inputClass="input input-bordered w-full"
+				onInput={(value) => update('condition', String(value))}
+				{onBeginEdit}
+				{onEndEdit}
 			/>
 		</fieldset>
 

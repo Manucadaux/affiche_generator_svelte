@@ -3,12 +3,14 @@
 	import { X } from 'lucide-svelte';
 
 	/** @type {{
-		message: string,
-		type: 'success' | 'error' | 'info' | 'warning',
-		duration?: number,
-		onClose: () => void
-	}} */
-	let { message, type, duration = 4000, onClose } = $props();
+    message: string,
+    type: 'success' | 'error' | 'info' | 'warning',
+    duration?: number,
+    actionLabel?: string,
+    onAction?: () => void | Promise<void>,
+    onClose: () => void
+}} */
+	let { message, type, duration = 4000, actionLabel, onAction, onClose } = $props();
 
 	const alertClasses = {
 		success: 'alert-success',
@@ -27,6 +29,12 @@
 <div class="toast toast-center toast-bottom z-50">
 	<div role="alert" class="alert {alertClasses[type]} shadow-lg">
 		<span>{message}</span>
+
+		{#if actionLabel && onAction}
+			<button type="button" class="btn btn-ghost text-current btn-sm" onclick={onAction}>
+				{actionLabel}
+			</button>
+		{/if}
 
 		<button
 			type="button"

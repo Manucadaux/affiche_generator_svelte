@@ -1,13 +1,25 @@
 <script>
-	import EditableName from '#lib/components/ui/EditableName.svelte';
+	import EditableField from '#lib/components/ui/EditableField.svelte';
 
-	let { nbPages, documentName = $bindable(), onAddPage, onDeleteLastPage, renderHref } = $props();
+	let {
+		nbPages,
+		documentName = $bindable(),
+		onAddPage,
+		onDeleteLastPage,
+		onUpdateDocument,
+		renderHref
+	} = $props();
 </script>
 
 <div class="documentOptions">
 	<div class="documentName">
 		<p>Nom du document</p>
-		<EditableName bind:value={documentName} size="editor" label="Nom du document" />
+		<EditableField
+			bind:value={documentName}
+			size="editor"
+			label="Nom du document"
+			onSave={(value) => onUpdateDocument('name', value)}
+		/>
 	</div>
 
 	<div class="pageOptions">

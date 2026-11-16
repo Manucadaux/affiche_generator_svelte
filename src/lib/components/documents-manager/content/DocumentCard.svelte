@@ -5,7 +5,7 @@
 	import { onMount } from 'svelte';
 	import { FileText, EllipsisVertical } from 'lucide-svelte';
 
-	import EditableName from '#lib/components/ui/EditableName.svelte';
+	import EditableField from '#lib/components/ui/EditableField.svelte';
 
 	/** @type {{
 		document: AppDocument,
@@ -156,7 +156,12 @@
 
 		<div class="w-full space-y-1 px-3 pt-3 pb-5">
 			<div class="flex h-6 items-center">
-				<EditableName value={document.name} size="card" label="Nom du document" onSave={onRename} />
+				<EditableField
+					value={document.name}
+					size="card"
+					label="Nom du document"
+					onSave={onRename}
+				/>
 			</div>
 
 			{#if libraryName}

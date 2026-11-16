@@ -2,6 +2,7 @@
 	/** @typedef {import('#lib/utils/types.js').AppDocument} AppDocument */
 	/** @typedef {import('#lib/utils/types.js').Page} Page */
 	/** @typedef {import('#lib/utils/types.js').Styles} Styles */
+	/** @typedef {import('#lib/utils/types.js').Event} Event */
 
 	import { optionsLibrary, optionsMonth, defaultStyles } from '#lib/data/options.js';
 
@@ -9,6 +10,7 @@
 	import { createPage, createEvent, generateId } from '#lib/utils/factories.js';
 	import {
 		deleteEventImages,
+		deleteEventImage,
 		cleanupOrphanedImages,
 		getEventImage,
 		saveEventImage
@@ -23,12 +25,15 @@
 		getAllDocuments
 	} from '#lib/utils/documentStorage.js';
 	import { subscribeToDocumentChanges } from '#lib/utils/documentSync.js';
+	import { createHistory, recordChange } from '#lib/utils/history.js';
+	import { setupHistoryKeyboard } from '#lib/utils/historyKeyboard.js';
 
 	import { slide } from 'svelte/transition';
 	import { onMount, tick } from 'svelte';
 	import { goto } from '$app/navigation';
 
 	import Toast from '#lib/components/ui/Toast.svelte';
+	import EditorToolbar from '#lib/components/document-editor/EditorToolbar.svelte';
 	import Generator from '#lib/components/document-editor/Generator.svelte';
 	import PageEditor from '#lib/components/document-editor/PageEditor.svelte';
 	import EventEditor from '#lib/components/document-editor/EventEditor.svelte';
@@ -44,6 +49,19 @@
 
 	/** @type {AppDocument | null} */
 	let activeDocument = $state(null);
+
+	/** @type {{ canUndo: boolean, canRedo: boolean }} */
+	let historyState = $state({
+		canUndo: false,
+		canRedo: false
+	});
+
+	const history = createHistory({
+		limit: 50,
+		onChange: (state) => {
+			historyState = state;
+		}
+	});
 
 	let isDocumentDeleted = $state(false);
 
@@ -349,7 +367,8 @@
 
 			// Le conteneur commence à 10px du haut de la fenêtre.
 			// On réserve également 40px pour le padding et 20px en bas.
-			const availableHeight = window.innerHeight - 10 - pageContainer.offsetTop - 60;
+			const pageTop = pageContainer.getBoundingClientRect().top;
+			const availableHeight = window.innerHeight - pageTop - 60;
 
 			if (availableWidth <= 0 || availableHeight <= 0) return;
 
@@ -399,6 +418,7 @@
 			getEventImage,
 			saveEventImage,
 			deleteEventImages,
+			history,
 			scrollToPage,
 			getSelectedEventId: () => selectedEventId,
 			clearSelectedEvent: () => (selectedEventId = null)
@@ -420,19 +440,158 @@
 		pages,
 		createEvent,
 		deleteEventImages,
+		getEventImage,
+		saveEventImage,
+		history,
 		getSelectedEventId: () => selectedEventId,
 		clearSelectedEvent: () => (selectedEventId = null)
 	});
 
+	/**
+	 * Met à jour une propriété d'événement et enregistre le changement.
+	 *
+	 * @template {keyof Event} K
+	 * @param {string} eventId
+	 * @param {K} field
+	 * @param {Event[K]} value
+	 * @returns {void}
+	 */
+	function handleUpdateEvent(eventId, field, value) {
+		const event = pages.current
+			.flatMap((page) => page.events)
+			.find((event) => event.id === eventId);
+
+		if (!event) return;
+
+		const previousValue = event[field];
+
+		recordChange(history, previousValue, value, (nextValue) => {
+			updateEvent(eventId, field, nextValue);
+		});
+	}
+
+	/**
+	 * Met à jour une couleur et enregistre le changement dans l'historique.
+	 * @param {'bgDate' | 'bgTitle' | 'colorDate' | 'colorTitle' | 'colorContent'} property
+	 * @param {string} newValue
+	 * @returns {void}
+	 */
+	function handleUpdateStyle(property, newValue) {
+		const previousValue = styles.current[property];
+
+		recordChange(history, previousValue, newValue, (value) => {
+			styles.current = {
+				...styles.current,
+				[property]: value
+			};
+		});
+	}
+
+	/**
+	 * Remplace l'image d'un événement et enregistre le changement dans l'historique.
+	 * @param {string} eventId
+	 * @param {Blob} newImage
+	 * @returns {Promise<void>}
+	 */
+	async function handleImageChange(eventId, newImage) {
+		const event = pages.current
+			.flatMap((page) => page.events)
+			.find((event) => event.id === eventId);
+
+		if (!event) return;
+
+		const previousImage = await getEventImage(eventId);
+
+		/**
+		 * Applique une image et déclenche son rechargement.
+		 * @param {Blob | null} image
+		 * @returns {Promise<void>}
+		 */
+		async function applyImage(image) {
+			if (image) {
+				await saveEventImage(eventId, image);
+			} else {
+				await deleteEventImage(eventId);
+			}
+
+			const currentEvent = pages.current
+				.flatMap((page) => page.events)
+				.find((event) => event.id === eventId);
+
+			if (currentEvent) {
+				updateEvent(eventId, 'imageVersion', (currentEvent.imageVersion ?? 0) + 1);
+			}
+		}
+
+		await applyImage(newImage);
+
+		history.push({
+			undo: () => applyImage(previousImage),
+			redo: () => applyImage(newImage)
+		});
+	}
+
+	/** Indique si un groupe de modifications d'événement est ouvert. */
+	let isEventEditGroupOpen = false;
+
+	/** Indique si un groupe de modifications de couleur est ouvert. */
+	let isColorEditGroupOpen = false;
+
+	/** Commence un groupe de modifications d'un événement. */
+	function beginEventEdit() {
+		if (isEventEditGroupOpen) return;
+
+		if (!isColorEditGroupOpen) {
+			history.beginGroup();
+		}
+
+		isEventEditGroupOpen = true;
+	}
+
+	/** Termine le groupe de modifications d'un événement. */
+	function endEventEdit() {
+		if (!isEventEditGroupOpen) return;
+
+		isEventEditGroupOpen = false;
+
+		if (!isColorEditGroupOpen) {
+			history.endGroup();
+		}
+	}
+
+	/** Commence un groupe de modifications de couleur. */
+	function beginColorEdit() {
+		if (isColorEditGroupOpen) return;
+
+		if (!isEventEditGroupOpen) {
+			history.beginGroup();
+		}
+
+		isColorEditGroupOpen = true;
+	}
+
+	/** Termine le groupe de modifications de couleur. */
+	function endColorEdit() {
+		if (!isColorEditGroupOpen) return;
+
+		isColorEditGroupOpen = false;
+
+		if (!isEventEditGroupOpen) {
+			history.endGroup();
+		}
+	}
 	const { resetEvents, resetAll } = createResetActions({
 		pages,
 		createPage,
+		getEventImage,
+		saveEventImage,
 		deleteEventImages,
 		clearSelectedEvent: () => (selectedEventId = null),
 		selectedLibrary,
 		selectedMonth,
 		styles,
-		defaultStyles
+		defaultStyles,
+		history
 	});
 
 	onMount(() => {
@@ -514,6 +673,70 @@
 			}
 		});
 	});
+
+	$effect(() => {
+		if (!documentReady) return;
+
+		history.clear();
+	});
+
+	/**
+	 * Annule la dernière action.
+	 * @returns {Promise<void>}
+	 */
+	async function handleUndo() {
+		await history.undo();
+	}
+
+	/**
+	 * Rétablit la dernière action annulée.
+	 * @returns {Promise<void>}
+	 */
+	async function handleRedo() {
+		await history.redo();
+	}
+
+	/**
+	 * Met à jour une propriété du document et enregistre le changement dans l'historique.
+	 *
+	 * @template {keyof AppDocument} K
+	 * @param {K} property
+	 * @param {AppDocument[K]} newValue
+	 * @returns {boolean}
+	 */
+	function updateDocumentProperty(property, newValue) {
+		if (!activeDocument) return false;
+
+		const previousValue = activeDocument[property];
+
+		if (previousValue === newValue) return true;
+
+		/** @type {Partial<AppDocument>} */
+		const previousValues = { [property]: previousValue };
+
+		/** @type {Partial<AppDocument>} */
+		const newValues = { [property]: newValue };
+
+		recordChange(history, previousValues, newValues, (values) => {
+			if (!activeDocument) return;
+
+			activeDocument = {
+				...activeDocument,
+				...values
+			};
+		});
+
+		return true;
+	}
+
+	onMount(() => {
+		return setupHistoryKeyboard({
+			undo: handleUndo,
+			redo: handleRedo,
+			canUndo: () => historyState.canUndo,
+			canRedo: () => historyState.canRedo
+		});
+	});
 </script>
 
 {#if isDocumentDeleted}
@@ -542,9 +765,19 @@
 		onDeleteLastPage={deleteLastPage}
 		onNavigateHome={handleNavigateHome}
 		onNavigate={handleNavigate}
+		onUpdateDocument={updateDocumentProperty}
+		onUpdateStyle={handleUpdateStyle}
+		onBeginColorEdit={beginColorEdit}
+		onEndColorEdit={endColorEdit}
 	/>
 
 	<div class="container">
+		<EditorToolbar
+			canUndo={historyState.canUndo}
+			canRedo={historyState.canRedo}
+			onUndo={handleUndo}
+			onRedo={handleRedo}
+		/>
 		{#each pages.current as page, i (page.id)}
 			<div id={`page-${page.id}`} out:slide={{ duration: isResetting ? 0 : 500 }}>
 				<PageEditor
@@ -592,7 +825,10 @@
 	<div class="editorContainer card border border-base-300 bg-base-100 shadow-xl">
 		<EventEditor
 			event={selectedEvent}
-			onUpdateEvent={updateEvent}
+			onUpdateEvent={handleUpdateEvent}
+			onChangeImage={handleImageChange}
+			onBeginEdit={beginEventEdit}
+			onEndEdit={endEventEdit}
 			onClose={() => (selectedEventId = null)}
 		/>
 	</div>
@@ -601,6 +837,7 @@
 {#if toastMessage}
 	<Toast message={toastMessage} type={toastType} onClose={() => (toastMessage = '')} />
 {/if}
+```
 
 <style>
 	:global {
@@ -617,7 +854,7 @@
 		gap: 40px;
 		width: calc(100% - 360px);
 		position: absolute;
-		top: 10px;
+		top: 54px;
 		left: 350px;
 		padding-bottom: 40px;
 	}

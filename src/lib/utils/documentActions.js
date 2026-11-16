@@ -2,6 +2,11 @@
 /** @typedef {import('./types.js').DocumentUpdates} DocumentUpdates */
 /** @typedef {import('./types.js').Styles} Styles */
 /** @typedef {import('./types.js').Page} Page */
+/**
+ * @typedef {Object} DeletedDocument
+ * @property {AppDocument} document
+ * @property {{ eventId: string, image: Blob }[]} images
+ */
 
 import {
 	addDocument,
@@ -159,19 +164,58 @@ export function createDocumentActions(dependencies) {
 	}
 
 	/**
-	 * Supprime un document et les images associées à ses événements.
+	 * Supprime un document en conservant temporairement ses données et ses images.
 	 * @param {string} documentId
-	 * @returns {Promise<void>}
+	 * @returns {Promise<DeletedDocument | null>}
 	 */
 	async function deleteDocument(documentId) {
 		const existingDocument = await getDocument(documentId);
 
-		if (!existingDocument) return;
+		if (!existingDocument) return null;
 
 		const events = existingDocument.pages.flatMap((page) => page.events);
 
+		const images = (
+			await Promise.all(
+				events.map(async (event) => ({
+					eventId: event.id,
+					image: await getEventImage(event.id)
+				}))
+			)
+		).filter(
+			/**
+			 * @param {{ eventId: string, image: Blob | null }} item
+			 * @returns {item is { eventId: string, image: Blob }}
+			 */
+			(item) => item.image !== null
+		);
+
 		await deleteStoredDocument(documentId);
 		await deleteEventImages(events);
+
+		return {
+			document: existingDocument,
+			images
+		};
+	}
+
+	/**
+	 * Restaure un document supprimé et ses images.
+	 * @param {DeletedDocument} deletedDocument
+	 * @returns {Promise<void>}
+	 */
+	async function restoreDocument(deletedDocument) {
+		const { document, images } = deletedDocument;
+		const events = document.pages.flatMap((page) => page.events);
+
+		try {
+			await Promise.all(images.map(({ eventId, image }) => saveEventImage(eventId, image)));
+
+			await addDocument(document);
+		} catch (error) {
+			await deleteEventImages(events);
+			throw error;
+		}
 	}
 
 	return {
@@ -179,6 +223,7 @@ export function createDocumentActions(dependencies) {
 		getDocument,
 		updateDocument,
 		deleteDocument,
+		restoreDocument,
 		duplicateDocument
 	};
 }

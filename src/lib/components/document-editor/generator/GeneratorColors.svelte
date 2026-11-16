@@ -1,7 +1,7 @@
 <script>
 	import ColorPicker from 'svelte-awesome-color-picker';
 
-	let { styles = $bindable() } = $props();
+	let { styles = $bindable(), onUpdateStyle, onBeginColorEdit, onEndColorEdit } = $props();
 
 	let swatches = [
 		'#ea3c45',
@@ -17,6 +17,41 @@
 		'#003288',
 		'#660c49'
 	];
+
+	let isBgDateOpen = $state(false);
+	let isBgTitleOpen = $state(false);
+	let isColorDateOpen = $state(false);
+	let isColorTitleOpen = $state(false);
+	let isColorContentOpen = $state(false);
+
+	let wasAnyColorPickerOpen = false;
+
+	// Regroupe les modifications tant qu'au moins un sélecteur est ouvert.
+	$effect(() => {
+		const isAnyColorPickerOpen =
+			isBgDateOpen || isBgTitleOpen || isColorDateOpen || isColorTitleOpen || isColorContentOpen;
+
+		if (isAnyColorPickerOpen === wasAnyColorPickerOpen) return;
+
+		wasAnyColorPickerOpen = isAnyColorPickerOpen;
+
+		if (isAnyColorPickerOpen) {
+			onBeginColorEdit();
+		} else {
+			onEndColorEdit();
+		}
+	});
+
+	/**
+	 * Transmet une nouvelle couleur à l'historique.
+	 * @param {'bgDate' | 'bgTitle' | 'colorDate' | 'colorTitle' | 'colorContent'} property
+	 * @param {{ hex: string | null }} color
+	 */
+	function handleColorInput(property, color) {
+		if (color.hex) {
+			onUpdateStyle(property, color.hex);
+		}
+	}
 </script>
 
 <div class="collapse-arrow collapse rounded-box border border-base-content/20">
@@ -27,7 +62,9 @@
 	<div class="collapse-content">
 		<div class="colors">
 			<ColorPicker
-				bind:hex={styles.bgDate}
+				hex={styles.bgDate}
+				bind:isOpen={isBgDateOpen}
+				onInput={(color) => handleColorInput('bgDate', color)}
 				{swatches}
 				label="Couleur fond date"
 				isAlpha={false}
@@ -35,7 +72,9 @@
 			/>
 
 			<ColorPicker
-				bind:hex={styles.bgTitle}
+				hex={styles.bgTitle}
+				bind:isOpen={isBgTitleOpen}
+				onInput={(color) => handleColorInput('bgTitle', color)}
 				{swatches}
 				label="Couleur fond titre"
 				isAlpha={false}
@@ -43,7 +82,9 @@
 			/>
 
 			<ColorPicker
-				bind:hex={styles.colorDate}
+				hex={styles.colorDate}
+				bind:isOpen={isColorDateOpen}
+				onInput={(color) => handleColorInput('colorDate', color)}
 				{swatches}
 				label="Couleur texte date"
 				isAlpha={false}
@@ -51,7 +92,9 @@
 			/>
 
 			<ColorPicker
-				bind:hex={styles.colorTitle}
+				hex={styles.colorTitle}
+				bind:isOpen={isColorTitleOpen}
+				onInput={(color) => handleColorInput('colorTitle', color)}
 				{swatches}
 				label="Couleur texte titre"
 				isAlpha={false}
@@ -59,7 +102,9 @@
 			/>
 
 			<ColorPicker
-				bind:hex={styles.colorContent}
+				hex={styles.colorContent}
+				bind:isOpen={isColorContentOpen}
+				onInput={(color) => handleColorInput('colorContent', color)}
 				{swatches}
 				label="Couleur texte"
 				isAlpha={false}
