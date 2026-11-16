@@ -1,6 +1,6 @@
 /** @typedef {import('./types.js').AppDocument} AppDocument */
 
-import { getDatabase } from './database.js';
+import { getDatabase } from './indexedDB.js';
 import { notifyDocumentsChanged } from './documentSync.js';
 
 const STORE_NAME = 'documents';

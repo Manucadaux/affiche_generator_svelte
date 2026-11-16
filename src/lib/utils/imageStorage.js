@@ -1,4 +1,4 @@
-import { getDatabase } from './database.js';
+import { getDatabase } from './indexedDB.js';
 
 const STORE_NAME = 'eventImages';
 
