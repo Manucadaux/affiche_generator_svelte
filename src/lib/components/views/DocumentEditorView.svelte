@@ -418,6 +418,7 @@
 			getEventImage,
 			saveEventImage,
 			deleteEventImages,
+			history,
 			scrollToPage,
 			getSelectedEventId: () => selectedEventId,
 			clearSelectedEvent: () => (selectedEventId = null)
@@ -439,6 +440,9 @@
 		pages,
 		createEvent,
 		deleteEventImages,
+		getEventImage,
+		saveEventImage,
+		history,
 		getSelectedEventId: () => selectedEventId,
 		clearSelectedEvent: () => (selectedEventId = null)
 	});
@@ -531,12 +535,15 @@
 	const { resetEvents, resetAll } = createResetActions({
 		pages,
 		createPage,
+		getEventImage,
+		saveEventImage,
 		deleteEventImages,
 		clearSelectedEvent: () => (selectedEventId = null),
 		selectedLibrary,
 		selectedMonth,
 		styles,
-		defaultStyles
+		defaultStyles,
+		history
 	});
 
 	onMount(() => {

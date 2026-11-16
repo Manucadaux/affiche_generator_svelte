@@ -1,5 +1,6 @@
 /** @typedef {import('./types.js').Event} Event */
 /** @typedef {import('./types.js').Page} Page */
+/** @typedef {ReturnType<import('./history.js').createHistory>} History */
 
 /**
  * @typedef {Object} Dependencies
@@ -9,6 +10,7 @@
  * @property {(eventId: string) => Promise<Blob | null>} getEventImage
  * @property {(eventId: string, image: Blob) => Promise<void>} saveEventImage
  * @property {(events: Event[]) => Promise<void>} deleteEventImages
+ * @property {History} history
  * @property {() => string | null} getSelectedEventId
  * @property {() => void} clearSelectedEvent
  * @property {(pageId: string) => Promise<void>} scrollToPage
@@ -25,10 +27,39 @@ export function createPageActions(dependencies) {
 		getEventImage,
 		saveEventImage,
 		deleteEventImages,
+		history,
 		scrollToPage,
 		getSelectedEventId,
 		clearSelectedEvent
 	} = dependencies;
+
+	/**
+	 * Insère une page à une position donnée.
+	 * @param {number} index
+	 * @param {Page} page
+	 */
+	function insertPage(index, page) {
+		const newPages = [...pages.current];
+		newPages.splice(index, 0, page);
+		pages.current = newPages;
+	}
+
+	/**
+	 * Retire une page du document.
+	 * @param {string} pageId
+	 */
+	function removePageFromDocument(pageId) {
+		pages.current = pages.current.filter((item) => item.id !== pageId);
+	}
+
+	/**
+	 * Restaure les images d'une page.
+	 * @param {{ eventId: string, image: Blob }[]} images
+	 * @returns {Promise<void>}
+	 */
+	async function restorePageImages(images) {
+		await Promise.all(images.map(({ eventId, image }) => saveEventImage(eventId, image)));
+	}
 
 	/**
 	 * Ajoute une page après celle indiquée.
@@ -41,10 +72,14 @@ export function createPageActions(dependencies) {
 		if (index === -1) return null;
 
 		const newPage = createPage();
-		const newPages = [...pages.current];
+		const newIndex = index + 1;
 
-		newPages.splice(index + 1, 0, newPage);
-		pages.current = newPages;
+		insertPage(newIndex, newPage);
+
+		history.push({
+			undo: () => removePageFromDocument(newPage.id),
+			redo: () => insertPage(newIndex, newPage)
+		});
 
 		return newPage;
 	}
@@ -80,18 +115,48 @@ export function createPageActions(dependencies) {
 	}
 
 	/**
-	 * Supprime une page et ses images associées.
+	 * Supprime une page et enregistre sa restauration dans l'historique.
 	 * @param {Page} page
 	 * @returns {Promise<void>}
 	 */
 	async function removePage(page) {
+		const index = pages.current.findIndex((item) => item.id === page.id);
+
+		if (index === -1) return;
+
+		// On conserve les images avant leur suppression.
+		const images = (
+			await Promise.all(
+				page.events.map(async (event) => {
+					const image = await getEventImage(event.id);
+
+					return image ? { eventId: event.id, image } : null;
+				})
+			)
+		).filter((item) => item !== null);
+
 		await deleteEventImages(page.events);
 
 		if (page.events.some((event) => event.id === getSelectedEventId())) {
 			clearSelectedEvent();
 		}
 
-		pages.current = pages.current.filter((item) => item.id !== page.id);
+		removePageFromDocument(page.id);
+
+		history.push({
+			undo: async () => {
+				await restorePageImages(images);
+				insertPage(index, page);
+			},
+			redo: async () => {
+				if (page.events.some((event) => event.id === getSelectedEventId())) {
+					clearSelectedEvent();
+				}
+
+				await deleteEventImages(page.events);
+				removePageFromDocument(page.id);
+			}
+		});
 	}
 
 	/**
@@ -138,7 +203,11 @@ export function createPageActions(dependencies) {
 		await removePage(lastPage);
 	}
 
-	/** @param {string} pageId */
+	/**
+	 * Duplique une page et ses images.
+	 * @param {string} pageId
+	 * @returns {Promise<void>}
+	 */
 	async function duplicatePage(pageId) {
 		const sourcePage = pages.current.find((page) => page.id === pageId);
 
@@ -153,35 +222,52 @@ export function createPageActions(dependencies) {
 			}))
 		};
 
+		/** @type {{ eventId: string, image: Blob }[]} */
+		let images = [];
+
 		try {
-			await Promise.all(
-				sourcePage.events.map(async (event, index) => {
-					const image = await getEventImage(event.id);
+			images = (
+				await Promise.all(
+					sourcePage.events.map(async (event, index) => {
+						const image = await getEventImage(event.id);
 
-					if (image) {
-						await saveEventImage(duplicatedPage.events[index].id, image);
-					}
-				})
-			);
+						return image ? { eventId: duplicatedPage.events[index].id, image } : null;
+					})
+				)
+			).filter((item) => item !== null);
 
-			const index = pages.current.findIndex((page) => page.id === pageId);
-
-			if (index === -1) {
-				await deleteEventImages(duplicatedPage.events);
-				return;
-			}
-
-			const newPages = [...pages.current];
-			newPages.splice(index + 1, 0, duplicatedPage);
-
-			pages.current = newPages;
-			await scrollToPage(duplicatedPage.id);
+			await restorePageImages(images);
 		} catch (error) {
 			await deleteEventImages(duplicatedPage.events);
 
 			console.error('Erreur lors de la duplication de la page :', error);
 			alert('Impossible de dupliquer la page.');
+			return;
 		}
+
+		const index = pages.current.findIndex((page) => page.id === pageId);
+
+		if (index === -1) {
+			await deleteEventImages(duplicatedPage.events);
+			return;
+		}
+
+		const duplicatedIndex = index + 1;
+
+		insertPage(duplicatedIndex, duplicatedPage);
+
+		history.push({
+			undo: async () => {
+				await deleteEventImages(duplicatedPage.events);
+				removePageFromDocument(duplicatedPage.id);
+			},
+			redo: async () => {
+				await restorePageImages(images);
+				insertPage(duplicatedIndex, duplicatedPage);
+			}
+		});
+
+		await scrollToPage(duplicatedPage.id);
 	}
 
 	return { addPage, addPageAndScroll, duplicatePage, deletePage, deleteLastPage };
