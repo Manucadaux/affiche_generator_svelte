@@ -4,7 +4,6 @@
 	import AppHeader from '#lib/components/layout/AppHeader.svelte';
 	import AppFooter from '#lib/components/layout/AppFooter.svelte';
 	import EmptyEvents from '#lib/components/events/EmptyEvents.svelte';
-	import { CalendarPlus } from 'lucide-svelte';
 
 	const selectedTheme = useLocalStorage('selectedTheme', 'system');
 	applyTheme(selectedTheme);
