@@ -1,5 +1,6 @@
 /** @typedef {import('./types.js').Event} Event */
 /** @typedef {import('./types.js').Page} Page */
+/** @typedef {import('./types.js').Styles} Styles */
 /** @typedef {ReturnType<import('./history.js').createHistory>} History */
 
 /**
@@ -12,8 +13,8 @@
  * @property {() => void} clearSelectedEvent
  * @property {{ current: number | null }} selectedLibrary
  * @property {{ current: number | null }} selectedMonth
- * @property {{ current: Object }} styles
- * @property {Object} defaultStyles
+ * @property {{ current: Styles }} styles
+ * @property {Styles} defaultStyles
  * @property {History} history
  */
 
@@ -106,6 +107,11 @@ export function createResetActions(dependencies) {
 		const previousLibrary = selectedLibrary.current;
 		const previousMonth = selectedMonth.current;
 		const previousStyles = { ...styles.current };
+		const resetStyles = {
+			...defaultStyles,
+			zoom: previousStyles.zoom,
+			autoZoom: previousStyles.autoZoom
+		};
 
 		const allEvents = previousPages.flatMap((page) => page.events);
 		const images = await captureImages(allEvents);
@@ -117,7 +123,7 @@ export function createResetActions(dependencies) {
 		pages.current = [resetPage];
 		selectedLibrary.current = null;
 		selectedMonth.current = null;
-		styles.current = { ...defaultStyles };
+		styles.current = resetStyles;
 
 		history.push({
 			undo: async () => {
