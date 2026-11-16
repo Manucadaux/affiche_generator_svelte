@@ -19,16 +19,11 @@
 	import { createPageActions } from '#lib/utils/pageActions.js';
 	import { createEventActions } from '#lib/utils/eventActions.js';
 	import { createResetActions } from '#lib/utils/resetActions.js';
-	import {
-		getDocument as getStoredDocument,
-		updateDocument as saveStoredDocument,
-		getAllDocuments
-	} from '#lib/utils/documentStorage.js';
+	import { getDocument as getStoredDocument, getAllDocuments } from '#lib/utils/documentStorage.js';
 	import { subscribeToDocumentChanges } from '#lib/utils/documentSync.js';
 	import { createHistory, recordChange } from '#lib/utils/history.js';
 	import { setupHistoryKeyboard } from '#lib/utils/historyKeyboard.js';
 	import { applyTheme } from '#lib/utils/theme/applyTheme.svelte.js';
-	import { createSaveQueue, createSnapshotTracker } from '#lib/utils/persistence.js';
 	import { createDocumentPersistence } from '#lib/utils/editor/documentPersistence.svelte.js';
 
 	import { slide } from 'svelte/transition';
@@ -68,10 +63,7 @@
 	});
 
 	let isDocumentDeleted = $state(false);
-
 	let loadedDocumentId = $state(undefined);
-	const snapshotTracker = createSnapshotTracker();
-
 	let isResetting = $state(false);
 
 	/** @type {'success' | 'error' | 'info' | 'warning'} */
@@ -115,28 +107,12 @@
 
 		async function loadDocument() {
 			try {
-				let document = await documentPersistence.loadDocument(documentId);
+				const document = await documentPersistence.loadDocument(documentId);
 
 				if (cancelled) return;
 
-				const originalSnapshot = document ? JSON.stringify(document) : '';
-
-				if (document && document.styles.autoZoom === undefined) {
-					document = {
-						...document,
-						styles: {
-							...document.styles,
-							autoZoom: true
-						}
-					};
-				}
-
 				activeDocument = document;
 				loadedDocumentId = documentId;
-
-				if (document) {
-					snapshotTracker.reset(originalSnapshot);
-				}
 			} catch (error) {
 				console.error('Erreur lors du chargement du document :', error);
 			}
@@ -224,48 +200,7 @@
 		}
 	};
 
-	// Sauvegarde automatique dans IndexedDB
-
-	/**
-	 * @typedef {{ document: AppDocument, snapshot: string }} DocumentSave
-	 */
-
-	/**
-	 * Enregistre un document et actualise le snapshot après succès.
-	 * @param {DocumentSave} data
-	 * @returns {Promise<void>}
-	 */
-	async function persistDocument({ document, snapshot }) {
-		const updated = await saveStoredDocument(document);
-
-		if (!updated) {
-			throw new Error('Le document n’existe plus.');
-		}
-
-		snapshotTracker.markSaved(snapshot);
-	}
-
-	const saveQueue = createSaveQueue(persistDocument);
-
-	/**
-	 * Ajoute une sauvegarde à la file d'attente.
-	 * @param {AppDocument} document
-	 * @returns {Promise<void>}
-	 */
-	function enqueueDocumentSave(document) {
-		const plainDocument = $state.snapshot(document);
-		const snapshot = JSON.stringify(plainDocument);
-
-		const updatedDocument = {
-			...plainDocument,
-			updatedAt: new Date().toISOString()
-		};
-
-		return saveQueue.enqueue({
-			document: updatedDocument,
-			snapshot
-		});
-	}
+	// Sauvegarde du document avant une navigation
 
 	/**
 	 * Enregistre le document courant avant une navigation.
@@ -279,16 +214,7 @@
 		}
 
 		try {
-			// Attend les sauvegardes déjà en cours.
-			await saveQueue.wait();
-
-			// Vérifie à nouveau la version la plus récente après l'attente.
-			const snapshot = JSON.stringify(activeDocument);
-
-			if (snapshotTracker.hasChanged(snapshot)) {
-				await enqueueDocumentSave(activeDocument);
-			}
-
+			await documentPersistence.saveCurrentDocument(activeDocument);
 			return true;
 		} catch (error) {
 			console.error('Erreur lors de la sauvegarde avant navigation :', error);
@@ -326,16 +252,14 @@
 		await goto(`/document-editor?documentId=${encodeURIComponent(nextDocumentId)}`);
 	}
 
-	// Sauvegarde automatique : comportement d'erreur inchangé.
+	// Sauvegarde automatique
 	$effect(() => {
 		const currentDocument = activeDocument;
 
 		if (!documentReady || !currentDocument) return;
+		if (!documentPersistence.hasChanged(currentDocument)) return;
 
-		const snapshot = JSON.stringify(currentDocument);
-		if (!snapshotTracker.hasChanged(snapshot)) return;
-
-		enqueueDocumentSave(currentDocument).catch((error) => {
+		documentPersistence.enqueueDocumentSave(currentDocument).catch((error) => {
 			console.error('Erreur lors de la sauvegarde du document :', error);
 		});
 	});
@@ -592,6 +516,7 @@
 			history.endGroup();
 		}
 	}
+
 	const { resetEvents, resetAll } = createResetActions({
 		pages,
 		createPage,
@@ -819,7 +744,6 @@
 {#if toastMessage}
 	<Toast message={toastMessage} type={toastType} onClose={() => (toastMessage = '')} />
 {/if}
-```
 
 <style>
 	:global {
