@@ -46,3 +46,28 @@
 /**
  * @typedef {Partial<Pick<AppDocument, 'name' | 'libraryId' | 'monthId' | 'pages' | 'styles'>>} DocumentUpdates
  */
+
+/**
+ * @typedef {Object} EventTimeSlot
+ * @property {string} start
+ * @property {string} end
+ */
+
+/**
+ * @typedef {Object} ManagedEvent
+ * @property {string} id
+ * @property {string} title
+ * @property {number} libraryId
+ * @property {string} location
+ * @property {string} condition
+ * @property {string} startDate
+ * @property {string | null} endDate
+ * @property {EventTimeSlot[]} timeSlots
+ * @property {string} description
+ * @property {string} posterDescription
+ * @property {string} bookletDescription
+ * @property {string} onlineDescription
+ * @property {boolean} inscription
+ * @property {string} createdAt
+ * @property {string} updatedAt
+ */

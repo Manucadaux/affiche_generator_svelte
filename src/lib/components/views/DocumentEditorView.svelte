@@ -19,8 +19,11 @@
 	import { createPageActions } from '#lib/utils/editor/pageActions.js';
 	import { createEventActions } from '#lib/utils/editor/eventActions.js';
 	import { createResetActions } from '#lib/utils/editor/resetActions.js';
-	import { getDocument as getStoredDocument, getAllDocuments } from '#lib/utils/documentStorage.js';
-	import { subscribeToDocumentChanges } from '#lib/utils/documentSync.js';
+	import {
+		getDocument as getStoredDocument,
+		getAllDocuments
+	} from '#lib/utils/documents/documentStorage.js';
+	import { subscribeToDocumentChanges } from '#lib/utils/documents/documentSync.js';
 	import { createHistory, recordChange } from '#lib/utils/history.js';
 	import { setupHistoryKeyboard } from '#lib/utils/historyKeyboard.js';
 	import { applyTheme } from '#lib/utils/theme/applyTheme.svelte.js';

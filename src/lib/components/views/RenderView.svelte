@@ -3,7 +3,7 @@
 	import { onMount, tick } from 'svelte';
 
 	import { optionsLibrary, optionsMonth, defaultStyles } from '#lib/data/options.js';
-	import { getDocument as getStoredDocument } from '#lib/utils/documentStorage.js';
+	import { getDocument as getStoredDocument } from '#lib/utils/documents/documentStorage.js';
 
 	import PageAffiche from '#lib/components/affiche/PageAffiche.svelte';
 

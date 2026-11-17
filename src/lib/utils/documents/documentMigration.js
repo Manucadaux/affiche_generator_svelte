@@ -1,7 +1,7 @@
-/** @typedef {import('./types.js').AppDocument} AppDocument */
-/** @typedef {import('./types.js').Page} Page */
-/** @typedef {import('./types.js').Event} Event */
-/** @typedef {import('./types.js').Styles} Styles */
+/** @typedef {import('../types.js').AppDocument} AppDocument */
+/** @typedef {import('../types.js').Page} Page */
+/** @typedef {import('../types.js').Event} Event */
+/** @typedef {import('../types.js').Styles} Styles */
 
 /**
  * @typedef {Object} LegacyDocumentData

@@ -1,7 +1,7 @@
-/** @typedef {import('./types.js').AppDocument} AppDocument */
-/** @typedef {import('./types.js').DocumentUpdates} DocumentUpdates */
-/** @typedef {import('./types.js').Styles} Styles */
-/** @typedef {import('./types.js').Page} Page */
+/** @typedef {import('../types.js').AppDocument} AppDocument */
+/** @typedef {import('../types.js').DocumentUpdates} DocumentUpdates */
+/** @typedef {import('../types.js').Styles} Styles */
+/** @typedef {import('../types.js').Page} Page */
 /**
  * @typedef {Object} DeletedDocument
  * @property {AppDocument} document
@@ -16,7 +16,7 @@ import {
 	deleteDocument as deleteStoredDocument
 } from './documentStorage.js';
 
-import { deleteEventImages, getEventImage, saveEventImage } from './imageStorage.js';
+import { deleteEventImages, getEventImage, saveEventImage } from '../imageStorage.js';
 
 /**
  * @param {Object} dependencies

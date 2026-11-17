@@ -6,10 +6,10 @@
 	import { optionsLibrary, optionsMonth, defaultStyles } from '#lib/data/options.js';
 	import { useLocalStorage } from '#lib/utils/useLocalStorage.svelte.js';
 	import { createPage, generateId } from '#lib/utils/factories.js';
-	import { createDocumentActions } from '#lib/utils/documentActions.js';
-	import { initializeDocuments } from '#lib/utils/initializeDocuments.js';
-	import { getAllDocuments } from '#lib/utils/documentStorage.js';
-	import { subscribeToDocumentChanges } from '#lib/utils/documentSync.js';
+	import { createDocumentActions } from '#lib/utils/documents/documentActions.js';
+	import { initializeDocuments } from '#lib/utils/documents/initializeDocuments.js';
+	import { getAllDocuments } from '#lib/utils/documents/documentStorage.js';
+	import { subscribeToDocumentChanges } from '#lib/utils/documents/documentSync.js';
 	import { applyTheme } from '#lib/utils/theme/applyTheme.svelte.js';
 
 	import AppHeader from '#lib/components/layout/AppHeader.svelte';
