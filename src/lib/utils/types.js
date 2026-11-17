@@ -67,6 +67,13 @@
  * @property {string} posterDescription
  * @property {string} bookletDescription
  * @property {string} onlineDescription
+ * @property {string} highlight
+ * @property {string} genre
+ * @property {string} providers
+ * @property {string} amount
+ * @property {string} actionType
+ * @property {string} partner
+ * @property {string} comment
  * @property {boolean} inscription
  * @property {string} createdAt
  * @property {string} updatedAt

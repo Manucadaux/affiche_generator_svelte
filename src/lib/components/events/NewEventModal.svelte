@@ -28,6 +28,13 @@
 	let posterDescription = $state('');
 	let bookletDescription = $state('');
 	let onlineDescription = $state('');
+	let highlight = $state('');
+	let genre = $state('');
+	let providers = $state('');
+	let amount = $state('');
+	let actionType = $state('');
+	let partner = $state('');
+	let comment = $state('');
 	let inscription = $state(false);
 
 	function addTimeSlot() {
@@ -62,6 +69,13 @@
 			posterDescription: posterDescription.trim(),
 			bookletDescription: bookletDescription.trim(),
 			onlineDescription: onlineDescription.trim(),
+			highlight: highlight.trim(),
+			genre: genre.trim(),
+			providers: providers.trim(),
+			amount: amount.trim(),
+			actionType: actionType.trim(),
+			partner: partner.trim(),
+			comment: comment.trim(),
 			inscription
 		});
 	}
@@ -269,6 +283,98 @@
 						class="textarea-bordered textarea min-h-24 w-full"
 						placeholder="Description destinée à l'agenda en ligne..."
 						bind:value={onlineDescription}></textarea>
+				</div>
+			</section>
+
+			<!-- Informations complémentaires -->
+			<section class="space-y-4">
+				<h3 class="font-semibold">Informations complémentaires</h3>
+
+				<div class="form-control">
+					<label class="label" for="event-highlight">
+						<span class="label-text">Temps fort lié</span>
+					</label>
+					<input
+						id="event-highlight"
+						type="text"
+						class="input-bordered input w-full"
+						placeholder="Temps fort lié à l'événement"
+						bind:value={highlight}
+					/>
+				</div>
+
+				<div class="form-control">
+					<label class="label" for="event-genre">
+						<span class="label-text">Genre</span>
+					</label>
+					<input
+						id="event-genre"
+						type="text"
+						class="input-bordered input w-full"
+						placeholder="Ex. : Exposition"
+						bind:value={genre}
+					/>
+				</div>
+
+				<div class="form-control">
+					<label class="label" for="event-providers">
+						<span class="label-text">Prestataires</span>
+					</label>
+					<textarea
+						id="event-providers"
+						class="textarea-bordered textarea min-h-24 w-full"
+						placeholder="Prestataires intervenant dans l'événement..."
+						bind:value={providers}></textarea>
+				</div>
+
+				<div class="form-control">
+					<label class="label" for="event-amount">
+						<span class="label-text">Montant (frais annexes compris)</span>
+					</label>
+					<input
+						id="event-amount"
+						type="text"
+						class="input-bordered input w-full"
+						placeholder="Ex. : 150 €, gratuit, 100 € + frais de déplacement..."
+						bind:value={amount}
+					/>
+				</div>
+
+				<div class="form-control">
+					<label class="label" for="event-action-type">
+						<span class="label-text">Type d'action</span>
+					</label>
+					<input
+						id="event-action-type"
+						type="text"
+						class="input-bordered input w-full"
+						placeholder="Type d'action"
+						bind:value={actionType}
+					/>
+				</div>
+
+				<div class="form-control">
+					<label class="label" for="event-partner">
+						<span class="label-text">Partenaire</span>
+					</label>
+					<input
+						id="event-partner"
+						type="text"
+						class="input-bordered input w-full"
+						placeholder="Partenaire associé à l'événement"
+						bind:value={partner}
+					/>
+				</div>
+
+				<div class="form-control">
+					<label class="label" for="event-comment">
+						<span class="label-text">Commentaire</span>
+					</label>
+					<textarea
+						id="event-comment"
+						class="textarea-bordered textarea min-h-24 w-full"
+						placeholder="Commentaire interne..."
+						bind:value={comment}></textarea>
 				</div>
 			</section>
 
