@@ -1,5 +1,8 @@
 <script>
 	import { CalendarPlus } from 'lucide-svelte';
+
+	/** @type {{ onOpenCreate: () => void }} */
+	let { onOpenCreate } = $props();
 </script>
 
 <div class="flex flex-1 flex-col items-center justify-center px-6 text-center">
@@ -15,5 +18,7 @@
 		Créez votre premier événement pour commencer à organiser les animations de votre médiathèque.
 	</p>
 
-	<button type="button" class="btn mt-6 cursor-pointer btn-primary"> Créer un événement </button>
+	<button type="button" class="btn mt-6 cursor-pointer btn-primary" onclick={onOpenCreate}>
+		Créer un événement
+	</button>
 </div>

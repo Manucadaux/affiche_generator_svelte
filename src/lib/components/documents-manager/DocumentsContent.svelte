@@ -2,7 +2,7 @@
 	/** @typedef {import('#lib/utils/types.js').AppDocument} AppDocument */
 	/** @typedef {import('#lib/utils/types.js').DocumentUpdates} DocumentUpdates */
 	/** @typedef {import('#lib/utils/types.js').Styles} Styles */
-	/** @import { DeletedDocument } from '../../utils/documentActions.js' */
+	/** @import { DeletedDocument } from '../../utils/documents/documentActions.js' */
 
 	import DocumentsToolbar from '#lib/components/documents-manager/content/DocumentsToolbar.svelte';
 	import DocumentsGrid from '#lib/components/documents-manager/content/DocumentsGrid.svelte';
