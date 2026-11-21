@@ -40,13 +40,17 @@ export function compareEventsByTitle(a, b) {
 }
 
 /**
- * Comparer deux événements par nom de médiathèque.
+ * Comparer deux événements par médiathèque.
+ * Les événements sans médiathèque sont placés à la fin.
  * @param {import('../types.js').ManagedEvent} a
  * @param {import('../types.js').ManagedEvent} b
  * @param {(libraryId: number | null) => string} getLibraryName
  * @returns {number}
  */
 export function compareEventsByLibrary(a, b, getLibraryName) {
+	if (a.libraryId === null) return b.libraryId !== null ? 1 : 0;
+	if (b.libraryId === null) return -1;
+
 	const nameA = getLibraryName(a.libraryId);
 	const nameB = getLibraryName(b.libraryId);
 
