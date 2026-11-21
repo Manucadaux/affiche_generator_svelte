@@ -1,6 +1,8 @@
 /** @typedef {import('../types.js').ManagedEvent} ManagedEvent */
 
+import { notifyEventsChanged } from './eventSync.js';
 import { createStorage } from '../storage.js';
+import { normalizeManagedEvent } from './eventFactory.js';
 
 /** @type {ReturnType<typeof createStorage<ManagedEvent>>} */
 const eventsStorage = createStorage('events');
@@ -10,7 +12,9 @@ const eventsStorage = createStorage('events');
  * @returns {Promise<ManagedEvent[]>}
  */
 export async function getAllEvents() {
-	return eventsStorage.getAll();
+	const events = await eventsStorage.getAll();
+
+	return events.map(normalizeManagedEvent);
 }
 
 /**
@@ -19,7 +23,9 @@ export async function getAllEvents() {
  * @returns {Promise<ManagedEvent | null>}
  */
 export async function getEvent(id) {
-	return eventsStorage.getById(id);
+	const event = await eventsStorage.getById(id);
+
+	return event ? normalizeManagedEvent(event) : null;
 }
 
 /**
@@ -29,6 +35,7 @@ export async function getEvent(id) {
  */
 export async function addEvent(event) {
 	await eventsStorage.add(event);
+	notifyEventsChanged();
 }
 
 /**
@@ -38,7 +45,13 @@ export async function addEvent(event) {
  * @returns {Promise<boolean>} Indique si l'événement a été mis à jour.
  */
 export async function updateEvent(event) {
-	return eventsStorage.update(event);
+	const wasUpdated = await eventsStorage.update(event);
+
+	if (wasUpdated) {
+		notifyEventsChanged();
+	}
+
+	return wasUpdated;
 }
 
 /**
@@ -48,4 +61,5 @@ export async function updateEvent(event) {
  */
 export async function deleteEvent(id) {
 	await eventsStorage.remove(id);
+	notifyEventsChanged();
 }

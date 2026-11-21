@@ -54,18 +54,18 @@
  */
 
 /**
- * @typedef {'Tout public' | 'Jeunesse' | 'Adulte'} EventSection
+ * @typedef {'Jeunesse' | 'Adulte'} EventSection
  */
 
 /**
  * @typedef {Object} ManagedEvent
  * @property {string} id
  * @property {string} title
- * @property {number} libraryId
- * @property {EventSection} section
+ * @property {number | null} libraryId
+ * @property {EventSection | null} section
  * @property {string} location
  * @property {string} condition
- * @property {string} startDate
+ * @property {string | null} startDate
  * @property {string | null} endDate
  * @property {EventTimeSlot[]} timeSlots
  * @property {string} description
