@@ -54,7 +54,7 @@
  */
 
 /**
- * @typedef {'Jeunesse' | 'Adulte'} EventSection
+ * @typedef {'Jeunesse' | 'Adulte' | 'Tout public'} EventSection
  */
 
 /**

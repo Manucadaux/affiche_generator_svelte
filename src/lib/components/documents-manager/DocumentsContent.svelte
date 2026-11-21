@@ -4,6 +4,9 @@
 	/** @typedef {import('#lib/utils/types.js').Styles} Styles */
 	/** @import { DeletedDocument } from '../../utils/documents/documentActions.js' */
 
+	import { searchItems } from '#lib/utils/collections/search.js';
+	import { sortItems } from '#lib/utils/collections/sort.js';
+
 	import DocumentsToolbar from '#lib/components/documents-manager/content/DocumentsToolbar.svelte';
 	import DocumentsGrid from '#lib/components/documents-manager/content/DocumentsGrid.svelte';
 	import EmptyDocuments from '#lib/components/documents-manager/content/EmptyDocuments.svelte';
@@ -60,13 +63,9 @@
 	let toastType = $state('error');
 
 	let filteredDocuments = $derived.by(() => {
-		const query = searchQuery.trim().toLocaleLowerCase('fr');
+		const filtered = searchItems(documents, searchQuery, (document) => document.name);
 
-		const filtered = documents.filter((document) =>
-			document.name.toLocaleLowerCase('fr').includes(query)
-		);
-
-		return [...filtered].sort((a, b) => {
+		return sortItems(filtered, (a, b) => {
 			switch (sortOrder) {
 				case 'updated-asc':
 					return new Date(a.updatedAt).getTime() - new Date(b.updatedAt).getTime();

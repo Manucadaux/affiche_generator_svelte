@@ -50,7 +50,12 @@ export function createManagedEvent(initialData = {}) {
 export function normalizeManagedEvent(event) {
 	const now = new Date().toISOString();
 
-	const section = event.section === 'Jeunesse' || event.section === 'Adulte' ? event.section : null;
+	const validSections = ['Jeunesse', 'Adulte', 'Tout public'];
+
+	const section =
+		typeof event.section === 'string' && validSections.includes(event.section)
+			? event.section
+			: null;
 
 	const timeSlots = Array.isArray(event.timeSlots)
 		? event.timeSlots.filter(
