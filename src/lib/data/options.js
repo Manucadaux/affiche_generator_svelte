@@ -7,7 +7,8 @@ export const optionsLibrary = [
 	{ id: 6, label: 'Jurançon', text: 'de Jurançon' },
 	{ id: 7, label: 'Lescar', text: 'de Lescar' },
 	{ id: 8, label: 'Gan', text: 'de Gan' },
-	{ id: 9, label: 'Espaci Lectura', text: 'Espaci Lectura' }
+	{ id: 9, label: 'Espaci Lectura', text: 'Espaci Lectura' },
+	{ id: 10, label: 'la Pépinière', text: 'la Pépinière' }
 ];
 
 export const optionsMonth = [
