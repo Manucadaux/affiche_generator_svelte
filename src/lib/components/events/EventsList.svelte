@@ -6,7 +6,11 @@
 	 *   events: import('#lib/utils/types.js').ManagedEvent[],
 	 *   selectedIds: string[],
 	 *   draftId?: string | null,
-	 *   onDraftChange?: (field: string, value: any) => void
+	 *   onDraftChange?: (field: string, value: any) => void,
+	 *   onDraftSave?: () => void,
+	 *   onDraftCancel?: () => void,
+	 *   draftError?: string,
+	 *   isSavingDraft?: boolean
 	 * }}
 	 */
 	let {
@@ -22,6 +26,7 @@
 
 	/** @type {string[]} */
 	let expandedIds = $state([]);
+	/** @type {string | null} */
 	let lastDraftId = $state(null);
 
 	$effect(() => {
