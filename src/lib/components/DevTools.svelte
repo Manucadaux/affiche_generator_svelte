@@ -1,5 +1,5 @@
 <script>
-	import { Trash2 } from 'lucide-svelte';
+	import { Trash2 } from '@lucide/svelte';
 	import { deleteDatabase } from '#lib/utils/indexedDB.js';
 
 	/**

@@ -1,5 +1,5 @@
 <script>
-	import { CalendarPlus } from 'lucide-svelte';
+	import { CalendarPlus } from '@lucide/svelte';
 
 	/** @type {{ onOpenCreate: () => void }} */
 	let { onOpenCreate } = $props();

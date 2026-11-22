@@ -1,4 +1,3 @@
-
 <script>
 	import { useLocalStorage } from '#lib/utils/useLocalStorage.svelte.js';
 	import { applyTheme } from '#lib/utils/theme/applyTheme.svelte.js';

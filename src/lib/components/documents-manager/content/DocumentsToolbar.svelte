@@ -1,5 +1,5 @@
 <script>
-	import { Search, ArrowDownWideNarrow } from 'lucide-svelte';
+	import { Search, ArrowDownWideNarrow } from '@lucide/svelte';
 
 	let { searchQuery = $bindable(''), sortOrder = $bindable('updated-desc') } = $props();
 </script>

@@ -1,6 +1,6 @@
 <script>
 	import { MAX_EVENTS_PER_PAGE } from '#lib/utils/constants.js';
-	import { Trash2, FilePlus, Copy } from 'lucide-svelte';
+	import { Trash2, FilePlus, Copy } from '@lucide/svelte';
 
 	let {
 		pageNumber,

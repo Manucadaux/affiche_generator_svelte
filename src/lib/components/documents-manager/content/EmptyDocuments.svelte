@@ -1,5 +1,5 @@
 <script>
-	import { FilePlusCorner } from 'lucide-svelte';
+	import { FilePlusCorner } from '@lucide/svelte';
 
 	/** @type {{ onCreate: () => void }} */
 	let { onCreate } = $props();

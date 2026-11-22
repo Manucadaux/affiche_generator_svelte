@@ -1,5 +1,5 @@
 <script>
-	import { Palette, Check } from 'lucide-svelte';
+	import { Palette, Check } from '@lucide/svelte';
 	import { themes } from '#lib/data/themes.js';
 
 	let { selectedTheme = $bindable() } = $props();

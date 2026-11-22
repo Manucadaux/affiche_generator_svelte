@@ -3,7 +3,7 @@
 	/** @typedef {import('../../utils/types.js').EventTimeSlot} EventTimeSlot */
 	/** @typedef {import('../../utils/types.js').EventSection} EventSection */
 
-	import { Plus, Trash2 } from 'lucide-svelte';
+	import { Plus, Trash2 } from '@lucide/svelte';
 	import Modal from '#lib/components/ui/Modal.svelte';
 	import { optionsLibrary } from '#lib/data/options.js';
 

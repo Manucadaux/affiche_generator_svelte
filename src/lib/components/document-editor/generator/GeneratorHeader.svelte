@@ -1,5 +1,5 @@
 <script>
-	import { House, Menu } from 'lucide-svelte';
+	import { House, Menu } from '@lucide/svelte';
 	import ThemeSelector from '#lib/components/ui/ThemeSelector.svelte';
 
 	let { selectedTheme = $bindable(), onMenuClick } = $props();

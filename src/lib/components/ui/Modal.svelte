@@ -1,6 +1,6 @@
 <script>
 	import { onMount } from 'svelte';
-	import { X } from 'lucide-svelte';
+	import { X } from '@lucide/svelte';
 
 	/** @type {{
 		title: string,
