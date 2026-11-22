@@ -16,8 +16,13 @@
 	import DocumentsContent from '#lib/components/documents-manager/DocumentsContent.svelte';
 	import AppFooter from '#lib/components/layout/AppFooter.svelte';
 
-	const selectedLibraryForNewDocument = useLocalStorage('newDocumentLibraryId', null);
+	const selectedLibraryForNewDocument = useLocalStorage(
+		'newDocumentLibraryId',
+		/** @type {number | null} */ (null)
+	);
+
 	const selectedTheme = useLocalStorage('selectedTheme', 'system');
+
 	applyTheme(selectedTheme);
 
 	/** @type {AppDocument[]} */
@@ -62,12 +67,7 @@
 </script>
 
 <div class="flex min-h-screen flex-col">
-	<AppHeader
-		title="Gestionnaire d'affiches"
-		{optionsLibrary}
-		bind:selectedLibrary={selectedLibraryForNewDocument.current}
-		bind:selectedTheme={selectedTheme.current}
-	/>
+	<AppHeader title="Gestionnaire d'affiches" bind:selectedTheme={selectedTheme.current} />
 
 	<main class="flex flex-1 flex-col">
 		{#if initializationError}

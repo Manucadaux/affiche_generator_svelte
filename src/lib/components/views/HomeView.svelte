@@ -5,8 +5,10 @@
 	import ThemeSelector from '#lib/components/ui/ThemeSelector.svelte';
 	import AppFooter from '#lib/components/layout/AppFooter.svelte';
 	import CardLink from '#lib/components/home/CardLink.svelte';
+	import ActiveLibrarySelector from '#lib/components/layout/ActiveLibrarySelector.svelte';
 
 	const selectedTheme = useLocalStorage('selectedTheme', 'system');
+
 	applyTheme(selectedTheme);
 </script>
 
@@ -15,10 +17,16 @@
 </svelte:head>
 
 <div class="flex min-h-screen flex-col bg-base-200">
-	<header class="flex items-center justify-between border-b border-base-300 bg-base-100 px-8 py-5">
+	<header
+		class="flex flex-wrap items-center justify-between gap-4 border-b border-base-300 bg-base-100 px-8 py-5"
+	>
 		<h1 class="text-2xl font-semibold">Nakomi</h1>
 
-		<ThemeSelector bind:selectedTheme={selectedTheme.current} />
+		<div class="flex flex-wrap items-center gap-3">
+			<ActiveLibrarySelector />
+
+			<ThemeSelector bind:selectedTheme={selectedTheme.current} />
+		</div>
 	</header>
 
 	<main class="mx-auto w-full max-w-5xl flex-1 px-8 py-12">

@@ -1,12 +1,8 @@
 <script>
 	import ThemeSelector from '#lib/components/ui/ThemeSelector.svelte';
+	import ActiveLibrarySelector from '#lib/components/layout/ActiveLibrarySelector.svelte';
 
-	let {
-		title,
-		optionsLibrary = null,
-		selectedLibrary = $bindable(),
-		selectedTheme = $bindable()
-	} = $props();
+	let { title, selectedLibrary = $bindable(), selectedTheme = $bindable() } = $props();
 </script>
 
 <header
@@ -22,19 +18,7 @@
 	</div>
 
 	<div class="flex items-center gap-3">
-		{#if optionsLibrary}
-			<select
-				class="select-bordered select select-sm"
-				aria-label="Sélectionner une médiathèque"
-				bind:value={selectedLibrary}
-			>
-				<option value={null}>Toutes les médiathèques</option>
-
-				{#each optionsLibrary as option (option.id)}
-					<option value={option.id}>{option.label}</option>
-				{/each}
-			</select>
-		{/if}
+		<ActiveLibrarySelector />
 
 		<ThemeSelector bind:selectedTheme />
 	</div>

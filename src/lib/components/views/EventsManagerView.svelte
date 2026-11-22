@@ -8,10 +8,12 @@
 	import EventsToolbar from '#lib/components/events/EventsToolbar.svelte';
 
 	const selectedTheme = useLocalStorage('selectedTheme', 'system');
+
 	applyTheme(selectedTheme);
 
 	/** @type {import('#lib/utils/types.js').ManagedEvent[]} */
 	let events = $state([]);
+
 	let isEditMode = $state(false);
 
 	let searchQuery = $state('');
