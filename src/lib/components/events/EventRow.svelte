@@ -37,26 +37,59 @@
 			'Médiathèque inconnue'
 	);
 
-	const formattedDate = $derived.by(() => {
-		if (!event.startDate) return 'Date à définir';
+	/**
+	 * Formate une date au format français.
+	 * @param {string | null} dateString
+	 */
+	function formatDate(dateString) {
+		if (!dateString) return '';
 
-		const [year, month, day] = event.startDate.split('-');
+		const [year, month, day] = dateString.split('-');
 		const date = new Date(Number(year), Number(month) - 1, Number(day));
 
 		return new Intl.DateTimeFormat('fr-FR').format(date);
-	});
+	}
 
+	const formattedDate = $derived(event.startDate ? formatDate(event.startDate) : 'Date à définir');
+
+	const formattedEndDate = $derived(event.endDate ? formatDate(event.endDate) : '');
+
+	// Une période n'affiche pas les horaires sur la ligne principale.
 	const formattedTime = $derived(
-		event.timeSlots
-			.map((slot) => {
-				if (slot.start && slot.end) return `${slot.start} – ${slot.end}`;
-				return slot.start || slot.end;
-			})
-			.filter(Boolean)
-			.join(', ')
+		event.endDate
+			? ''
+			: event.timeSlots
+					.map((slot) => {
+						if (slot.start && slot.end) return `${slot.start} – ${slot.end}`;
+						return slot.start || slot.end;
+					})
+					.filter(Boolean)
+					.join(', ')
 	);
 
 	const firstTimeSlot = $derived(event.timeSlots[0] ?? { start: '', end: '' });
+
+	// Un événement est complet lorsque les huit critères sont renseignés.
+	const isComplete = $derived(
+		Boolean(
+			event.title.trim() &&
+			event.libraryId !== null &&
+			event.section &&
+			event.startDate &&
+			event.description.trim() &&
+			event.posterDescription.trim() &&
+			event.bookletDescription.trim() &&
+			event.onlineDescription.trim()
+		)
+	);
+
+	/**
+	 * Affiche une valeur ou le texte par défaut.
+	 * @param {string | null | undefined} value
+	 */
+	function displayValue(value) {
+		return value?.trim() || 'Non renseigné';
+	}
 </script>
 
 <article class="overflow-hidden rounded-box border border-base-content/30 bg-base-100">
@@ -72,7 +105,7 @@
 
 		<!-- Informations principales -->
 		<div
-			class="grid min-w-0 flex-1 grid-cols-1 items-center gap-2 sm:grid-cols-[minmax(0,2fr)_minmax(0,1.5fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1.5fr)]"
+			class="grid min-w-0 flex-1 grid-cols-1 items-center gap-2 sm:grid-cols-[minmax(0,2fr)_minmax(0,1.5fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1.5fr)_minmax(0,1fr)]"
 		>
 			{#if isDraft}
 				<!-- Titre -->
@@ -138,6 +171,9 @@
 					value={event.highlight}
 					oninput={(e) => onDraftChange('highlight', e.currentTarget.value)}
 				/>
+
+				<!-- Statut -->
+				<span class="text-sm text-base-content/60">Brouillon</span>
 			{:else}
 				<!-- Événement existant -->
 				<button
@@ -155,9 +191,13 @@
 					</span>
 
 					<span class="text-sm">
-						{formattedDate}
-						{#if formattedTime}
-							<span class="block text-base-content/60">{formattedTime}</span>
+						{#if event.endDate}
+							{formattedDate} au {formattedEndDate}
+						{:else}
+							{formattedDate}
+							{#if formattedTime}
+								<span class="block text-base-content/60">{formattedTime}</span>
+							{/if}
 						{/if}
 					</span>
 
@@ -169,6 +209,14 @@
 
 					<span class="truncate text-sm">
 						{event.highlight || '—'}
+					</span>
+
+					<span>
+						{#if isComplete}
+							<span class="badge badge-sm whitespace-nowrap badge-success">Complet</span>
+						{:else}
+							<span class="badge badge-sm whitespace-nowrap badge-warning">Incomplet</span>
+						{/if}
 					</span>
 				</button>
 			{/if}
@@ -310,17 +358,26 @@
 						<span class="label-text">Avec inscription</span>
 					</label>
 
-					<div class="mt-5 flex flex-col gap-3 border-t border-base-content/10 pt-4 sm:flex-row sm:items-center sm:justify-between">
+					<div
+						class="mt-5 flex flex-col gap-3 border-t border-base-content/10 pt-4 sm:flex-row sm:items-center sm:justify-between"
+					>
 						<div class="min-w-0">
 							{#if draftError}
 								<p class="text-sm text-error" role="alert">{draftError}</p>
 							{:else}
-								<p class="text-xs text-base-content/60">Le titre et la date de début sont obligatoires.</p>
+								<p class="text-xs text-base-content/60">
+									Le titre et la date de début sont obligatoires.
+								</p>
 							{/if}
 						</div>
 
 						<div class="flex justify-end gap-2">
-							<button type="button" class="btn btn-ghost btn-sm" onclick={onDraftCancel} disabled={isSavingDraft}>
+							<button
+								type="button"
+								class="btn btn-ghost btn-sm"
+								onclick={onDraftCancel}
+								disabled={isSavingDraft}
+							>
 								Annuler
 							</button>
 							<button
@@ -330,7 +387,7 @@
 								disabled={!event.title.trim() || !event.startDate || isSavingDraft}
 							>
 								{#if isSavingDraft}
-									<span class="loading loading-spinner loading-xs"></span>
+									<span class="loading loading-xs loading-spinner"></span>
 									Enregistrement…
 								{:else}
 									Enregistrer l'événement
@@ -340,63 +397,114 @@
 					</div>
 				{:else}
 					<!-- Détails d'un événement existant -->
+
+					<!-- Informations générales -->
 					<div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-						{#if event.location}
-							<div>
-								<p class="text-xs text-base-content/50">Lieu</p>
-								<p>{event.location}</p>
-							</div>
-						{/if}
+						<div>
+							<p class="text-xs text-base-content/50">Médiathèque</p>
+							<p>{displayValue(event.libraryId !== null ? libraryName : '')}</p>
+						</div>
 
-						{#if event.genre}
-							<div>
-								<p class="text-xs text-base-content/50">Genre</p>
-								<p>{event.genre}</p>
-							</div>
-						{/if}
+						<div>
+							<p class="text-xs text-base-content/50">Section</p>
+							<p>{displayValue(event.section)}</p>
+						</div>
 
-						{#if event.actionType}
-							<div>
-								<p class="text-xs text-base-content/50">Type d'action</p>
-								<p>{event.actionType}</p>
-							</div>
-						{/if}
+						<div>
+							<p class="text-xs text-base-content/50">Lieu</p>
+							<p>{displayValue(event.location)}</p>
+						</div>
 
-						{#if event.providers}
-							<div>
-								<p class="text-xs text-base-content/50">Prestataires</p>
-								<p>{event.providers}</p>
-							</div>
-						{/if}
+						<div>
+							<p class="text-xs text-base-content/50">Public concerné</p>
+							<p>{displayValue(event.condition)}</p>
+						</div>
 
-						{#if event.partner}
-							<div>
-								<p class="text-xs text-base-content/50">Partenaire</p>
-								<p>{event.partner}</p>
-							</div>
-						{/if}
+						<div>
+							<p class="text-xs text-base-content/50">Date de début</p>
+							<p>{event.startDate ? formattedDate : 'Non renseigné'}</p>
+						</div>
 
-						{#if event.amount}
-							<div>
-								<p class="text-xs text-base-content/50">Montant</p>
-								<p>{event.amount}</p>
-							</div>
-						{/if}
+						<div>
+							<p class="text-xs text-base-content/50">Date de fin</p>
+							<p>{event.endDate ? formattedEndDate : 'Non renseigné'}</p>
+						</div>
+
+						<div>
+							<p class="text-xs text-base-content/50">Horaires</p>
+							<p>
+								{displayValue(
+									event.timeSlots
+										.map((slot) => {
+											if (slot.start && slot.end) return `${slot.start} – ${slot.end}`;
+											return slot.start || slot.end;
+										})
+										.filter(Boolean)
+										.join(', ')
+								)}
+							</p>
+						</div>
+
+						<div>
+							<p class="text-xs text-base-content/50">Temps fort lié</p>
+							<p>{displayValue(event.highlight)}</p>
+						</div>
+
+						<div>
+							<p class="text-xs text-base-content/50">Genre</p>
+							<p>{displayValue(event.genre)}</p>
+						</div>
+
+						<div>
+							<p class="text-xs text-base-content/50">Type d'action</p>
+							<p>{displayValue(event.actionType)}</p>
+						</div>
+
+						<div>
+							<p class="text-xs text-base-content/50">Prestataires</p>
+							<p>{displayValue(event.providers)}</p>
+						</div>
+
+						<div>
+							<p class="text-xs text-base-content/50">Partenaire</p>
+							<p>{displayValue(event.partner)}</p>
+						</div>
+
+						<div>
+							<p class="text-xs text-base-content/50">Montant</p>
+							<p>{displayValue(event.amount)}</p>
+						</div>
 					</div>
 
-					{#if event.description}
-						<div class="mt-4">
-							<p class="text-xs text-base-content/50">Description générale</p>
-							<p class="whitespace-pre-line">{event.description}</p>
-						</div>
-					{/if}
+					<!-- Descriptions -->
 
-					{#if event.comment}
-						<div class="mt-4">
-							<p class="text-xs text-base-content/50">Commentaire</p>
-							<p class="whitespace-pre-line">{event.comment}</p>
+					<!-- Descriptions -->
+					<div class="mt-5 grid gap-4 sm:grid-cols-2">
+						<div>
+							<p class="mb-1 text-xs text-base-content/50">Description générale</p>
+							<p class="whitespace-pre-line">{displayValue(event.description)}</p>
 						</div>
-					{/if}
+
+						<div>
+							<p class="mb-1 text-xs text-base-content/50">Description pour l'affiche</p>
+							<p class="whitespace-pre-line">{displayValue(event.posterDescription)}</p>
+						</div>
+
+						<div>
+							<p class="mb-1 text-xs text-base-content/50">Description pour le livret</p>
+							<p class="whitespace-pre-line">{displayValue(event.bookletDescription)}</p>
+						</div>
+
+						<div>
+							<p class="mb-1 text-xs text-base-content/50">Description pour l'agenda en ligne</p>
+							<p class="whitespace-pre-line">{displayValue(event.onlineDescription)}</p>
+						</div>
+					</div>
+
+					<div class="mt-4 border-t border-base-content/10 pt-4">
+						<p class="mb-1 text-xs text-base-content/50">Commentaire</p>
+						<p class="whitespace-pre-line">{displayValue(event.comment)}</p>
+					</div>
 				{/if}
 			</div>
 		</div>
