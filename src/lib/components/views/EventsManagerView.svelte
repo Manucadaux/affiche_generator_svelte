@@ -11,6 +11,7 @@
 	import AppFooter from '#lib/components/layout/AppFooter.svelte';
 	import EmptyEvents from '#lib/components/events/EmptyEvents.svelte';
 	import EventsToolbar from '#lib/components/events/EventsToolbar.svelte';
+	import EventsList from '#lib/components/events/EventsList.svelte';
 
 	const selectedTheme = useLocalStorage('selectedTheme', 'system');
 
@@ -31,6 +32,9 @@
 
 	/** @type {import('#lib/utils/types.js').ManagedEvent | null} */
 	let newEventDraft = $state(null);
+
+	/** @type {string[]} */
+	let selectedEventIds = $state([]);
 
 	let searchQuery = $state('');
 	let selectedLibraryId = $state('all');
@@ -79,6 +83,20 @@
 		startNewEventDraft();
 	}
 
+	/**
+	 * Met à jour un champ du brouillon.
+	 * @param {string} field
+	 * @param {any} value
+	 */
+	function updateNewEventDraft(field, value) {
+		if (!newEventDraft) return;
+
+		newEventDraft = {
+			...newEventDraft,
+			[field]: value
+		};
+	}
+
 	let genreOptions = $derived(
 		[...new Set(events.map((event) => event.genre.trim()).filter(Boolean))].sort()
 	);
@@ -86,6 +104,92 @@
 	let actionTypeOptions = $derived(
 		[...new Set(events.map((event) => event.actionType.trim()).filter(Boolean))].sort()
 	);
+
+	let filteredEvents = $derived(
+		events.filter((event) => {
+			// Recherche textuelle
+			const query = searchQuery.trim().toLocaleLowerCase('fr');
+
+			const searchableText = [
+				event.title,
+				event.description,
+				event.location,
+				event.genre,
+				event.highlight,
+				event.providers,
+				event.partner,
+				event.actionType
+			]
+				.join(' ')
+				.toLocaleLowerCase('fr');
+
+			if (query && !searchableText.includes(query)) return false;
+
+			// Médiathèque
+			if (selectedLibraryId !== 'all' && event.libraryId !== Number(selectedLibraryId)) {
+				return false;
+			}
+
+			// Section
+			if (selectedSection !== 'all' && event.section !== selectedSection) {
+				return false;
+			}
+
+			// Mois et année de début
+			const eventMonth = event.startDate?.slice(5, 7);
+			const eventYear = event.startDate?.slice(0, 4);
+
+			if (selectedMonth !== 'all' && eventMonth !== selectedMonth) {
+				return false;
+			}
+
+			if (selectedYear !== 'all' && eventYear !== selectedYear) {
+				return false;
+			}
+
+			// Inscription
+			if (selectedInscription === 'yes' && !event.inscription) {
+				return false;
+			}
+
+			if (selectedInscription === 'no' && event.inscription) {
+				return false;
+			}
+
+			// Genre et type d'action
+			if (selectedGenre !== 'all' && event.genre !== selectedGenre) {
+				return false;
+			}
+
+			if (selectedActionType !== 'all' && event.actionType !== selectedActionType) {
+				return false;
+			}
+
+			// Informations essentielles manquantes
+			if (
+				showIncompleteOnly &&
+				event.title.trim() &&
+				event.libraryId !== null &&
+				event.startDate &&
+				event.section &&
+				event.description.trim()
+			) {
+				return false;
+			}
+
+			return true;
+		})
+	);
+
+	// Le brouillon est toujours affiché en première position,
+	// indépendamment des filtres actifs.
+	let displayedEvents = $derived.by(() => {
+		const draft = newEventDraft;
+
+		return draft
+			? [draft, ...filteredEvents.filter((event) => event.id !== draft.id)]
+			: filteredEvents;
+	});
 
 	onMount(async () => {
 		try {
@@ -132,11 +236,6 @@
 			/>
 		{/if}
 
-		<section class="flex flex-col gap-4" aria-label="Recherche et commandes des événements">
-			<!-- À intégrer : recherche, filtres et commandes -->
-		</section>
-
-		<!-- Zone principale : liste ou état vide -->
 		<section class="flex flex-1 flex-col" aria-label="Liste des événements">
 			{#if initializationError}
 				<div class="flex flex-1 items-center justify-center">
@@ -146,12 +245,23 @@
 				<div class="flex flex-1 items-center justify-center">
 					<span class="loading loading-md loading-spinner" aria-label="Chargement"></span>
 				</div>
-			{:else if events.length === 0}
+			{:else if events.length === 0 && !newEventDraft}
 				<div class="flex flex-1 items-center justify-center">
 					<EmptyEvents onOpenCreate={handleStartEditing} />
 				</div>
+			{:else if displayedEvents.length === 0}
+				<div class="flex flex-1 items-center justify-center">
+					<p class="text-center text-base-content/60">
+						Aucun événement ne correspond aux critères de recherche.
+					</p>
+				</div>
 			{:else}
-				<!-- La liste des événements sera intégrée ici. -->
+				<EventsList
+					events={displayedEvents}
+					bind:selectedIds={selectedEventIds}
+					draftId={newEventDraft?.id ?? null}
+					onDraftChange={updateNewEventDraft}
+				/>
 			{/if}
 		</section>
 	</main>
