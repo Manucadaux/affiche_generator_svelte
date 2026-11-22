@@ -5,6 +5,7 @@
 	import { getAllEvents } from '#lib/utils/events/eventStorage.js';
 	import { subscribeToEventChanges } from '#lib/utils/events/eventSync.js';
 	import { applyTheme } from '#lib/utils/theme/applyTheme.svelte.js';
+	import { createManagedEvent } from '#lib/utils/events/eventFactory.js';
 
 	import AppHeader from '#lib/components/layout/AppHeader.svelte';
 	import AppFooter from '#lib/components/layout/AppFooter.svelte';
@@ -15,6 +16,11 @@
 
 	applyTheme(selectedTheme);
 
+	const activeLibraryId = useLocalStorage(
+		'newDocumentLibraryId',
+		/** @type {number | null} */ (null)
+	);
+
 	/** @type {import('#lib/utils/types.js').ManagedEvent[]} */
 	let events = $state([]);
 
@@ -22,6 +28,9 @@
 	let initializationError = $state('');
 
 	let isEditMode = $state(false);
+
+	/** @type {import('#lib/utils/types.js').ManagedEvent | null} */
+	let newEventDraft = $state(null);
 
 	let searchQuery = $state('');
 	let selectedLibraryId = $state('all');
@@ -41,12 +50,33 @@
 		events = await getAllEvents();
 	}
 
+	/**
+	 * Initialise un nouveau brouillon d'événement.
+	 * La médiathèque active est utilisée si elle est définie.
+	 */
+	function startNewEventDraft() {
+		newEventDraft = createManagedEvent({
+			libraryId: activeLibraryId.current
+		});
+	}
+
 	function handleStartEditing() {
 		isEditMode = true;
+
+		if (!newEventDraft) {
+			startNewEventDraft();
+		}
 	}
 
 	function handleToggleEdit() {
-		isEditMode = !isEditMode;
+		if (isEditMode) {
+			isEditMode = false;
+			newEventDraft = null;
+			return;
+		}
+
+		isEditMode = true;
+		startNewEventDraft();
 	}
 
 	let genreOptions = $derived(
