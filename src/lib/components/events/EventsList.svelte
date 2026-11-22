@@ -19,13 +19,6 @@
 	/** @type {string[]} */
 	let expandedIds = $state([]);
 
-	// Ouvre automatiquement le brouillon dès qu'il apparaît.
-	$effect(() => {
-		if (draftId && !expandedIds.includes(draftId)) {
-			expandedIds = [...expandedIds, draftId];
-		}
-	});
-
 	/**
 	 * Ouvre ou ferme une ligne.
 	 * @param {string} eventId

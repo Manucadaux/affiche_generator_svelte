@@ -1,6 +1,7 @@
 <script>
 	import { ChevronDown, ChevronRight } from '@lucide/svelte';
 	import { optionsLibrary } from '#lib/data/options.js';
+	import { slide } from 'svelte/transition';
 
 	/**
 	 * @type {{
@@ -88,7 +89,6 @@
 						)}
 				>
 					<option value="">Choisir une médiathèque</option>
-
 					{#each optionsLibrary as library (library.id)}
 						<option value={library.id}>{library.label}</option>
 					{/each}
@@ -148,7 +148,6 @@
 
 					<span class="text-sm">
 						{formattedDate}
-
 						{#if formattedTime}
 							<span class="block text-base-content/60">{formattedTime}</span>
 						{/if}
@@ -184,180 +183,185 @@
 	</div>
 
 	{#if isExpanded}
-		<div class="border-t border-base-300 bg-base-200/30 px-4 py-4">
-			{#if isDraft}
-				<!-- Champs complémentaires du brouillon -->
-				<div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-					<label class="form-control">
-						<span class="label-text mb-1">Lieu de l'événement</span>
-						<input
-							class="input-bordered input w-full input-sm"
-							value={event.location}
-							oninput={(e) => onDraftChange('location', e.currentTarget.value)}
-						/>
-					</label>
+		<div
+			class="overflow-hidden border-t border-base-300 bg-base-200/30"
+			transition:slide={{ duration: 220 }}
+		>
+			<div class="px-4 py-4">
+				{#if isDraft}
+					<!-- Champs complémentaires du brouillon -->
+					<div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+						<label class="form-control">
+							<span class="label-text mb-1">Lieu de l'événement</span>
+							<input
+								class="input-bordered input w-full input-sm"
+								value={event.location}
+								oninput={(e) => onDraftChange('location', e.currentTarget.value)}
+							/>
+						</label>
 
-					<label class="form-control">
-						<span class="label-text mb-1">Genre</span>
-						<input
-							class="input-bordered input w-full input-sm"
-							value={event.genre}
-							oninput={(e) => onDraftChange('genre', e.currentTarget.value)}
-						/>
-					</label>
+						<label class="form-control">
+							<span class="label-text mb-1">Genre</span>
+							<input
+								class="input-bordered input w-full input-sm"
+								value={event.genre}
+								oninput={(e) => onDraftChange('genre', e.currentTarget.value)}
+							/>
+						</label>
 
-					<label class="form-control">
-						<span class="label-text mb-1">Type d'action</span>
-						<input
-							class="input-bordered input w-full input-sm"
-							value={event.actionType}
-							oninput={(e) => onDraftChange('actionType', e.currentTarget.value)}
-						/>
-					</label>
+						<label class="form-control">
+							<span class="label-text mb-1">Type d'action</span>
+							<input
+								class="input-bordered input w-full input-sm"
+								value={event.actionType}
+								oninput={(e) => onDraftChange('actionType', e.currentTarget.value)}
+							/>
+						</label>
 
-					<label class="form-control">
-						<span class="label-text mb-1">Prestataires</span>
-						<input
-							class="input-bordered input w-full input-sm"
-							value={event.providers}
-							oninput={(e) => onDraftChange('providers', e.currentTarget.value)}
-						/>
-					</label>
+						<label class="form-control">
+							<span class="label-text mb-1">Prestataires</span>
+							<input
+								class="input-bordered input w-full input-sm"
+								value={event.providers}
+								oninput={(e) => onDraftChange('providers', e.currentTarget.value)}
+							/>
+						</label>
 
-					<label class="form-control">
-						<span class="label-text mb-1">Partenaire</span>
-						<input
-							class="input-bordered input w-full input-sm"
-							value={event.partner}
-							oninput={(e) => onDraftChange('partner', e.currentTarget.value)}
-						/>
-					</label>
+						<label class="form-control">
+							<span class="label-text mb-1">Partenaire</span>
+							<input
+								class="input-bordered input w-full input-sm"
+								value={event.partner}
+								oninput={(e) => onDraftChange('partner', e.currentTarget.value)}
+							/>
+						</label>
 
-					<label class="form-control">
-						<span class="label-text mb-1">Montant</span>
-						<input
-							class="input-bordered input w-full input-sm"
-							value={event.amount}
-							oninput={(e) => onDraftChange('amount', e.currentTarget.value)}
-						/>
-					</label>
-				</div>
-
-				<!-- Horaires -->
-				<div class="mt-4 grid gap-4 sm:grid-cols-2">
-					<label class="form-control">
-						<span class="label-text mb-1">Heure de début</span>
-						<input
-							type="time"
-							class="input-bordered input w-full input-sm"
-							value={firstTimeSlot.start}
-							oninput={(e) =>
-								onDraftChange('timeSlots', [{ ...firstTimeSlot, start: e.currentTarget.value }])}
-						/>
-					</label>
-
-					<label class="form-control">
-						<span class="label-text mb-1">Heure de fin</span>
-						<input
-							type="time"
-							class="input-bordered input w-full input-sm"
-							value={firstTimeSlot.end}
-							oninput={(e) =>
-								onDraftChange('timeSlots', [{ ...firstTimeSlot, end: e.currentTarget.value }])}
-						/>
-					</label>
-				</div>
-
-				<!-- Description générale -->
-				<label class="form-control mt-4">
-					<span class="label-text mb-1">Description générale</span>
-					<textarea
-						class="textarea-bordered textarea w-full"
-						rows="3"
-						value={event.description}
-						oninput={(e) => onDraftChange('description', e.currentTarget.value)}></textarea>
-				</label>
-
-				<!-- Commentaire -->
-				<label class="form-control mt-4">
-					<span class="label-text mb-1">Commentaire</span>
-					<textarea
-						class="textarea-bordered textarea w-full"
-						rows="2"
-						value={event.comment}
-						oninput={(e) => onDraftChange('comment', e.currentTarget.value)}></textarea>
-				</label>
-
-				<!-- Inscription -->
-				<label class="label mt-3 flex cursor-pointer justify-start gap-3">
-					<input
-						type="checkbox"
-						class="checkbox checkbox-sm"
-						checked={event.inscription}
-						onchange={(e) => onDraftChange('inscription', e.currentTarget.checked)}
-					/>
-					<span class="label-text">Avec inscription</span>
-				</label>
-			{:else}
-				<!-- Détails d'un événement existant -->
-				<div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-					{#if event.location}
-						<div>
-							<p class="text-xs text-base-content/50">Lieu</p>
-							<p>{event.location}</p>
-						</div>
-					{/if}
-
-					{#if event.genre}
-						<div>
-							<p class="text-xs text-base-content/50">Genre</p>
-							<p>{event.genre}</p>
-						</div>
-					{/if}
-
-					{#if event.actionType}
-						<div>
-							<p class="text-xs text-base-content/50">Type d'action</p>
-							<p>{event.actionType}</p>
-						</div>
-					{/if}
-
-					{#if event.providers}
-						<div>
-							<p class="text-xs text-base-content/50">Prestataires</p>
-							<p>{event.providers}</p>
-						</div>
-					{/if}
-
-					{#if event.partner}
-						<div>
-							<p class="text-xs text-base-content/50">Partenaire</p>
-							<p>{event.partner}</p>
-						</div>
-					{/if}
-
-					{#if event.amount}
-						<div>
-							<p class="text-xs text-base-content/50">Montant</p>
-							<p>{event.amount}</p>
-						</div>
-					{/if}
-				</div>
-
-				{#if event.description}
-					<div class="mt-4">
-						<p class="text-xs text-base-content/50">Description générale</p>
-						<p class="whitespace-pre-line">{event.description}</p>
+						<label class="form-control">
+							<span class="label-text mb-1">Montant</span>
+							<input
+								class="input-bordered input w-full input-sm"
+								value={event.amount}
+								oninput={(e) => onDraftChange('amount', e.currentTarget.value)}
+							/>
+						</label>
 					</div>
-				{/if}
 
-				{#if event.comment}
-					<div class="mt-4">
-						<p class="text-xs text-base-content/50">Commentaire</p>
-						<p class="whitespace-pre-line">{event.comment}</p>
+					<!-- Horaires -->
+					<div class="mt-4 grid gap-4 sm:grid-cols-2">
+						<label class="form-control">
+							<span class="label-text mb-1">Heure de début</span>
+							<input
+								type="time"
+								class="input-bordered input w-full input-sm"
+								value={firstTimeSlot.start}
+								oninput={(e) =>
+									onDraftChange('timeSlots', [{ ...firstTimeSlot, start: e.currentTarget.value }])}
+							/>
+						</label>
+
+						<label class="form-control">
+							<span class="label-text mb-1">Heure de fin</span>
+							<input
+								type="time"
+								class="input-bordered input w-full input-sm"
+								value={firstTimeSlot.end}
+								oninput={(e) =>
+									onDraftChange('timeSlots', [{ ...firstTimeSlot, end: e.currentTarget.value }])}
+							/>
+						</label>
 					</div>
+
+					<!-- Description générale -->
+					<label class="form-control mt-4">
+						<span class="label-text mb-1">Description générale</span>
+						<textarea
+							class="textarea-bordered textarea w-full"
+							rows="3"
+							value={event.description}
+							oninput={(e) => onDraftChange('description', e.currentTarget.value)}></textarea>
+					</label>
+
+					<!-- Commentaire -->
+					<label class="form-control mt-4">
+						<span class="label-text mb-1">Commentaire</span>
+						<textarea
+							class="textarea-bordered textarea w-full"
+							rows="2"
+							value={event.comment}
+							oninput={(e) => onDraftChange('comment', e.currentTarget.value)}></textarea>
+					</label>
+
+					<!-- Inscription -->
+					<label class="label mt-3 flex cursor-pointer justify-start gap-3">
+						<input
+							type="checkbox"
+							class="checkbox checkbox-sm"
+							checked={event.inscription}
+							onchange={(e) => onDraftChange('inscription', e.currentTarget.checked)}
+						/>
+						<span class="label-text">Avec inscription</span>
+					</label>
+				{:else}
+					<!-- Détails d'un événement existant -->
+					<div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+						{#if event.location}
+							<div>
+								<p class="text-xs text-base-content/50">Lieu</p>
+								<p>{event.location}</p>
+							</div>
+						{/if}
+
+						{#if event.genre}
+							<div>
+								<p class="text-xs text-base-content/50">Genre</p>
+								<p>{event.genre}</p>
+							</div>
+						{/if}
+
+						{#if event.actionType}
+							<div>
+								<p class="text-xs text-base-content/50">Type d'action</p>
+								<p>{event.actionType}</p>
+							</div>
+						{/if}
+
+						{#if event.providers}
+							<div>
+								<p class="text-xs text-base-content/50">Prestataires</p>
+								<p>{event.providers}</p>
+							</div>
+						{/if}
+
+						{#if event.partner}
+							<div>
+								<p class="text-xs text-base-content/50">Partenaire</p>
+								<p>{event.partner}</p>
+							</div>
+						{/if}
+
+						{#if event.amount}
+							<div>
+								<p class="text-xs text-base-content/50">Montant</p>
+								<p>{event.amount}</p>
+							</div>
+						{/if}
+					</div>
+
+					{#if event.description}
+						<div class="mt-4">
+							<p class="text-xs text-base-content/50">Description générale</p>
+							<p class="whitespace-pre-line">{event.description}</p>
+						</div>
+					{/if}
+
+					{#if event.comment}
+						<div class="mt-4">
+							<p class="text-xs text-base-content/50">Commentaire</p>
+							<p class="whitespace-pre-line">{event.comment}</p>
+						</div>
+					{/if}
 				{/if}
-			{/if}
+			</div>
 		</div>
 	{/if}
 </article>
