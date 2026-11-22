@@ -1,5 +1,5 @@
 <script>
-	import { Search } from '@lucide/svelte';
+	import { Search, Plus } from '@lucide/svelte';
 	import EventsFilters from '#lib/components/events/EventsFilters.svelte';
 
 	let {
@@ -15,8 +15,7 @@
 		incomplete = $bindable(false),
 		genreOptions = [],
 		actionTypeOptions = [],
-		isEditMode = false,
-		onToggleEdit
+		onCreate
 	} = $props();
 </script>
 
@@ -27,8 +26,9 @@
 			{eventCount === 1 ? 'événement' : 'événements'}
 		</p>
 
-		<button type="button" class="btn btn-outline btn-sm" onclick={onToggleEdit}>
-			{isEditMode ? 'Terminer' : 'Modifier'}
+		<button type="button" class="btn btn-primary btn-sm" onclick={onCreate}>
+			<Plus size={16} />
+			Créer un événement
 		</button>
 	</div>
 

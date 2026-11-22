@@ -12,6 +12,7 @@
 	import EmptyEvents from '#lib/components/events/EmptyEvents.svelte';
 	import EventsToolbar from '#lib/components/events/EventsToolbar.svelte';
 	import EventsList from '#lib/components/events/EventsList.svelte';
+	import NewEventModal from '#lib/components/events/NewEventModal.svelte';
 
 	const selectedTheme = useLocalStorage('selectedTheme', 'system');
 
@@ -27,13 +28,7 @@
 
 	let isInitialized = $state(false);
 	let initializationError = $state('');
-
-	let isEditMode = $state(false);
-	let isSavingDraft = $state(false);
-	let draftError = $state('');
-
-	/** @type {import('#lib/utils/types.js').ManagedEvent | null} */
-	let newEventDraft = $state(null);
+	let showCreateModal = $state(false);
 
 	/** @type {string[]} */
 	let selectedEventIds = $state([]);
@@ -57,96 +52,31 @@
 	}
 
 	/**
-	 * Initialise un nouveau brouillon d'événement.
-	 * La médiathèque active est utilisée si elle est définie.
+	 * Ouvre la modale de création.
 	 */
-	function startNewEventDraft() {
-		newEventDraft = createManagedEvent({
-			libraryId: activeLibraryId.current
-		});
-		draftError = '';
-	}
-
-	function handleStartEditing() {
-		isEditMode = true;
-
-		if (!newEventDraft) {
-			startNewEventDraft();
-		}
-	}
-
-	function handleToggleEdit() {
-		if (isEditMode) {
-			isEditMode = false;
-			newEventDraft = null;
-			return;
-		}
-
-		isEditMode = true;
-		startNewEventDraft();
+	function handleOpenCreate() {
+		showCreateModal = true;
 	}
 
 	/**
-	 * Met à jour un champ du brouillon.
-	 * @param {string} field
-	 * @param {any} value
+	 * Crée un événement et l'enregistre dans IndexedDB.
+	 * @param {Omit<import('#lib/utils/types.js').ManagedEvent, 'id' | 'createdAt' | 'updatedAt'>} eventData
 	 */
-	function updateNewEventDraft(field, value) {
-		if (!newEventDraft) return;
-
-		newEventDraft = {
-			...newEventDraft,
-			[field]: value
-		};
-		draftError = '';
-	}
-
-	/**
-	 * Enregistre le brouillon dans IndexedDB puis prépare une nouvelle ligne vide.
-	 * Le titre et la date de début sont les deux champs obligatoires.
-	 * @returns {Promise<void>}
-	 */
-	async function handleSaveNewEvent() {
-		if (!newEventDraft || isSavingDraft) return;
-
-		if (!newEventDraft.title.trim() || !newEventDraft.startDate) {
-			draftError = 'Le titre et la date de début sont nécessaires pour enregistrer.';
-			return;
-		}
-
-		isSavingDraft = true;
-
+	async function handleCreateEvent(eventData) {
 		try {
-			const eventToSave = {
-				...newEventDraft,
-				updatedAt: new Date().toISOString()
-			};
+			const newEvent = createManagedEvent(eventData);
 
-			await addEvent(eventToSave);
-
-			// On conserve le mode édition et on prépare la ligne suivante.
-			startNewEventDraft();
+			await addEvent(newEvent);
+			showCreateModal = false;
 
 			try {
 				await refreshEvents();
 			} catch (refreshError) {
-				console.error('Événement enregistré, mais impossible de rafraîchir la liste :', refreshError);
+				console.error('Événement créé, mais impossible de rafraîchir la liste :', refreshError);
 			}
 		} catch (error) {
-			console.error("Erreur lors de l'enregistrement de l'événement :", error);
-			draftError = "Impossible d'enregistrer l'événement. Réessaie.";
-		} finally {
-			isSavingDraft = false;
+			console.error("Erreur lors de la création de l'événement :", error);
 		}
-	}
-
-	/**
-	 * Abandonne le brouillon et quitte le mode édition.
-	 */
-	function handleCancelNewEvent() {
-		newEventDraft = null;
-		draftError = '';
-		isEditMode = false;
 	}
 
 	let genreOptions = $derived(
@@ -233,16 +163,6 @@
 		})
 	);
 
-	// Le brouillon est toujours affiché en première position,
-	// indépendamment des filtres actifs.
-	let displayedEvents = $derived.by(() => {
-		const draft = newEventDraft;
-
-		return draft
-			? [draft, ...filteredEvents.filter((event) => event.id !== draft.id)]
-			: filteredEvents;
-	});
-
 	onMount(async () => {
 		try {
 			await refreshEvents();
@@ -265,10 +185,7 @@
 <div class="flex min-h-screen flex-col">
 	<AppHeader title="Gestionnaire d'événements" bind:selectedTheme={selectedTheme.current} />
 
-	<main
-		class="flex flex-1 flex-col gap-6 px-4 py-6 sm:px-6 lg:px-8"
-		data-mode={isEditMode ? 'edit' : 'read'}
-	>
+	<main class="flex flex-1 flex-col gap-6 px-4 py-6 sm:px-6 lg:px-8">
 		{#if isInitialized && !initializationError}
 			<EventsToolbar
 				eventCount={events.length}
@@ -283,8 +200,7 @@
 				bind:incomplete={showIncompleteOnly}
 				{genreOptions}
 				{actionTypeOptions}
-				{isEditMode}
-				onToggleEdit={handleToggleEdit}
+				onCreate={handleOpenCreate}
 			/>
 		{/if}
 
@@ -297,30 +213,29 @@
 				<div class="flex flex-1 items-center justify-center">
 					<span class="loading loading-md loading-spinner" aria-label="Chargement"></span>
 				</div>
-			{:else if events.length === 0 && !newEventDraft}
+			{:else if events.length === 0}
 				<div class="flex flex-1 items-center justify-center">
-					<EmptyEvents onOpenCreate={handleStartEditing} />
+					<EmptyEvents onOpenCreate={handleOpenCreate} />
 				</div>
-			{:else if displayedEvents.length === 0}
+			{:else if filteredEvents.length === 0}
 				<div class="flex flex-1 items-center justify-center">
 					<p class="text-center text-base-content/60">
 						Aucun événement ne correspond aux critères de recherche.
 					</p>
 				</div>
 			{:else}
-				<EventsList
-					events={displayedEvents}
-					bind:selectedIds={selectedEventIds}
-					draftId={newEventDraft?.id ?? null}
-					onDraftChange={updateNewEventDraft}
-					onDraftSave={handleSaveNewEvent}
-					onDraftCancel={handleCancelNewEvent}
-					{draftError}
-					{isSavingDraft}
-				/>
+				<EventsList events={filteredEvents} bind:selectedIds={selectedEventIds} />
 			{/if}
 		</section>
 	</main>
 
 	<AppFooter />
 </div>
+
+{#if showCreateModal}
+	<NewEventModal
+		initialLibraryId={activeLibraryId.current}
+		onClose={() => (showCreateModal = false)}
+		onCreate={handleCreateEvent}
+	/>
+{/if}

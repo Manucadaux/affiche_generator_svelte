@@ -3,9 +3,10 @@
 	/** @typedef {import('../../utils/types.js').EventTimeSlot} EventTimeSlot */
 	/** @typedef {import('../../utils/types.js').EventSection} EventSection */
 
-	import { Plus, Trash2 } from '@lucide/svelte';
+	import { Plus, Trash } from '@lucide/svelte';
 	import Modal from '#lib/components/ui/Modal.svelte';
 	import { optionsLibrary } from '#lib/data/options.js';
+	import { untrack } from 'svelte';
 
 	/**
 	 * @typedef {'title' | 'location' | 'condition' | 'description' | 'posterDescription' | 'bookletDescription' | 'onlineDescription' | 'highlight' | 'genre' | 'providers' | 'amount' | 'actionType' | 'partner' | 'comment'} TextFieldName
@@ -38,7 +39,7 @@
 	 * @property {string} title
 	 * @property {number | null} libraryId
 	 * @property {string} location
-	 * @property {import('../../utils/types.js').EventSection} section
+	 * @property {EventSection} section
 	 * @property {string} condition
 	 * @property {string} startDate
 	 * @property {string | null} endDate
@@ -60,36 +61,39 @@
 	/**
 	 * @type {{
 	 *   onClose: () => void,
-	 *   onCreate: (event: Omit<ManagedEvent, 'id' | 'createdAt' | 'updatedAt'>) => void
+	 *   onCreate: (event: Omit<ManagedEvent, 'id' | 'createdAt' | 'updatedAt'>) => void,
+	 *   initialLibraryId?: number | null
 	 * }}
 	 */
-	let { onClose, onCreate } = $props();
+	let { onClose, onCreate, initialLibraryId = null } = $props();
 
 	const eventSections = /** @type {EventSection[]} */ (['Tout public', 'Jeunesse', 'Adulte']);
 
 	/** @type {EventFormData} */
-	let formData = $state({
-		title: '',
-		libraryId: null,
-		location: '',
-		section: 'Tout public',
-		condition: '',
-		startDate: '',
-		endDate: null,
-		timeSlots: [{ start: '', end: '' }],
-		description: '',
-		posterDescription: '',
-		bookletDescription: '',
-		onlineDescription: '',
-		highlight: '',
-		genre: '',
-		providers: '',
-		amount: '',
-		actionType: '',
-		partner: '',
-		comment: '',
-		inscription: false
-	});
+	let formData = $state(
+		untrack(() => ({
+			title: '',
+			libraryId: initialLibraryId,
+			location: '',
+			section: 'Tout public',
+			condition: '',
+			startDate: '',
+			endDate: null,
+			timeSlots: [{ start: '', end: '' }],
+			description: '',
+			posterDescription: '',
+			bookletDescription: '',
+			onlineDescription: '',
+			highlight: '',
+			genre: '',
+			providers: '',
+			amount: '',
+			actionType: '',
+			partner: '',
+			comment: '',
+			inscription: false
+		}))
+	);
 
 	/** @type {FormSection[]} */
 	const formSections = [
@@ -230,14 +234,9 @@
 	function handleSubmit(event) {
 		event.preventDefault();
 
-		const libraryId = formData.libraryId;
-
-		if (libraryId === null) return;
-
 		onCreate({
 			...formData,
 			title: formData.title.trim(),
-			libraryId,
 			location: formData.location.trim(),
 			condition: formData.condition.trim(),
 			endDate: formData.endDate || null,
@@ -292,9 +291,8 @@
 										id="event-library"
 										class="select-bordered select w-full"
 										bind:value={formData.libraryId}
-										required
 									>
-										<option value={null} disabled>Choisir une médiathèque</option>
+										<option value={null}>Aucune médiathèque sélectionnée</option>
 										{#each optionsLibrary as library (library.id)}
 											<option value={library.id}>{library.label}</option>
 										{/each}
@@ -304,7 +302,6 @@
 										id="event-section"
 										class="select-bordered select w-full"
 										bind:value={formData.section}
-										required
 									>
 										{#each field.options as option (option)}
 											<option value={option}>{option}</option>
@@ -333,14 +330,13 @@
 						<div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
 							<div class="form-control">
 								<label class="label" for="event-start-date">
-									<span class="label-text">Date de début *</span>
+									<span class="label-text">Date de début</span>
 								</label>
 								<input
 									id="event-start-date"
 									type="date"
 									class="input-bordered input w-full"
 									bind:value={formData.startDate}
-									required
 								/>
 							</div>
 
@@ -373,14 +369,13 @@
 										<div class="grid flex-1 grid-cols-2 gap-3">
 											<div class="form-control">
 												<label class="label" for="event-time-start-{index}">
-													<span class="label-text text-xs">Début *</span>
+													<span class="label-text text-xs">Début</span>
 												</label>
 												<input
 													id="event-time-start-{index}"
 													type="time"
 													class="input-bordered input w-full input-sm"
 													bind:value={slot.start}
-													required
 												/>
 											</div>
 
@@ -405,7 +400,7 @@
 											disabled={formData.timeSlots.length === 1}
 											onclick={() => removeTimeSlot(index)}
 										>
-											<Trash2 size={16} />
+											<Trash size={16} />
 										</button>
 									</div>
 								{/each}
@@ -441,9 +436,8 @@
 		</div>
 
 		<footer class="mt-6 flex justify-end gap-2">
-			<button type="button" class="btn btn-ghost" onclick={onClose}> Annuler </button>
-
-			<button type="submit" class="btn btn-primary"> Créer l'événement </button>
+			<button type="button" class="btn btn-ghost" onclick={onClose}>Annuler</button>
+			<button type="submit" class="btn btn-primary">Créer l'événement</button>
 		</footer>
 	</form>
 </Modal>
