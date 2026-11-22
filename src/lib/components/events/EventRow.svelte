@@ -51,7 +51,7 @@
 	const firstTimeSlot = $derived(event.timeSlots[0] ?? { start: '', end: '' });
 </script>
 
-<article class="overflow-hidden rounded-box border border-base-300 bg-base-100">
+<article class="overflow-hidden rounded-box border border-base-content/30 bg-base-100">
 	<div class="flex items-center gap-3 px-4 py-3">
 		<!-- Sélection -->
 		<input
@@ -184,7 +184,7 @@
 
 	{#if isExpanded}
 		<div
-			class="overflow-hidden border-t border-base-300 bg-base-200/30"
+			class="overflow-hidden border-t border-base-content/20 bg-base-200/30"
 			transition:slide={{ duration: 220 }}
 		>
 			<div class="px-4 py-4">
