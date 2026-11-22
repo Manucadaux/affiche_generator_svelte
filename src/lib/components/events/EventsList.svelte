@@ -13,11 +13,25 @@
 		events = [],
 		selectedIds = $bindable([]),
 		draftId = null,
-		onDraftChange = () => {}
+		onDraftChange = () => {},
+		onDraftSave = () => {},
+		onDraftCancel = () => {},
+		draftError = '',
+		isSavingDraft = false
 	} = $props();
 
 	/** @type {string[]} */
 	let expandedIds = $state([]);
+	let lastDraftId = $state(null);
+
+	$effect(() => {
+		if (draftId && draftId !== lastDraftId) {
+			expandedIds = [...expandedIds, draftId];
+			lastDraftId = draftId;
+		} else if (!draftId) {
+			lastDraftId = null;
+		}
+	});
 
 	/**
 	 * Ouvre ou ferme une ligne.
@@ -50,6 +64,10 @@
 			onToggle={() => toggleExpanded(event.id)}
 			onToggleSelection={() => toggleSelection(event.id)}
 			{onDraftChange}
+			{onDraftSave}
+			{onDraftCancel}
+			{draftError}
+			{isSavingDraft}
 		/>
 	{/each}
 </div>
