@@ -11,7 +11,11 @@
 	 *   isDraft?: boolean,
 	 *   onToggle: () => void,
 	 *   onToggleSelection: () => void,
-	 *   onDraftChange?: (field: string, value: any) => void
+	 *   onDraftChange?: (field: string, value: any) => void,
+	 *   onDraftSave?: () => void,
+	 *   onDraftCancel?: () => void,
+	 *   draftError?: string,
+	 *   isSavingDraft?: boolean
 	 * }}
 	 */
 	let {
@@ -21,7 +25,11 @@
 		isDraft = false,
 		onToggle,
 		onToggleSelection,
-		onDraftChange = () => {}
+		onDraftChange = () => {},
+		onDraftSave = () => {},
+		onDraftCancel = () => {},
+		draftError = '',
+		isSavingDraft = false
 	} = $props();
 
 	const libraryName = $derived(
@@ -301,6 +309,35 @@
 						/>
 						<span class="label-text">Avec inscription</span>
 					</label>
+
+					<div class="mt-5 flex flex-col gap-3 border-t border-base-content/10 pt-4 sm:flex-row sm:items-center sm:justify-between">
+						<div class="min-w-0">
+							{#if draftError}
+								<p class="text-sm text-error" role="alert">{draftError}</p>
+							{:else}
+								<p class="text-xs text-base-content/60">Le titre et la date de début sont obligatoires.</p>
+							{/if}
+						</div>
+
+						<div class="flex justify-end gap-2">
+							<button type="button" class="btn btn-ghost btn-sm" onclick={onDraftCancel} disabled={isSavingDraft}>
+								Annuler
+							</button>
+							<button
+								type="button"
+								class="btn btn-primary btn-sm"
+								onclick={onDraftSave}
+								disabled={!event.title.trim() || !event.startDate || isSavingDraft}
+							>
+								{#if isSavingDraft}
+									<span class="loading loading-spinner loading-xs"></span>
+									Enregistrement…
+								{:else}
+									Enregistrer l'événement
+								{/if}
+							</button>
+						</div>
+					</div>
 				{:else}
 					<!-- Détails d'un événement existant -->
 					<div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
