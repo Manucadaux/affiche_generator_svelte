@@ -2,7 +2,7 @@
 	import { onMount } from 'svelte';
 
 	import { useLocalStorage } from '#lib/utils/useLocalStorage.svelte.js';
-	import { getAllEvents } from '#lib/utils/events/eventStorage.js';
+	import { addEvent, getAllEvents } from '#lib/utils/events/eventStorage.js';
 	import { subscribeToEventChanges } from '#lib/utils/events/eventSync.js';
 	import { applyTheme } from '#lib/utils/theme/applyTheme.svelte.js';
 	import { createManagedEvent } from '#lib/utils/events/eventFactory.js';
@@ -29,6 +29,8 @@
 	let initializationError = $state('');
 
 	let isEditMode = $state(false);
+	let isSavingDraft = $state(false);
+	let draftError = $state('');
 
 	/** @type {import('#lib/utils/types.js').ManagedEvent | null} */
 	let newEventDraft = $state(null);
@@ -62,6 +64,7 @@
 		newEventDraft = createManagedEvent({
 			libraryId: activeLibraryId.current
 		});
+		draftError = '';
 	}
 
 	function handleStartEditing() {
@@ -95,6 +98,55 @@
 			...newEventDraft,
 			[field]: value
 		};
+		draftError = '';
+	}
+
+	/**
+	 * Enregistre le brouillon dans IndexedDB puis prépare une nouvelle ligne vide.
+	 * Le titre et la date de début sont les deux champs obligatoires.
+	 * @returns {Promise<void>}
+	 */
+	async function handleSaveNewEvent() {
+		if (!newEventDraft || isSavingDraft) return;
+
+		if (!newEventDraft.title.trim() || !newEventDraft.startDate) {
+			draftError = 'Le titre et la date de début sont nécessaires pour enregistrer.';
+			return;
+		}
+
+		isSavingDraft = true;
+
+		try {
+			const eventToSave = {
+				...newEventDraft,
+				updatedAt: new Date().toISOString()
+			};
+
+			await addEvent(eventToSave);
+
+			// On conserve le mode édition et on prépare la ligne suivante.
+			startNewEventDraft();
+
+			try {
+				await refreshEvents();
+			} catch (refreshError) {
+				console.error('Événement enregistré, mais impossible de rafraîchir la liste :', refreshError);
+			}
+		} catch (error) {
+			console.error("Erreur lors de l'enregistrement de l'événement :", error);
+			draftError = "Impossible d'enregistrer l'événement. Réessaie.";
+		} finally {
+			isSavingDraft = false;
+		}
+	}
+
+	/**
+	 * Abandonne le brouillon et quitte le mode édition.
+	 */
+	function handleCancelNewEvent() {
+		newEventDraft = null;
+		draftError = '';
+		isEditMode = false;
 	}
 
 	let genreOptions = $derived(
@@ -261,6 +313,10 @@
 					bind:selectedIds={selectedEventIds}
 					draftId={newEventDraft?.id ?? null}
 					onDraftChange={updateNewEventDraft}
+					onDraftSave={handleSaveNewEvent}
+					onDraftCancel={handleCancelNewEvent}
+					{draftError}
+					{isSavingDraft}
 				/>
 			{/if}
 		</section>
