@@ -2,7 +2,7 @@
 	import { onMount } from 'svelte';
 
 	import { useLocalStorage } from '#lib/utils/useLocalStorage.svelte.js';
-	import { addEvent, getAllEvents } from '#lib/utils/events/eventStorage.js';
+	import { addEvent, getAllEvents, updateEvent } from '#lib/utils/events/eventStorage.js';
 	import { subscribeToEventChanges } from '#lib/utils/events/eventSync.js';
 	import { applyTheme } from '#lib/utils/theme/applyTheme.svelte.js';
 	import { createManagedEvent } from '#lib/utils/events/eventFactory.js';
@@ -30,6 +30,9 @@
 	let initializationError = $state('');
 	let showCreateModal = $state(false);
 
+	/** @type {import('#lib/utils/types.js').ManagedEvent | null} */
+	let editingEvent = $state(null);
+
 	/** @type {string[]} */
 	let selectedEventIds = $state([]);
 
@@ -55,27 +58,56 @@
 	 * Ouvre la modale de création.
 	 */
 	function handleOpenCreate() {
+		editingEvent = null;
 		showCreateModal = true;
 	}
 
 	/**
-	 * Crée un événement et l'enregistre dans IndexedDB.
+	 * Ouvre la modale en mode modification.
+	 * @param {import('#lib/utils/types.js').ManagedEvent} event
+	 */
+	function handleOpenEdit(event) {
+		editingEvent = event;
+		showCreateModal = true;
+	}
+
+	/**
+	 * Enregistre un nouvel événement ou les modifications d'un événement existant.
 	 * @param {Omit<import('#lib/utils/types.js').ManagedEvent, 'id' | 'createdAt' | 'updatedAt'>} eventData
 	 */
-	async function handleCreateEvent(eventData) {
+	async function handleSaveEvent(eventData) {
 		try {
-			const newEvent = createManagedEvent(eventData);
+			if (editingEvent) {
+				const updatedEvent = {
+					...editingEvent,
+					...eventData,
+					updatedAt: new Date().toISOString()
+				};
 
-			await addEvent(newEvent);
+				const wasUpdated = await updateEvent(updatedEvent);
+
+				if (!wasUpdated) {
+					console.error("L'événement n'existe plus et n'a pas pu être modifié.");
+					return;
+				}
+			} else {
+				const newEvent = createManagedEvent(eventData);
+				await addEvent(newEvent);
+			}
+
 			showCreateModal = false;
+			editingEvent = null;
 
 			try {
 				await refreshEvents();
 			} catch (refreshError) {
-				console.error('Événement créé, mais impossible de rafraîchir la liste :', refreshError);
+				console.error(
+					'Événement enregistré, mais impossible de rafraîchir la liste :',
+					refreshError
+				);
 			}
 		} catch (error) {
-			console.error("Erreur lors de la création de l'événement :", error);
+			console.error("Erreur lors de l'enregistrement de l'événement :", error);
 		}
 	}
 
@@ -224,7 +256,11 @@
 					</p>
 				</div>
 			{:else}
-				<EventsList events={filteredEvents} bind:selectedIds={selectedEventIds} />
+				<EventsList
+					events={filteredEvents}
+					bind:selectedIds={selectedEventIds}
+					onEdit={handleOpenEdit}
+				/>
 			{/if}
 		</section>
 	</main>
@@ -235,7 +271,11 @@
 {#if showCreateModal}
 	<NewEventModal
 		initialLibraryId={activeLibraryId.current}
-		onClose={() => (showCreateModal = false)}
-		onCreate={handleCreateEvent}
+		eventToEdit={editingEvent}
+		onClose={() => {
+			showCreateModal = false;
+			editingEvent = null;
+		}}
+		onSave={handleSaveEvent}
 	/>
 {/if}

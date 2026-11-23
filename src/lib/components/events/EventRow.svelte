@@ -1,5 +1,5 @@
 <script>
-	import { ChevronDown, ChevronRight } from '@lucide/svelte';
+	import { ChevronDown, ChevronRight, Pencil } from '@lucide/svelte';
 	import { optionsLibrary } from '#lib/data/options.js';
 	import { slide } from 'svelte/transition';
 
@@ -11,6 +11,7 @@
 	 *   isDraft?: boolean,
 	 *   onToggle: () => void,
 	 *   onToggleSelection: () => void,
+	 *   onEdit?: () => void,
 	 *   onDraftChange?: (field: string, value: any) => void,
 	 *   onDraftSave?: () => void,
 	 *   onDraftCancel?: () => void,
@@ -25,6 +26,7 @@
 		isDraft = false,
 		onToggle,
 		onToggleSelection,
+		onEdit = () => {},
 		onDraftChange = () => {},
 		onDraftSave = () => {},
 		onDraftCancel = () => {},
@@ -221,6 +223,16 @@
 				</button>
 			{/if}
 		</div>
+
+		<button
+			type="button"
+			class="btn btn-square btn-ghost btn-sm"
+			onclick={onEdit}
+			aria-label="Modifier l'évènement"
+			title="Modifier"
+		>
+			<Pencil size={16} />
+		</button>
 
 		<!-- Chevron indépendant, toujours à droite -->
 		<button
@@ -475,8 +487,6 @@
 							<p>{displayValue(event.amount)}</p>
 						</div>
 					</div>
-
-					<!-- Descriptions -->
 
 					<!-- Descriptions -->
 					<div class="mt-5 grid gap-4 sm:grid-cols-2">

@@ -6,6 +6,7 @@
 	 *   events: import('#lib/utils/types.js').ManagedEvent[],
 	 *   selectedIds: string[],
 	 *   draftId?: string | null,
+	 *   onEdit?: (event: import('#lib/utils/types.js').ManagedEvent) => void,
 	 *   onDraftChange?: (field: string, value: any) => void,
 	 *   onDraftSave?: () => void,
 	 *   onDraftCancel?: () => void,
@@ -17,6 +18,7 @@
 		events = [],
 		selectedIds = $bindable([]),
 		draftId = null,
+		onEdit = () => {},
 		onDraftChange = () => {},
 		onDraftSave = () => {},
 		onDraftCancel = () => {},
@@ -68,6 +70,7 @@
 			isDraft={event.id === draftId}
 			onToggle={() => toggleExpanded(event.id)}
 			onToggleSelection={() => toggleSelection(event.id)}
+			onEdit={() => onEdit(event)}
 			{onDraftChange}
 			{onDraftSave}
 			{onDraftCancel}

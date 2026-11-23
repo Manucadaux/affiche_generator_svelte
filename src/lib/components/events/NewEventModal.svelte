@@ -39,7 +39,7 @@
 	 * @property {string} title
 	 * @property {number | null} libraryId
 	 * @property {string} location
-	 * @property {EventSection} section
+	 * @property {EventSection | null} section
 	 * @property {string} condition
 	 * @property {string} startDate
 	 * @property {string | null} endDate
@@ -61,37 +61,38 @@
 	/**
 	 * @type {{
 	 *   onClose: () => void,
-	 *   onCreate: (event: Omit<ManagedEvent, 'id' | 'createdAt' | 'updatedAt'>) => void,
-	 *   initialLibraryId?: number | null
+	 *   onSave: (event: Omit<ManagedEvent, 'id' | 'createdAt' | 'updatedAt'>) => void,
+	 *   initialLibraryId?: number | null,
+	 *   eventToEdit?: ManagedEvent | null
 	 * }}
 	 */
-	let { onClose, onCreate, initialLibraryId = null } = $props();
+	let { onClose, onSave, initialLibraryId = null, eventToEdit = null } = $props();
 
 	const eventSections = /** @type {EventSection[]} */ (['Tout public', 'Jeunesse', 'Adulte']);
 
 	/** @type {EventFormData} */
 	let formData = $state(
 		untrack(() => ({
-			title: '',
-			libraryId: initialLibraryId,
-			location: '',
-			section: 'Tout public',
-			condition: '',
-			startDate: '',
-			endDate: null,
-			timeSlots: [{ start: '', end: '' }],
-			description: '',
-			posterDescription: '',
-			bookletDescription: '',
-			onlineDescription: '',
-			highlight: '',
-			genre: '',
-			providers: '',
-			amount: '',
-			actionType: '',
-			partner: '',
-			comment: '',
-			inscription: false
+			title: eventToEdit?.title ?? '',
+			libraryId: eventToEdit ? eventToEdit.libraryId : initialLibraryId,
+			location: eventToEdit?.location ?? '',
+			section: eventToEdit ? eventToEdit.section : 'Tout public',
+			condition: eventToEdit?.condition ?? '',
+			startDate: eventToEdit?.startDate ?? '',
+			endDate: eventToEdit?.endDate ?? null,
+			timeSlots: eventToEdit?.timeSlots.map((slot) => ({ ...slot })) ?? [{ start: '', end: '' }],
+			description: eventToEdit?.description ?? '',
+			posterDescription: eventToEdit?.posterDescription ?? '',
+			bookletDescription: eventToEdit?.bookletDescription ?? '',
+			onlineDescription: eventToEdit?.onlineDescription ?? '',
+			highlight: eventToEdit?.highlight ?? '',
+			genre: eventToEdit?.genre ?? '',
+			providers: eventToEdit?.providers ?? '',
+			amount: eventToEdit?.amount ?? '',
+			actionType: eventToEdit?.actionType ?? '',
+			partner: eventToEdit?.partner ?? '',
+			comment: eventToEdit?.comment ?? '',
+			inscription: eventToEdit?.inscription ?? false
 		}))
 	);
 
@@ -234,11 +235,12 @@
 	function handleSubmit(event) {
 		event.preventDefault();
 
-		onCreate({
+		onSave({
 			...formData,
 			title: formData.title.trim(),
 			location: formData.location.trim(),
 			condition: formData.condition.trim(),
+			startDate: formData.startDate || null,
 			endDate: formData.endDate || null,
 			timeSlots: formData.timeSlots.map((slot) => ({
 				start: slot.start,
@@ -259,7 +261,7 @@
 	}
 </script>
 
-<Modal title="Nouvel événement" size="xl" {onClose}>
+<Modal title={eventToEdit ? "Modifier l'événement" : 'Nouvel événement'} size="xl" {onClose}>
 	<form onsubmit={handleSubmit}>
 		<div class="max-h-[70vh] space-y-6 overflow-y-auto pr-1">
 			{#each formSections as section, sectionIndex (section.title)}
@@ -303,6 +305,7 @@
 										class="select-bordered select w-full"
 										bind:value={formData.section}
 									>
+										<option value={null}>Aucune section</option>
 										{#each field.options as option (option)}
 											<option value={option}>{option}</option>
 										{/each}
@@ -437,7 +440,9 @@
 
 		<footer class="mt-6 flex justify-end gap-2">
 			<button type="button" class="btn btn-ghost" onclick={onClose}>Annuler</button>
-			<button type="submit" class="btn btn-primary">Créer l'événement</button>
+			<button type="submit" class="btn btn-primary">
+				{eventToEdit ? 'Enregistrer les modifications' : "Créer l'événement"}
+			</button>
 		</footer>
 	</form>
 </Modal>
