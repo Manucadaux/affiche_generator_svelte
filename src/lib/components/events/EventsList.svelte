@@ -126,14 +126,59 @@
 			? selectedIds.filter((id) => id !== eventId)
 			: [...selectedIds, eventId];
 	}
+
+	/**
+	 * Indique si tous les événements d'un groupe sont sélectionnés.
+	 * @param {import('#lib/utils/types.js').ManagedEvent[]} groupEvents
+	 */
+	function isGroupFullySelected(groupEvents) {
+		return groupEvents.length > 0 && groupEvents.every((event) => selectedIds.includes(event.id));
+	}
+
+	/**
+	 * Indique si une partie seulement des événements d'un groupe est sélectionnée.
+	 * @param {import('#lib/utils/types.js').ManagedEvent[]} groupEvents
+	 */
+	function isGroupPartiallySelected(groupEvents) {
+		const selectedCount = groupEvents.filter((event) => selectedIds.includes(event.id)).length;
+
+		return selectedCount > 0 && selectedCount < groupEvents.length;
+	}
+
+	/**
+	 * Sélectionne ou désélectionne tous les événements d'un groupe.
+	 * Préserve les sélections des autres groupes.
+	 * @param {import('#lib/utils/types.js').ManagedEvent[]} groupEvents
+	 */
+	function toggleGroupSelection(groupEvents) {
+		const groupIds = groupEvents.map((event) => event.id);
+		const allSelected = groupIds.every((id) => selectedIds.includes(id));
+
+		if (allSelected) {
+			selectedIds = selectedIds.filter((id) => !groupIds.includes(id));
+		} else {
+			selectedIds = [...new Set([...selectedIds, ...groupIds])];
+		}
+	}
 </script>
 
 <div class="flex flex-col gap-6">
 	{#each groupedEvents as group (group.key)}
 		{@const groupIsExpanded = !collapsedGroupIds.includes(group.key)}
+		{@const groupIsFullySelected = isGroupFullySelected(group.events)}
+		{@const groupIsPartiallySelected = isGroupPartiallySelected(group.events)}
 
 		<section class="flex flex-col gap-2" aria-label={group.label}>
 			<div class="flex items-center gap-3 pt-2">
+				<input
+					type="checkbox"
+					class="checkbox checkbox-sm"
+					checked={groupIsFullySelected}
+					indeterminate={groupIsPartiallySelected}
+					aria-label={`Sélectionner tous les événements : ${group.label}`}
+					onchange={() => toggleGroupSelection(group.events)}
+				/>
+
 				<h2 class="text-lg font-semibold">{group.label}</h2>
 
 				<span class="text-sm text-base-content/50">
