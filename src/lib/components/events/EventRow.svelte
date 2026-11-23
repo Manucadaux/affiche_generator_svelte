@@ -3,6 +3,7 @@
 	import { optionsLibrary } from '#lib/data/options.js';
 	import { slide } from 'svelte/transition';
 	import Toast from '#lib/components/ui/Toast.svelte';
+	import { copyEventsToClipboard } from '#lib/utils/events/eventClipboard.js';
 
 	/**
 	 * @type {{
@@ -102,7 +103,6 @@
 	}
 
 	let copyStatus = $state('');
-
 	let toastMessage = $state('');
 
 	/** @type {'success' | 'error'} */
@@ -112,66 +112,8 @@
 	 * Copie toutes les informations renseignées de l'événement.
 	 */
 	async function handleCopy() {
-		/** @type {string[]} */
-		const lines = [];
-
-		/**
-		 * Ajoute une information uniquement si elle est renseignée.
-		 * @param {string} label
-		 * @param {string | null | undefined} value
-		 */
-		function addLine(label, value) {
-			const normalizedValue = value?.trim();
-
-			if (normalizedValue) {
-				lines.push(`${label} : ${normalizedValue}`);
-			}
-		}
-
-		addLine('Événement', event.title);
-
-		if (event.libraryId !== null) {
-			addLine('Médiathèque', libraryName);
-		}
-
-		addLine('Section', event.section);
-		addLine('Public concerné', event.condition);
-		addLine('Lieu', event.location);
-
-		if (event.startDate) {
-			addLine('Date de début', formatDate(event.startDate));
-		}
-
-		if (event.endDate) {
-			addLine('Date de fin', formatDate(event.endDate));
-		}
-
-		const timeSlots = event.timeSlots
-			.map((slot) => {
-				if (slot.start && slot.end) return `${slot.start} – ${slot.end}`;
-				return slot.start || slot.end;
-			})
-			.filter(Boolean)
-			.join(', ');
-
-		addLine('Horaires', timeSlots);
-
-		addLine('Inscription', event.inscription ? 'Avec inscription' : 'Sans inscription');
-		addLine('Temps fort lié', event.highlight);
-		addLine('Genre', event.genre);
-		addLine("Type d'action", event.actionType);
-		addLine('Prestataires', event.providers);
-		addLine('Partenaire', event.partner);
-		addLine('Montant', event.amount);
-
-		addLine('Description générale', event.description);
-		addLine("Description pour l'affiche", event.posterDescription);
-		addLine('Description pour le livret', event.bookletDescription);
-		addLine("Description pour l'agenda en ligne", event.onlineDescription);
-		addLine('Commentaire', event.comment);
-
 		try {
-			await navigator.clipboard.writeText(lines.join('\n\n'));
+			await copyEventsToClipboard([event]);
 
 			copyStatus = 'success';
 			toastType = 'success';

@@ -35,13 +35,7 @@
 		Modifier
 	</button>
 
-	<button
-		type="button"
-		class="btn btn-outline btn-sm"
-		onclick={onCopy}
-		disabled
-		title="Fonctionnalité à venir"
-	>
+	<button type="button" class="btn btn-outline btn-sm" onclick={onCopy} disabled={!hasSelection}>
 		Copier
 	</button>
 
