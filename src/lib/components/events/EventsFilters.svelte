@@ -11,6 +11,8 @@
 		genre = $bindable('all'),
 		actionType = $bindable('all'),
 		incomplete = $bindable(false),
+		sortBy = $bindable('date'),
+		sortDirection = $bindable('asc'),
 		genreOptions = [],
 		actionTypeOptions = [],
 		onClose,
@@ -58,14 +60,8 @@
 
 		<label class="form-control gap-1">
 			<span class="label-text">Médiathèque</span>
-
-			<select
-				class="select-bordered select w-full select-sm"
-				aria-label="Filtrer par médiathèque"
-				bind:value={libraryId}
-			>
+			<select class="select-bordered select w-full select-sm" bind:value={libraryId}>
 				<option value="all">Toutes les médiathèques</option>
-
 				{#each optionsLibrary as library (library.id)}
 					<option value={String(library.id)}>{library.label}</option>
 				{/each}
@@ -74,12 +70,7 @@
 
 		<label class="form-control gap-1">
 			<span class="label-text">Section</span>
-
-			<select
-				class="select-bordered select w-full select-sm"
-				aria-label="Filtrer par section"
-				bind:value={section}
-			>
+			<select class="select-bordered select w-full select-sm" bind:value={section}>
 				<option value="all">Toutes les sections</option>
 				<option value="Tout public">Tout public</option>
 				<option value="Jeunesse">Jeunesse</option>
@@ -89,14 +80,8 @@
 
 		<label class="form-control gap-1">
 			<span class="label-text">Mois</span>
-
-			<select
-				class="select-bordered select w-full select-sm"
-				aria-label="Filtrer par mois"
-				bind:value={month}
-			>
+			<select class="select-bordered select w-full select-sm" bind:value={month}>
 				<option value="all">Tous les mois</option>
-
 				{#each months as item (item.value)}
 					<option value={item.value}>{item.label}</option>
 				{/each}
@@ -105,14 +90,8 @@
 
 		<label class="form-control gap-1">
 			<span class="label-text">Année</span>
-
-			<select
-				class="select-bordered select w-full select-sm"
-				aria-label="Filtrer par année"
-				bind:value={year}
-			>
+			<select class="select-bordered select w-full select-sm" bind:value={year}>
 				<option value="all">Toutes les années</option>
-
 				{#each years as item (item)}
 					<option value={String(item)}>{item}</option>
 				{/each}
@@ -127,7 +106,6 @@
 
 		<label class="form-control gap-1">
 			<span class="label-text">Inscription</span>
-
 			<select class="select-bordered select w-full select-sm" bind:value={inscription}>
 				<option value="all">Toutes</option>
 				<option value="yes">Avec inscription</option>
@@ -137,10 +115,8 @@
 
 		<label class="form-control gap-1">
 			<span class="label-text">Genre</span>
-
 			<select class="select-bordered select w-full select-sm" bind:value={genre}>
 				<option value="all">Tous</option>
-
 				{#each genreOptions as item (item)}
 					<option value={item}>{item}</option>
 				{/each}
@@ -149,10 +125,8 @@
 
 		<label class="form-control gap-1">
 			<span class="label-text">Type d'action</span>
-
 			<select class="select-bordered select w-full select-sm" bind:value={actionType}>
 				<option value="all">Tous</option>
-
 				{#each actionTypeOptions as item (item)}
 					<option value={item}>{item}</option>
 				{/each}
@@ -162,6 +136,29 @@
 		<label class="flex cursor-pointer items-center gap-3">
 			<input type="checkbox" class="checkbox checkbox-sm" bind:checked={incomplete} />
 			<span class="label-text">Informations manquantes</span>
+		</label>
+	</div>
+
+	<div class="divider my-0"></div>
+
+	<div class="flex flex-col gap-4">
+		<h3 class="text-sm font-semibold text-base-content/60">Trier par</h3>
+
+		<label class="form-control gap-1">
+			<span class="label-text">Critère</span>
+			<select class="select-bordered select w-full select-sm" bind:value={sortBy}>
+				<option value="date">Date</option>
+				<option value="title">Nom de l'évènement</option>
+				<option value="library">Médiathèque</option>
+			</select>
+		</label>
+
+		<label class="form-control gap-1">
+			<span class="label-text">Ordre</span>
+			<select class="select-bordered select w-full select-sm" bind:value={sortDirection}>
+				<option value="asc">Croissant (A → Z)</option>
+				<option value="desc">Décroissant (Z → A)</option>
+			</select>
 		</label>
 	</div>
 

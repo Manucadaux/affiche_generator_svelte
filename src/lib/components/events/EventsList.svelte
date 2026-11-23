@@ -3,27 +3,25 @@
 	import { ChevronDown } from '@lucide/svelte';
 	import EventRow from '#lib/components/events/EventRow.svelte';
 
-	/**
-	 * @type {{
-	 *   events: import('#lib/utils/types.js').ManagedEvent[],
-	 *   selectedIds: string[],
-	 *   draftId?: string | null,
-	 *   onEdit?: (event: import('#lib/utils/types.js').ManagedEvent) => void,
-	 *   onDraftChange?: (field: string, value: any) => void,
-	 *   onDraftSave?: () => void,
-	 *   onDraftCancel?: () => void,
-	 *   draftError?: string,
-	 *   isSavingDraft?: boolean
-	 * }}
-	 */
+	/** @type {(field: string, value: any) => void} */
+	const noopDraftChange = () => {};
+
+	/** @type {() => void} */
+	const noopDraftSave = () => {};
+
+	/** @type {() => void} */
+	const noopDraftCancel = () => {};
+
 	let {
 		events = [],
 		selectedIds = $bindable([]),
 		draftId = null,
+		sortBy = 'date',
+		sortDirection = 'asc',
 		onEdit = () => {},
-		onDraftChange = () => {},
-		onDraftSave = () => {},
-		onDraftCancel = () => {},
+		onDraftChange = noopDraftChange,
+		onDraftSave = noopDraftSave,
+		onDraftCancel = noopDraftCancel,
 		draftError = '',
 		isSavingDraft = false
 	} = $props();
@@ -46,16 +44,9 @@
 		}
 	});
 
-	/**
-	 * Regroupe les événements par mois et année.
-	 * Les événements sans date sont placés en premier.
-	 */
 	let groupedEvents = $derived.by(() => {
 		const undatedEvents = events.filter((event) => !event.startDate);
-
-		const datedEvents = events
-			.flatMap((event) => (event.startDate ? [{ event, startDate: event.startDate }] : []))
-			.toSorted((a, b) => a.startDate.localeCompare(b.startDate));
+		const datedEvents = events.filter((event) => event.startDate);
 
 		/** @type {{ key: string, label: string, events: typeof events }[]} */
 		const groups = [];
@@ -68,14 +59,13 @@
 			});
 		}
 
-		for (const item of datedEvents) {
-			const event = item.event;
-			const monthKey = item.startDate.slice(0, 7);
+		for (const event of datedEvents) {
+			const monthKey = event.startDate.slice(0, 7);
 
 			let group = groups.find((item) => item.key === monthKey);
 
 			if (!group) {
-				const date = new Date(`${item.startDate}T12:00:00`);
+				const date = new Date(`${event.startDate}T12:00:00`);
 
 				const monthLabel = new Intl.DateTimeFormat('fr-FR', {
 					month: 'long',
@@ -94,33 +84,33 @@
 			group.events.push(event);
 		}
 
-		return groups;
+		// Les groupes restent chronologiques, sauf pour un tri par date.
+		const undatedGroup = groups.filter((group) => group.key === 'undated');
+		const datedGroups = groups
+			.filter((group) => group.key !== 'undated')
+			.toSorted((a, b) => {
+				const comparison = a.key.localeCompare(b.key);
+				return sortBy === 'date' && sortDirection === 'desc' ? -comparison : comparison;
+			});
+
+		return [...undatedGroup, ...datedGroups];
 	});
 
-	/**
-	 * Ouvre ou ferme une section de mois.
-	 * @param {string} groupId
-	 */
+	/** @param {string} groupId */
 	function toggleGroup(groupId) {
 		collapsedGroupIds = collapsedGroupIds.includes(groupId)
 			? collapsedGroupIds.filter((id) => id !== groupId)
 			: [...collapsedGroupIds, groupId];
 	}
 
-	/**
-	 * Ouvre ou ferme une ligne d'événement.
-	 * @param {string} eventId
-	 */
+	/** @param {string} eventId */
 	function toggleExpanded(eventId) {
 		expandedIds = expandedIds.includes(eventId)
 			? expandedIds.filter((id) => id !== eventId)
 			: [...expandedIds, eventId];
 	}
 
-	/**
-	 * Sélectionne ou désélectionne un événement.
-	 * @param {string} eventId
-	 */
+	/** @param {string} eventId */
 	function toggleSelection(eventId) {
 		selectedIds = selectedIds.includes(eventId)
 			? selectedIds.filter((id) => id !== eventId)
@@ -128,7 +118,6 @@
 	}
 
 	/**
-	 * Indique si tous les événements d'un groupe sont sélectionnés.
 	 * @param {import('#lib/utils/types.js').ManagedEvent[]} groupEvents
 	 */
 	function isGroupFullySelected(groupEvents) {
@@ -136,18 +125,14 @@
 	}
 
 	/**
-	 * Indique si une partie seulement des événements d'un groupe est sélectionnée.
 	 * @param {import('#lib/utils/types.js').ManagedEvent[]} groupEvents
 	 */
 	function isGroupPartiallySelected(groupEvents) {
 		const selectedCount = groupEvents.filter((event) => selectedIds.includes(event.id)).length;
-
 		return selectedCount > 0 && selectedCount < groupEvents.length;
 	}
 
 	/**
-	 * Sélectionne ou désélectionne tous les événements d'un groupe.
-	 * Préserve les sélections des autres groupes.
 	 * @param {import('#lib/utils/types.js').ManagedEvent[]} groupEvents
 	 */
 	function toggleGroupSelection(groupEvents) {

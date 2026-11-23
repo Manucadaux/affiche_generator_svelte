@@ -6,6 +6,7 @@
 	import { subscribeToEventChanges } from '#lib/utils/events/eventSync.js';
 	import { applyTheme } from '#lib/utils/theme/applyTheme.svelte.js';
 	import { createManagedEvent } from '#lib/utils/events/eventFactory.js';
+	import { optionsLibrary } from '#lib/data/options.js';
 
 	import AppHeader from '#lib/components/layout/AppHeader.svelte';
 	import AppFooter from '#lib/components/layout/AppFooter.svelte';
@@ -48,6 +49,9 @@
 	let selectedActionType = $state('all');
 	let showIncompleteOnly = $state(false);
 
+	let selectedSortBy = $state('date');
+	let selectedSortDirection = $state('asc');
+
 	/**
 	 * Recharge la liste des événements depuis IndexedDB.
 	 * @returns {Promise<void>}
@@ -56,16 +60,12 @@
 		events = await getAllEvents();
 	}
 
-	/**
-	 * Ouvre la modale de création.
-	 */
 	function handleOpenCreate() {
 		editingEvent = null;
 		showCreateModal = true;
 	}
 
 	/**
-	 * Ouvre la modale en mode modification.
 	 * @param {import('#lib/utils/types.js').ManagedEvent} event
 	 */
 	function handleOpenEdit(event) {
@@ -74,7 +74,7 @@
 	}
 
 	/**
-	 * Réinitialise tous les filtres.
+	 * Réinitialise les filtres et les tris.
 	 * La recherche textuelle est volontairement conservée.
 	 */
 	function handleResetFilters() {
@@ -86,6 +86,8 @@
 		selectedGenre = 'all';
 		selectedActionType = 'all';
 		showIncompleteOnly = false;
+		selectedSortBy = 'date';
+		selectedSortDirection = 'asc';
 	}
 
 	/**
@@ -138,7 +140,6 @@
 
 	let filteredEvents = $derived(
 		events.filter((event) => {
-			// Recherche textuelle
 			const query = searchQuery.trim().toLocaleLowerCase('fr');
 
 			const searchableText = [
@@ -156,17 +157,14 @@
 
 			if (query && !searchableText.includes(query)) return false;
 
-			// Médiathèque
 			if (selectedLibraryId !== 'all' && event.libraryId !== Number(selectedLibraryId)) {
 				return false;
 			}
 
-			// Section
 			if (selectedSection !== 'all' && event.section !== selectedSection) {
 				return false;
 			}
 
-			// Mois et année de début
 			const eventMonth = event.startDate?.slice(5, 7);
 			const eventYear = event.startDate?.slice(0, 4);
 
@@ -178,7 +176,6 @@
 				return false;
 			}
 
-			// Inscription
 			if (selectedInscription === 'yes' && !event.inscription) {
 				return false;
 			}
@@ -187,7 +184,6 @@
 				return false;
 			}
 
-			// Genre et type d'action
 			if (selectedGenre !== 'all' && event.genre !== selectedGenre) {
 				return false;
 			}
@@ -196,7 +192,6 @@
 				return false;
 			}
 
-			// Informations essentielles manquantes
 			if (
 				showIncompleteOnly &&
 				event.title.trim() &&
@@ -211,6 +206,42 @@
 			return true;
 		})
 	);
+
+	/**
+	 * Trie les événements selon le critère et le sens choisis.
+	 */
+	let sortedFilteredEvents = $derived.by(() => {
+		const direction = selectedSortDirection === 'asc' ? 1 : -1;
+
+		return filteredEvents.toSorted((a, b) => {
+			let valueA = '';
+			let valueB = '';
+
+			if (selectedSortBy === 'date') {
+				valueA = a.startDate ?? '';
+				valueB = b.startDate ?? '';
+			} else if (selectedSortBy === 'title') {
+				valueA = a.title.trim();
+				valueB = b.title.trim();
+			} else if (selectedSortBy === 'library') {
+				valueA = optionsLibrary.find((library) => library.id === a.libraryId)?.label ?? '';
+				valueB = optionsLibrary.find((library) => library.id === b.libraryId)?.label ?? '';
+			}
+
+			const comparison = valueA.localeCompare(valueB, 'fr', {
+				sensitivity: 'base',
+				numeric: true
+			});
+
+			if (comparison !== 0) {
+				return comparison * direction;
+			}
+
+			return a.title.localeCompare(b.title, 'fr', {
+				sensitivity: 'base'
+			});
+		});
+	});
 
 	onMount(async () => {
 		try {
@@ -232,14 +263,11 @@
 </script>
 
 <div class="flex h-dvh flex-col overflow-hidden">
-	<!-- Header principal -->
 	<div class="shrink-0">
 		<AppHeader title="Gestionnaire d'événements" bind:selectedTheme={selectedTheme.current} />
 	</div>
 
-	<!-- Zone de travail -->
 	<main class="flex min-h-0 flex-1 flex-col gap-6 overflow-hidden px-4 py-6 sm:px-6 lg:px-8">
-		<!-- Header de la liste : compteur, recherche et actions -->
 		{#if isInitialized && !initializationError}
 			<div class="shrink-0">
 				<EventsToolbar
@@ -259,9 +287,7 @@
 			</div>
 		{/if}
 
-		<!-- Liste et panneau de filtres -->
 		<div class="flex min-h-0 flex-1 gap-4">
-			<!-- Liste des événements : seule cette zone défile -->
 			<section
 				class="min-h-0 min-w-0 flex-1 overflow-y-auto overscroll-contain pr-2"
 				aria-label="Liste des événements"
@@ -286,14 +312,15 @@
 					</div>
 				{:else}
 					<EventsList
-						events={filteredEvents}
+						events={sortedFilteredEvents}
 						bind:selectedIds={selectedEventIds}
+						sortBy={selectedSortBy}
+						sortDirection={selectedSortDirection}
 						onEdit={handleOpenEdit}
 					/>
 				{/if}
 			</section>
 
-			<!-- Panneau de filtres : fixe à côté de la liste -->
 			<aside
 				id="events-filters-panel"
 				class="h-full shrink-0 overflow-hidden transition-[width] duration-300 ease-in-out"
@@ -313,6 +340,8 @@
 							bind:genre={selectedGenre}
 							bind:actionType={selectedActionType}
 							bind:incomplete={showIncompleteOnly}
+							bind:sortBy={selectedSortBy}
+							bind:sortDirection={selectedSortDirection}
 							{genreOptions}
 							{actionTypeOptions}
 							onClose={() => (filtersOpen = false)}
@@ -324,7 +353,6 @@
 		</div>
 	</main>
 
-	<!-- Footer dans le flux normal, après la zone de travail -->
 	<div class="shrink-0">
 		<AppFooter />
 	</div>
