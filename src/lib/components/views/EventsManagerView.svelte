@@ -429,6 +429,21 @@
 					incomplete={showIncompleteOnly}
 					onCreate={handleOpenCreate}
 				/>
+
+				{#if isInitialized && !initializationError && events.length > 0 && filteredEvents.length > 0}
+					<div class="mt-2">
+						<EventsSelectionToolbar
+							selectedCount={selectedEventIds.length}
+							totalCount={sortedFilteredEvents.length}
+							onSelectAll={handleSelectAll}
+							onDeselectAll={handleDeselectAll}
+							onEdit={handleOpenBulkEdit}
+							onCopy={() => {}}
+							onDuplicate={handleDuplicateSelected}
+							onDelete={handleDeleteSelected}
+						/>
+					</div>
+				{/if}
 			</div>
 		{/if}
 
@@ -456,17 +471,6 @@
 						</p>
 					</div>
 				{:else}
-					<EventsSelectionToolbar
-						selectedCount={selectedEventIds.length}
-						totalCount={sortedFilteredEvents.length}
-						onSelectAll={handleSelectAll}
-						onDeselectAll={handleDeselectAll}
-						onEdit={handleOpenBulkEdit}
-						onCopy={() => {}}
-						onDuplicate={handleDuplicateSelected}
-						onDelete={handleDeleteSelected}
-					/>
-
 					<EventsList
 						events={sortedFilteredEvents}
 						bind:selectedIds={selectedEventIds}
