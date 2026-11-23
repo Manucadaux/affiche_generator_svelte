@@ -3,6 +3,9 @@
 	import ActiveLibrarySelector from '#lib/components/layout/ActiveLibrarySelector.svelte';
 
 	let { title, selectedLibrary = $bindable(), selectedTheme = $bindable() } = $props();
+
+	const homeHref =
+		typeof window !== 'undefined' && window.location.protocol === 'file:' ? '#home' : '/';
 </script>
 
 <header
@@ -10,7 +13,7 @@
 >
 	<div class="flex items-center gap-4">
 		<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
-		<a href="/" class="text-lg font-semibold hover:text-primary"> Nakomi </a>
+		<a href={homeHref} class="text-lg font-semibold hover:text-primary">Nakomi</a>
 
 		<span class="text-base-content/40">/</span>
 

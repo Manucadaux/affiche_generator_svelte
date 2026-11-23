@@ -9,6 +9,11 @@
 
 	const selectedTheme = useLocalStorage('selectedTheme', 'system');
 
+	const isStandalone = typeof window !== 'undefined' && window.location.protocol === 'file:';
+
+	const eventsHref = isStandalone ? '#events-manager' : '/events-manager';
+	const documentsHref = isStandalone ? '#documents-manager' : '/documents-manager';
+
 	applyTheme(selectedTheme);
 </script>
 
@@ -34,13 +39,13 @@
 			<CardLink
 				title="Événements"
 				description="Accès au gestionnaire d'évènements"
-				href="/events-manager"
+				href={eventsHref}
 			/>
 
 			<CardLink
 				title="Affiches"
 				description="Accès au générateur d'affiches"
-				href="/documents-manager"
+				href={documentsHref}
 			/>
 		</div>
 	</main>
