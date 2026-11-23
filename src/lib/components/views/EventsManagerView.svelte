@@ -11,6 +11,7 @@
 	import AppFooter from '#lib/components/layout/AppFooter.svelte';
 	import EmptyEvents from '#lib/components/events/EmptyEvents.svelte';
 	import EventsToolbar from '#lib/components/events/EventsToolbar.svelte';
+	import EventsFilters from '#lib/components/events/EventsFilters.svelte';
 	import EventsList from '#lib/components/events/EventsList.svelte';
 	import NewEventModal from '#lib/components/events/NewEventModal.svelte';
 
@@ -29,6 +30,7 @@
 	let isInitialized = $state(false);
 	let initializationError = $state('');
 	let showCreateModal = $state(false);
+	let filtersOpen = $state(false);
 
 	/** @type {import('#lib/utils/types.js').ManagedEvent | null} */
 	let editingEvent = $state(null);
@@ -69,6 +71,21 @@
 	function handleOpenEdit(event) {
 		editingEvent = event;
 		showCreateModal = true;
+	}
+
+	/**
+	 * Réinitialise tous les filtres.
+	 * La recherche textuelle est volontairement conservée.
+	 */
+	function handleResetFilters() {
+		selectedLibraryId = 'all';
+		selectedSection = 'all';
+		selectedMonth = 'all';
+		selectedYear = 'all';
+		selectedInscription = 'all';
+		selectedGenre = 'all';
+		selectedActionType = 'all';
+		showIncompleteOnly = false;
 	}
 
 	/**
@@ -222,47 +239,73 @@
 			<EventsToolbar
 				eventCount={events.length}
 				bind:searchQuery
-				bind:libraryId={selectedLibraryId}
-				bind:section={selectedSection}
-				bind:month={selectedMonth}
-				bind:year={selectedYear}
-				bind:inscription={selectedInscription}
-				bind:genre={selectedGenre}
-				bind:actionType={selectedActionType}
-				bind:incomplete={showIncompleteOnly}
-				{genreOptions}
-				{actionTypeOptions}
+				bind:filtersOpen
+				libraryId={selectedLibraryId}
+				section={selectedSection}
+				month={selectedMonth}
+				year={selectedYear}
+				inscription={selectedInscription}
+				genre={selectedGenre}
+				actionType={selectedActionType}
+				incomplete={showIncompleteOnly}
 				onCreate={handleOpenCreate}
 			/>
 		{/if}
 
-		<section class="flex flex-1 flex-col" aria-label="Liste des événements">
-			{#if initializationError}
-				<div class="flex flex-1 items-center justify-center">
-					<p class="text-error">{initializationError}</p>
-				</div>
-			{:else if !isInitialized}
-				<div class="flex flex-1 items-center justify-center">
-					<span class="loading loading-md loading-spinner" aria-label="Chargement"></span>
-				</div>
-			{:else if events.length === 0}
-				<div class="flex flex-1 items-center justify-center">
-					<EmptyEvents onOpenCreate={handleOpenCreate} />
-				</div>
-			{:else if filteredEvents.length === 0}
-				<div class="flex flex-1 items-center justify-center">
-					<p class="text-center text-base-content/60">
-						Aucun événement ne correspond aux critères de recherche.
-					</p>
-				</div>
-			{:else}
-				<EventsList
-					events={filteredEvents}
-					bind:selectedIds={selectedEventIds}
-					onEdit={handleOpenEdit}
-				/>
-			{/if}
-		</section>
+		<div class="flex min-h-0 flex-1 gap-4">
+			<section class="flex min-w-0 flex-1 flex-col" aria-label="Liste des événements">
+				{#if initializationError}
+					<div class="flex flex-1 items-center justify-center">
+						<p class="text-error">{initializationError}</p>
+					</div>
+				{:else if !isInitialized}
+					<div class="flex flex-1 items-center justify-center">
+						<span class="loading loading-md loading-spinner" aria-label="Chargement"></span>
+					</div>
+				{:else if events.length === 0}
+					<div class="flex flex-1 items-center justify-center">
+						<EmptyEvents onOpenCreate={handleOpenCreate} />
+					</div>
+				{:else if filteredEvents.length === 0}
+					<div class="flex flex-1 items-center justify-center">
+						<p class="text-center text-base-content/60">
+							Aucun événement ne correspond aux critères de recherche.
+						</p>
+					</div>
+				{:else}
+					<EventsList
+						events={filteredEvents}
+						bind:selectedIds={selectedEventIds}
+						onEdit={handleOpenEdit}
+					/>
+				{/if}
+			</section>
+
+			<aside
+				class="shrink-0 self-start overflow-x-hidden overflow-y-auto transition-all duration-300 ease-in-out"
+				style={`width: ${filtersOpen ? '20rem' : '0'}; height: calc(100vh - 8rem); position: sticky; top: 1rem;`}
+				aria-hidden={!filtersOpen}
+			>
+				{#if filtersOpen}
+					<div class="h-full w-80 border-l border-base-300 pl-4">
+						<EventsFilters
+							bind:libraryId={selectedLibraryId}
+							bind:section={selectedSection}
+							bind:month={selectedMonth}
+							bind:year={selectedYear}
+							bind:inscription={selectedInscription}
+							bind:genre={selectedGenre}
+							bind:actionType={selectedActionType}
+							bind:incomplete={showIncompleteOnly}
+							{genreOptions}
+							{actionTypeOptions}
+							onClose={() => (filtersOpen = false)}
+							onReset={handleResetFilters}
+						/>
+					</div>
+				{/if}
+			</aside>
+		</div>
 	</main>
 
 	<AppFooter />
