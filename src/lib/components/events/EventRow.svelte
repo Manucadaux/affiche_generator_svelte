@@ -2,6 +2,7 @@
 	import { ChevronDown, ChevronRight, Copy, Pencil, Check } from '@lucide/svelte';
 	import { optionsLibrary } from '#lib/data/options.js';
 	import { slide } from 'svelte/transition';
+	import Toast from '#lib/components/ui/Toast.svelte';
 
 	/**
 	 * @type {{
@@ -102,6 +103,11 @@
 
 	let copyStatus = $state('');
 
+	let toastMessage = $state('');
+
+	/** @type {'success' | 'error'} */
+	let toastType = $state('success');
+
 	/**
 	 * Copie toutes les informations renseignées de l'événement.
 	 */
@@ -166,10 +172,16 @@
 
 		try {
 			await navigator.clipboard.writeText(lines.join('\n\n'));
+
 			copyStatus = 'success';
+			toastType = 'success';
+			toastMessage = 'Texte copié';
 		} catch (error) {
 			console.error('Impossible de copier les informations de l’événement :', error);
+
 			copyStatus = 'error';
+			toastType = 'error';
+			toastMessage = 'Impossible de copier le texte';
 		}
 
 		setTimeout(() => {
@@ -657,3 +669,12 @@
 		</div>
 	{/if}
 </article>
+
+{#if toastMessage}
+	<Toast
+		message={toastMessage}
+		type={toastType}
+		duration={2000}
+		onClose={() => (toastMessage = '')}
+	/>
+{/if}
