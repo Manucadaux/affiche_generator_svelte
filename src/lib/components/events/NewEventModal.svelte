@@ -113,6 +113,25 @@
 				{
 					kind: 'library',
 					label: 'Médiathèque'
+				}
+			]
+		},
+		{
+			title: 'Dates et horaires',
+			type: 'schedule'
+		},
+		{
+			title: 'Inscription',
+			type: 'registration'
+		},
+		{
+			title: 'Informations pratiques',
+			type: 'fields',
+			fields: [
+				{
+					kind: 'section',
+					label: 'Section',
+					options: eventSections
 				},
 				{
 					kind: 'text',
@@ -121,25 +140,12 @@
 					placeholder: "Lieu de l'événement"
 				},
 				{
-					kind: 'section',
-					label: 'Section',
-					options: eventSections
-				},
-				{
 					kind: 'text',
 					name: 'condition',
 					label: 'Public concerné',
 					placeholder: 'Ex. : Tout public, à partir de 6 ans...'
 				}
 			]
-		},
-		{
-			title: 'Inscription',
-			type: 'registration'
-		},
-		{
-			title: 'Dates et horaires',
-			type: 'schedule'
 		},
 		{
 			title: 'Descriptions',
