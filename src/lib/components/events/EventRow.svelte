@@ -53,7 +53,6 @@
 	}
 
 	const formattedDate = $derived(event.startDate ? formatDate(event.startDate) : 'Date à définir');
-
 	const formattedEndDate = $derived(event.endDate ? formatDate(event.endDate) : '');
 
 	// Une période n'affiche pas les horaires sur la ligne principale.
@@ -91,6 +90,14 @@
 	 */
 	function displayValue(value) {
 		return value?.trim() || 'Non renseigné';
+	}
+
+	/**
+	 * Applique une couleur plus discrète aux valeurs manquantes.
+	 * @param {string | null | undefined} value
+	 */
+	function valueClass(value) {
+		return value?.trim() ? '' : 'text-base-content/40';
 	}
 </script>
 
@@ -184,36 +191,55 @@
 					aria-expanded={isExpanded}
 					onclick={onToggle}
 				>
-					<span class="truncate font-medium">
-						{event.title || 'Événement sans titre'}
+					<span class="min-w-0">
+						<span class="block text-xs text-base-content/50">Titre</span>
+						<span class="block truncate font-medium">
+							{event.title || 'Événement sans titre'}
+						</span>
 					</span>
 
-					<span class="truncate text-sm text-base-content/70">
-						{libraryName}
+					<span class="min-w-0">
+						<span class="block text-xs text-base-content/50">Médiathèque</span>
+						<span class="block truncate text-sm">{libraryName}</span>
 					</span>
 
-					<span class="text-sm">
-						{#if event.endDate}
-							{formattedDate} au {formattedEndDate}
-						{:else}
-							{formattedDate}
-							{#if formattedTime}
-								<span class="block text-base-content/60">{formattedTime}</span>
+					<span class="min-w-0">
+						<span class="block text-xs text-base-content/50">Date et horaires</span>
+						<span class="block text-sm">
+							{#if event.endDate}
+								{formattedDate} au {formattedEndDate}
+							{:else}
+								{formattedDate}
+								{#if formattedTime}
+									<span class="block text-base-content/60">{formattedTime}</span>
+								{/if}
 							{/if}
-						{/if}
+						</span>
 					</span>
 
-					<span class="text-sm">{event.section || '—'}</span>
-
-					<span class="text-sm">
-						{event.inscription ? 'Avec inscription' : 'Sans inscription'}
+					<span class="min-w-0">
+						<span class="block text-xs text-base-content/50">Public</span>
+						<span class={`block truncate text-sm ${valueClass(event.condition)}`}>
+							{displayValue(event.condition)}
+						</span>
 					</span>
 
-					<span class="truncate text-sm">
-						{event.highlight || '—'}
+					<span class="min-w-0">
+						<span class="block text-xs text-base-content/50">Inscription</span>
+						<span class="block text-sm">
+							{event.inscription ? 'Avec inscription' : 'Sans inscription'}
+						</span>
 					</span>
 
-					<span>
+					<span class="min-w-0">
+						<span class="block text-xs text-base-content/50">Temps fort</span>
+						<span class={`block truncate text-sm ${valueClass(event.highlight)}`}>
+							{displayValue(event.highlight)}
+						</span>
+					</span>
+
+					<span class="min-w-0">
+						<span class="block text-xs text-base-content/50">État</span>
 						{#if isComplete}
 							<span class="badge badge-sm whitespace-nowrap badge-success">Complet</span>
 						{:else}
@@ -413,38 +439,42 @@
 					<!-- Informations générales -->
 					<div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
 						<div>
-							<p class="text-xs text-base-content/50">Médiathèque</p>
-							<p>{displayValue(event.libraryId !== null ? libraryName : '')}</p>
-						</div>
-
-						<div>
 							<p class="text-xs text-base-content/50">Section</p>
-							<p>{displayValue(event.section)}</p>
+							<p class={valueClass(event.section)}>{displayValue(event.section)}</p>
 						</div>
 
 						<div>
 							<p class="text-xs text-base-content/50">Lieu</p>
-							<p>{displayValue(event.location)}</p>
-						</div>
-
-						<div>
-							<p class="text-xs text-base-content/50">Public concerné</p>
-							<p>{displayValue(event.condition)}</p>
+							<p class={valueClass(event.location)}>{displayValue(event.location)}</p>
 						</div>
 
 						<div>
 							<p class="text-xs text-base-content/50">Date de début</p>
-							<p>{event.startDate ? formattedDate : 'Non renseigné'}</p>
+							<p class={!event.startDate ? 'text-base-content/40' : ''}>
+								{event.startDate ? formattedDate : 'Non renseigné'}
+							</p>
 						</div>
 
 						<div>
 							<p class="text-xs text-base-content/50">Date de fin</p>
-							<p>{event.endDate ? formattedEndDate : 'Non renseigné'}</p>
+							<p class={!event.endDate ? 'text-base-content/40' : ''}>
+								{event.endDate ? formattedEndDate : 'Non renseigné'}
+							</p>
 						</div>
 
 						<div>
 							<p class="text-xs text-base-content/50">Horaires</p>
-							<p>
+							<p
+								class={valueClass(
+									event.timeSlots
+										.map((slot) => {
+											if (slot.start && slot.end) return `${slot.start} – ${slot.end}`;
+											return slot.start || slot.end;
+										})
+										.filter(Boolean)
+										.join(', ')
+								)}
+							>
 								{displayValue(
 									event.timeSlots
 										.map((slot) => {
@@ -459,32 +489,32 @@
 
 						<div>
 							<p class="text-xs text-base-content/50">Temps fort lié</p>
-							<p>{displayValue(event.highlight)}</p>
+							<p class={valueClass(event.highlight)}>{displayValue(event.highlight)}</p>
 						</div>
 
 						<div>
 							<p class="text-xs text-base-content/50">Genre</p>
-							<p>{displayValue(event.genre)}</p>
+							<p class={valueClass(event.genre)}>{displayValue(event.genre)}</p>
 						</div>
 
 						<div>
 							<p class="text-xs text-base-content/50">Type d'action</p>
-							<p>{displayValue(event.actionType)}</p>
+							<p class={valueClass(event.actionType)}>{displayValue(event.actionType)}</p>
 						</div>
 
 						<div>
 							<p class="text-xs text-base-content/50">Prestataires</p>
-							<p>{displayValue(event.providers)}</p>
+							<p class={valueClass(event.providers)}>{displayValue(event.providers)}</p>
 						</div>
 
 						<div>
 							<p class="text-xs text-base-content/50">Partenaire</p>
-							<p>{displayValue(event.partner)}</p>
+							<p class={valueClass(event.partner)}>{displayValue(event.partner)}</p>
 						</div>
 
 						<div>
 							<p class="text-xs text-base-content/50">Montant</p>
-							<p>{displayValue(event.amount)}</p>
+							<p class={valueClass(event.amount)}>{displayValue(event.amount)}</p>
 						</div>
 					</div>
 
@@ -492,28 +522,38 @@
 					<div class="mt-5 grid gap-4 sm:grid-cols-2">
 						<div>
 							<p class="mb-1 text-xs text-base-content/50">Description générale</p>
-							<p class="whitespace-pre-line">{displayValue(event.description)}</p>
+							<p class={`whitespace-pre-line ${valueClass(event.description)}`}>
+								{displayValue(event.description)}
+							</p>
 						</div>
 
 						<div>
 							<p class="mb-1 text-xs text-base-content/50">Description pour l'affiche</p>
-							<p class="whitespace-pre-line">{displayValue(event.posterDescription)}</p>
+							<p class={`whitespace-pre-line ${valueClass(event.posterDescription)}`}>
+								{displayValue(event.posterDescription)}
+							</p>
 						</div>
 
 						<div>
 							<p class="mb-1 text-xs text-base-content/50">Description pour le livret</p>
-							<p class="whitespace-pre-line">{displayValue(event.bookletDescription)}</p>
+							<p class={`whitespace-pre-line ${valueClass(event.bookletDescription)}`}>
+								{displayValue(event.bookletDescription)}
+							</p>
 						</div>
 
 						<div>
 							<p class="mb-1 text-xs text-base-content/50">Description pour l'agenda en ligne</p>
-							<p class="whitespace-pre-line">{displayValue(event.onlineDescription)}</p>
+							<p class={`whitespace-pre-line ${valueClass(event.onlineDescription)}`}>
+								{displayValue(event.onlineDescription)}
+							</p>
 						</div>
 					</div>
 
 					<div class="mt-4 border-t border-base-content/10 pt-4">
 						<p class="mb-1 text-xs text-base-content/50">Commentaire</p>
-						<p class="whitespace-pre-line">{displayValue(event.comment)}</p>
+						<p class={`whitespace-pre-line ${valueClass(event.comment)}`}>
+							{displayValue(event.comment)}
+						</p>
 					</div>
 				{/if}
 			</div>
