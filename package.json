@@ -43,6 +43,7 @@
 		"@floating-ui/dom": "^1.8.0",
 		"@lucide/svelte": "^1.77.0",
 		"daisyui": "^5.7.50",
+		"flatpickr": "^4.6.13",
 		"html2canvas-pro": "^2.6.3",
 		"jspdf": "^4.2.1",
 		"svelte-awesome-color-picker": "^4.1.3"

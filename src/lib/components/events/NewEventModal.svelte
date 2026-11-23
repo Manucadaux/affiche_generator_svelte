@@ -5,6 +5,7 @@
 
 	import { Plus, Trash } from '@lucide/svelte';
 	import Modal from '#lib/components/ui/Modal.svelte';
+	import DateRangePicker from '#lib/components/ui/DateRangePicker.svelte';
 	import { optionsLibrary } from '#lib/data/options.js';
 	import { untrack } from 'svelte';
 
@@ -41,7 +42,7 @@
 	 * @property {string} location
 	 * @property {EventSection | null} section
 	 * @property {string} condition
-	 * @property {string} startDate
+	 * @property {string | null} startDate
 	 * @property {string | null} endDate
 	 * @property {EventTimeSlot[]} timeSlots
 	 * @property {string} description
@@ -78,7 +79,7 @@
 			location: eventToEdit?.location ?? '',
 			section: eventToEdit ? eventToEdit.section : 'Tout public',
 			condition: eventToEdit?.condition ?? '',
-			startDate: eventToEdit?.startDate ?? '',
+			startDate: eventToEdit?.startDate ?? null,
 			endDate: eventToEdit?.endDate ?? null,
 			timeSlots: eventToEdit?.timeSlots.map((slot) => ({ ...slot })) ?? [{ start: '', end: '' }],
 			description: eventToEdit?.description ?? '',
@@ -330,32 +331,11 @@
 							</div>
 						{/each}
 					{:else if section.type === 'schedule'}
-						<div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-							<div class="form-control">
-								<label class="label" for="event-start-date">
-									<span class="label-text">Date de début</span>
-								</label>
-								<input
-									id="event-start-date"
-									type="date"
-									class="input-bordered input w-full"
-									bind:value={formData.startDate}
-								/>
-							</div>
-
-							<div class="form-control">
-								<label class="label" for="event-end-date">
-									<span class="label-text">Date de fin</span>
-								</label>
-								<input
-									id="event-end-date"
-									type="date"
-									class="input-bordered input w-full"
-									bind:value={formData.endDate}
-									min={formData.startDate || undefined}
-								/>
-							</div>
-						</div>
+						<DateRangePicker
+							idPrefix="event-date"
+							bind:startDate={formData.startDate}
+							bind:endDate={formData.endDate}
+						/>
 
 						{#if !formData.endDate}
 							<div class="space-y-3">
