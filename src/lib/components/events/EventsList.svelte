@@ -1,4 +1,6 @@
 <script>
+	import { slide } from 'svelte/transition';
+	import { ChevronDown } from '@lucide/svelte';
 	import EventRow from '#lib/components/events/EventRow.svelte';
 
 	/**
@@ -29,6 +31,9 @@
 	/** @type {string[]} */
 	let expandedIds = $state([]);
 
+	/** @type {string[]} */
+	let collapsedGroupIds = $state([]);
+
 	/** @type {string | null} */
 	let lastDraftId = $state(null);
 
@@ -48,7 +53,6 @@
 	let groupedEvents = $derived.by(() => {
 		const undatedEvents = events.filter((event) => !event.startDate);
 
-		// On conserve la date dans une propriété dont le type est garanti comme string.
 		const datedEvents = events
 			.flatMap((event) => (event.startDate ? [{ event, startDate: event.startDate }] : []))
 			.toSorted((a, b) => a.startDate.localeCompare(b.startDate));
@@ -56,7 +60,6 @@
 		/** @type {{ key: string, label: string, events: typeof events }[]} */
 		const groups = [];
 
-		// Événements sans date
 		if (undatedEvents.length > 0) {
 			groups.push({
 				key: 'undated',
@@ -65,7 +68,6 @@
 			});
 		}
 
-		// Événements datés, regroupés par mois
 		for (const item of datedEvents) {
 			const event = item.event;
 			const monthKey = item.startDate.slice(0, 7);
@@ -96,7 +98,17 @@
 	});
 
 	/**
-	 * Ouvre ou ferme une ligne.
+	 * Ouvre ou ferme une section de mois.
+	 * @param {string} groupId
+	 */
+	function toggleGroup(groupId) {
+		collapsedGroupIds = collapsedGroupIds.includes(groupId)
+			? collapsedGroupIds.filter((id) => id !== groupId)
+			: [...collapsedGroupIds, groupId];
+	}
+
+	/**
+	 * Ouvre ou ferme une ligne d'événement.
 	 * @param {string} eventId
 	 */
 	function toggleExpanded(eventId) {
@@ -118,31 +130,58 @@
 
 <div class="flex flex-col gap-6">
 	{#each groupedEvents as group (group.key)}
+		{@const groupIsExpanded = !collapsedGroupIds.includes(group.key)}
+
 		<section class="flex flex-col gap-2" aria-label={group.label}>
 			<div class="flex items-center gap-3 pt-2">
 				<h2 class="text-lg font-semibold">{group.label}</h2>
+
+				<span class="text-sm text-base-content/50">
+					{group.events.length}
+					{group.events.length === 1 ? 'évènement' : 'évènements'}
+				</span>
+
 				<div class="h-px flex-1 bg-base-300"></div>
-				<span class="text-sm text-base-content/50">{group.events.length}</span>
+
+				<button
+					type="button"
+					class="btn btn-square btn-ghost btn-sm"
+					aria-label={`${groupIsExpanded ? 'Replier' : 'Déplier'} ${group.label}`}
+					aria-expanded={groupIsExpanded}
+					aria-controls={`events-group-${group.key}`}
+					onclick={() => toggleGroup(group.key)}
+				>
+					<ChevronDown
+						size={20}
+						class={`transition-transform duration-200 ${groupIsExpanded ? '' : '-rotate-90'}`}
+					/>
+				</button>
 			</div>
 
-			<div class="flex flex-col gap-2">
-				{#each group.events as event (event.id)}
-					<EventRow
-						{event}
-						isExpanded={expandedIds.includes(event.id)}
-						isSelected={selectedIds.includes(event.id)}
-						isDraft={event.id === draftId}
-						onToggle={() => toggleExpanded(event.id)}
-						onToggleSelection={() => toggleSelection(event.id)}
-						onEdit={() => onEdit(event)}
-						{onDraftChange}
-						{onDraftSave}
-						{onDraftCancel}
-						{draftError}
-						{isSavingDraft}
-					/>
-				{/each}
-			</div>
+			{#if groupIsExpanded}
+				<div
+					id={`events-group-${group.key}`}
+					class="flex flex-col gap-2"
+					transition:slide={{ duration: 200 }}
+				>
+					{#each group.events as event (event.id)}
+						<EventRow
+							{event}
+							isExpanded={expandedIds.includes(event.id)}
+							isSelected={selectedIds.includes(event.id)}
+							isDraft={event.id === draftId}
+							onToggle={() => toggleExpanded(event.id)}
+							onToggleSelection={() => toggleSelection(event.id)}
+							onEdit={() => onEdit(event)}
+							{onDraftChange}
+							{onDraftSave}
+							{onDraftCancel}
+							{draftError}
+							{isSavingDraft}
+						/>
+					{/each}
+				</div>
+			{/if}
 		</section>
 	{/each}
 </div>
