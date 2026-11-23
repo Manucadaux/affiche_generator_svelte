@@ -11,6 +11,7 @@
 	import { subscribeToEventChanges } from '#lib/utils/events/eventSync.js';
 	import { applyTheme } from '#lib/utils/theme/applyTheme.svelte.js';
 	import { createManagedEvent } from '#lib/utils/events/eventFactory.js';
+	import { copyEventsToClipboard } from '#lib/utils/events/eventClipboard.js';
 	import { optionsLibrary } from '#lib/data/options.js';
 
 	import AppHeader from '#lib/components/layout/AppHeader.svelte';
@@ -21,6 +22,7 @@
 	import EventsList from '#lib/components/events/EventsList.svelte';
 	import NewEventModal from '#lib/components/events/NewEventModal.svelte';
 	import EventsSelectionToolbar from '#lib/components/events/EventsSelectionToolbar.svelte';
+	import Toast from '#lib/components/ui/Toast.svelte';
 
 	const selectedTheme = useLocalStorage('selectedTheme', 'system');
 
@@ -61,6 +63,11 @@
 
 	let selectedSortBy = $state('date');
 	let selectedSortDirection = $state('asc');
+
+	let toastMessage = $state('');
+
+	/** @type {'success' | 'error'} */
+	let toastType = $state('success');
 
 	/**
 	 * Recharge la liste des événements depuis IndexedDB.
@@ -140,9 +147,6 @@
 		}
 	}
 
-	/**
-	 * Sélectionne tous les événements affichés, ou vide la sélection.
-	 */
 	/**
 	 * Sélectionne tous les événements affichés.
 	 */
@@ -250,6 +254,29 @@
 	}
 
 	/**
+	 * Copie tous les événements sélectionnés dans l'ordre du tri actuel.
+	 */
+	async function handleCopySelected() {
+		const selectedEvents = events
+			.toSorted(compareEvents)
+			.filter((event) => selectedEventIds.includes(event.id));
+
+		if (selectedEvents.length === 0) return;
+
+		try {
+			await copyEventsToClipboard(selectedEvents);
+
+			toastType = 'success';
+			toastMessage = `${selectedEvents.length} événement${selectedEvents.length > 1 ? 's' : ''} copié${selectedEvents.length > 1 ? 's' : ''}`;
+		} catch (error) {
+			console.error('Impossible de copier les événements :', error);
+
+			toastType = 'error';
+			toastMessage = 'Impossible de copier les textes';
+		}
+	}
+
+	/**
 	 * Supprime les événements sélectionnés après confirmation.
 	 */
 	async function handleDeleteSelected() {
@@ -353,40 +380,49 @@
 	);
 
 	/**
-	 * Trie les événements selon le critère et le sens choisis.
+	 * Compare deux événements selon le critère et le sens choisis.
+	 * Les événements sans date restent en tête, comme dans le regroupement de la liste.
+	 * @param {import('#lib/utils/types.js').ManagedEvent} a
+	 * @param {import('#lib/utils/types.js').ManagedEvent} b
+	 * @returns {number}
 	 */
-	let sortedFilteredEvents = $derived.by(() => {
+	function compareEvents(a, b) {
 		const direction = selectedSortDirection === 'asc' ? 1 : -1;
 
-		return filteredEvents.toSorted((a, b) => {
-			let valueA = '';
-			let valueB = '';
+		if (selectedSortBy === 'date') {
+			if (!a.startDate && b.startDate) return -1;
+			if (a.startDate && !b.startDate) return 1;
+		}
 
-			if (selectedSortBy === 'date') {
-				valueA = a.startDate ?? '';
-				valueB = b.startDate ?? '';
-			} else if (selectedSortBy === 'title') {
-				valueA = a.title.trim();
-				valueB = b.title.trim();
-			} else if (selectedSortBy === 'library') {
-				valueA = optionsLibrary.find((library) => library.id === a.libraryId)?.label ?? '';
-				valueB = optionsLibrary.find((library) => library.id === b.libraryId)?.label ?? '';
-			}
+		let valueA = '';
+		let valueB = '';
 
-			const comparison = valueA.localeCompare(valueB, 'fr', {
-				sensitivity: 'base',
-				numeric: true
-			});
+		if (selectedSortBy === 'date') {
+			valueA = a.startDate ?? '';
+			valueB = b.startDate ?? '';
+		} else if (selectedSortBy === 'title') {
+			valueA = a.title.trim();
+			valueB = b.title.trim();
+		} else if (selectedSortBy === 'library') {
+			valueA = optionsLibrary.find((library) => library.id === a.libraryId)?.label ?? '';
+			valueB = optionsLibrary.find((library) => library.id === b.libraryId)?.label ?? '';
+		}
 
-			if (comparison !== 0) {
-				return comparison * direction;
-			}
-
-			return a.title.localeCompare(b.title, 'fr', {
-				sensitivity: 'base'
-			});
+		const comparison = valueA.localeCompare(valueB, 'fr', {
+			sensitivity: 'base',
+			numeric: true
 		});
-	});
+
+		if (comparison !== 0) {
+			return comparison * direction;
+		}
+
+		return a.title.localeCompare(b.title, 'fr', {
+			sensitivity: 'base'
+		});
+	}
+
+	let sortedFilteredEvents = $derived(filteredEvents.toSorted(compareEvents));
 
 	onMount(async () => {
 		try {
@@ -430,7 +466,7 @@
 					onCreate={handleOpenCreate}
 				/>
 
-				{#if isInitialized && !initializationError && events.length > 0 && filteredEvents.length > 0}
+				{#if events.length > 0 && filteredEvents.length > 0}
 					<div class="mt-2">
 						<EventsSelectionToolbar
 							selectedCount={selectedEventIds.length}
@@ -438,7 +474,7 @@
 							onSelectAll={handleSelectAll}
 							onDeselectAll={handleDeselectAll}
 							onEdit={handleOpenBulkEdit}
-							onCopy={() => {}}
+							onCopy={handleCopySelected}
 							onDuplicate={handleDuplicateSelected}
 							onDelete={handleDeleteSelected}
 						/>
@@ -584,4 +620,13 @@
 			onclick={() => (showBulkEditModal = false)}
 		></button>
 	</div>
+{/if}
+
+{#if toastMessage}
+	<Toast
+		message={toastMessage}
+		type={toastType}
+		duration={2500}
+		onClose={() => (toastMessage = '')}
+	/>
 {/if}
