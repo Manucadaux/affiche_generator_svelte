@@ -231,43 +231,55 @@
 	});
 </script>
 
-<div class="flex min-h-screen flex-col">
-	<AppHeader title="Gestionnaire d'événements" bind:selectedTheme={selectedTheme.current} />
+<div class="flex h-dvh flex-col overflow-hidden">
+	<!-- Header principal -->
+	<div class="shrink-0">
+		<AppHeader title="Gestionnaire d'événements" bind:selectedTheme={selectedTheme.current} />
+	</div>
 
-	<main class="flex flex-1 flex-col gap-6 px-4 py-6 sm:px-6 lg:px-8">
+	<!-- Zone de travail -->
+	<main class="flex min-h-0 flex-1 flex-col gap-6 overflow-hidden px-4 py-6 sm:px-6 lg:px-8">
+		<!-- Header de la liste : compteur, recherche et actions -->
 		{#if isInitialized && !initializationError}
-			<EventsToolbar
-				eventCount={events.length}
-				bind:searchQuery
-				bind:filtersOpen
-				libraryId={selectedLibraryId}
-				section={selectedSection}
-				month={selectedMonth}
-				year={selectedYear}
-				inscription={selectedInscription}
-				genre={selectedGenre}
-				actionType={selectedActionType}
-				incomplete={showIncompleteOnly}
-				onCreate={handleOpenCreate}
-			/>
+			<div class="shrink-0">
+				<EventsToolbar
+					eventCount={events.length}
+					bind:searchQuery
+					bind:filtersOpen
+					libraryId={selectedLibraryId}
+					section={selectedSection}
+					month={selectedMonth}
+					year={selectedYear}
+					inscription={selectedInscription}
+					genre={selectedGenre}
+					actionType={selectedActionType}
+					incomplete={showIncompleteOnly}
+					onCreate={handleOpenCreate}
+				/>
+			</div>
 		{/if}
 
+		<!-- Liste et panneau de filtres -->
 		<div class="flex min-h-0 flex-1 gap-4">
-			<section class="flex min-w-0 flex-1 flex-col" aria-label="Liste des événements">
+			<!-- Liste des événements : seule cette zone défile -->
+			<section
+				class="min-h-0 min-w-0 flex-1 overflow-y-auto overscroll-contain pr-2"
+				aria-label="Liste des événements"
+			>
 				{#if initializationError}
-					<div class="flex flex-1 items-center justify-center">
+					<div class="flex min-h-full items-center justify-center">
 						<p class="text-error">{initializationError}</p>
 					</div>
 				{:else if !isInitialized}
-					<div class="flex flex-1 items-center justify-center">
+					<div class="flex min-h-full items-center justify-center">
 						<span class="loading loading-md loading-spinner" aria-label="Chargement"></span>
 					</div>
 				{:else if events.length === 0}
-					<div class="flex flex-1 items-center justify-center">
+					<div class="flex min-h-full items-center justify-center">
 						<EmptyEvents onOpenCreate={handleOpenCreate} />
 					</div>
 				{:else if filteredEvents.length === 0}
-					<div class="flex flex-1 items-center justify-center">
+					<div class="flex min-h-full items-center justify-center">
 						<p class="text-center text-base-content/60">
 							Aucun événement ne correspond aux critères de recherche.
 						</p>
@@ -281,13 +293,17 @@
 				{/if}
 			</section>
 
+			<!-- Panneau de filtres : fixe à côté de la liste -->
 			<aside
-				class="shrink-0 self-start overflow-x-hidden overflow-y-auto transition-all duration-300 ease-in-out"
-				style={`width: ${filtersOpen ? '20rem' : '0'}; height: calc(100vh - 8rem); position: sticky; top: 1rem;`}
+				id="events-filters-panel"
+				class="h-full shrink-0 overflow-hidden transition-[width] duration-300 ease-in-out"
+				style={`width: ${filtersOpen ? '20rem' : '0'}`}
 				aria-hidden={!filtersOpen}
 			>
 				{#if filtersOpen}
-					<div class="h-full w-80 border-l border-base-300 pl-4">
+					<div
+						class="h-full w-80 overflow-x-hidden overflow-y-auto overscroll-contain rounded-box border border-base-300 bg-base-200 p-4"
+					>
 						<EventsFilters
 							bind:libraryId={selectedLibraryId}
 							bind:section={selectedSection}
@@ -308,7 +324,10 @@
 		</div>
 	</main>
 
-	<AppFooter />
+	<!-- Footer dans le flux normal, après la zone de travail -->
+	<div class="shrink-0">
+		<AppFooter />
+	</div>
 </div>
 
 {#if showCreateModal}

@@ -36,7 +36,7 @@
 	const years = Array.from({ length: 11 }, (_, index) => currentYear - 5 + index);
 </script>
 
-<div class="flex h-full w-80 flex-col gap-5 pr-2">
+<div class="flex w-full flex-col gap-5">
 	<div class="flex items-center justify-between">
 		<h2 class="text-lg font-semibold">Filtres et tris</h2>
 
