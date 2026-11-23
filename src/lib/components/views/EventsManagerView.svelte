@@ -2,7 +2,12 @@
 	import { onMount } from 'svelte';
 
 	import { useLocalStorage } from '#lib/utils/useLocalStorage.svelte.js';
-	import { addEvent, getAllEvents, updateEvent } from '#lib/utils/events/eventStorage.js';
+	import {
+		addEvent,
+		getAllEvents,
+		updateEvent,
+		deleteEvent
+	} from '#lib/utils/events/eventStorage.js';
 	import { subscribeToEventChanges } from '#lib/utils/events/eventSync.js';
 	import { applyTheme } from '#lib/utils/theme/applyTheme.svelte.js';
 	import { createManagedEvent } from '#lib/utils/events/eventFactory.js';
@@ -15,6 +20,7 @@
 	import EventsFilters from '#lib/components/events/EventsFilters.svelte';
 	import EventsList from '#lib/components/events/EventsList.svelte';
 	import NewEventModal from '#lib/components/events/NewEventModal.svelte';
+	import EventsSelectionToolbar from '#lib/components/events/EventsSelectionToolbar.svelte';
 
 	const selectedTheme = useLocalStorage('selectedTheme', 'system');
 
@@ -31,6 +37,7 @@
 	let isInitialized = $state(false);
 	let initializationError = $state('');
 	let showCreateModal = $state(false);
+	let showBulkEditModal = $state(false);
 	let filtersOpen = $state(false);
 
 	/** @type {import('#lib/utils/types.js').ManagedEvent | null} */
@@ -38,6 +45,9 @@
 
 	/** @type {string[]} */
 	let selectedEventIds = $state([]);
+
+	let bulkSection = $state('__unchanged__');
+	let bulkHighlight = $state('');
 
 	let searchQuery = $state('');
 	let selectedLibraryId = $state('all');
@@ -127,6 +137,141 @@
 			}
 		} catch (error) {
 			console.error("Erreur lors de l'enregistrement de l'événement :", error);
+		}
+	}
+
+	/**
+	 * Sélectionne tous les événements affichés, ou vide la sélection.
+	 */
+	/**
+	 * Sélectionne tous les événements affichés.
+	 */
+	function handleSelectAll() {
+		const visibleIds = sortedFilteredEvents.map((event) => event.id);
+		selectedEventIds = [...new Set([...selectedEventIds, ...visibleIds])];
+	}
+
+	/**
+	 * Vide entièrement la sélection.
+	 */
+	function handleDeselectAll() {
+		selectedEventIds = [];
+	}
+
+	/**
+	 * Ouvre la fenêtre de modification groupée.
+	 */
+	function handleOpenBulkEdit() {
+		bulkSection = '__unchanged__';
+		bulkHighlight = '';
+		showBulkEditModal = true;
+	}
+
+	/**
+	 * Applique les modifications aux événements sélectionnés.
+	 */
+	async function handleBulkEdit() {
+		try {
+			const selectedEvents = events.filter((event) => selectedEventIds.includes(event.id));
+
+			if (selectedEvents.length === 0) {
+				throw new Error('Aucun événement sélectionné.');
+			}
+
+			for (const event of selectedEvents) {
+				// Récupère une version sans proxy Svelte.
+				const plainEvent = $state.snapshot(event);
+
+				const updatedEvent = {
+					...plainEvent,
+					...(bulkSection !== '__unchanged__' && {
+						section: /** @type {import('#lib/utils/types.js').EventSection | null} */ (
+							bulkSection === '__clear__' ? null : bulkSection
+						)
+					}),
+					...(bulkHighlight.trim() && {
+						highlight: bulkHighlight.trim()
+					}),
+					updatedAt: new Date().toISOString()
+				};
+
+				const wasUpdated = await updateEvent(updatedEvent);
+
+				if (!wasUpdated) {
+					throw new Error(`Impossible de modifier l'événement "${event.title}".`);
+				}
+			}
+
+			await refreshEvents();
+
+			showBulkEditModal = false;
+		} catch (error) {
+			console.error('Erreur lors de la modification groupée :', error);
+		}
+	}
+
+	/**
+	 * Duplique chaque événement sélectionné.
+	 */
+	async function handleDuplicateSelected() {
+		try {
+			const selectedEvents = events.filter((event) => selectedEventIds.includes(event.id));
+
+			if (selectedEvents.length === 0) return;
+
+			/** @type {string[]} */
+			const duplicatedIds = [];
+
+			for (const event of selectedEvents) {
+				// Récupère une version sans proxy Svelte.
+				const plainEvent = $state.snapshot(event);
+
+				// Retire les informations qui doivent être régénérées.
+				const eventData = Object.fromEntries(
+					Object.entries(plainEvent).filter(
+						([key]) => !['id', 'createdAt', 'updatedAt'].includes(key)
+					)
+				);
+
+				const duplicatedEvent = createManagedEvent(eventData);
+
+				await addEvent(duplicatedEvent);
+
+				duplicatedIds.push(duplicatedEvent.id);
+			}
+
+			await refreshEvents();
+
+			// Sélectionne les nouvelles copies.
+			selectedEventIds = duplicatedIds;
+		} catch (error) {
+			console.error('Erreur lors de la duplication des événements :', error);
+		}
+	}
+
+	/**
+	 * Supprime les événements sélectionnés après confirmation.
+	 */
+	async function handleDeleteSelected() {
+		const selectedEvents = events.filter((event) => selectedEventIds.includes(event.id));
+
+		if (selectedEvents.length === 0) return;
+
+		const confirmed = window.confirm(
+			`Supprimer les ${selectedEvents.length} événement${selectedEvents.length > 1 ? 's' : ''} sélectionné${selectedEvents.length > 1 ? 's' : ''} ? Cette action est définitive.`
+		);
+
+		if (!confirmed) return;
+
+		try {
+			for (const event of selectedEvents) {
+				await deleteEvent(event.id);
+			}
+
+			selectedEventIds = [];
+			await refreshEvents();
+		} catch (error) {
+			console.error('Erreur lors de la suppression des événements :', error);
 		}
 	}
 
@@ -311,6 +456,17 @@
 						</p>
 					</div>
 				{:else}
+					<EventsSelectionToolbar
+						selectedCount={selectedEventIds.length}
+						totalCount={sortedFilteredEvents.length}
+						onSelectAll={handleSelectAll}
+						onDeselectAll={handleDeselectAll}
+						onEdit={handleOpenBulkEdit}
+						onCopy={() => {}}
+						onDuplicate={handleDuplicateSelected}
+						onDelete={handleDeleteSelected}
+					/>
+
 					<EventsList
 						events={sortedFilteredEvents}
 						bind:selectedIds={selectedEventIds}
@@ -368,4 +524,60 @@
 		}}
 		onSave={handleSaveEvent}
 	/>
+{/if}
+
+{#if showBulkEditModal}
+	<div class="modal-open modal" role="presentation">
+		<div class="modal-box flex flex-col gap-4">
+			<h2 class="text-lg font-semibold">Modifier les événements sélectionnés</h2>
+
+			<p class="text-sm text-base-content/60">
+				{selectedEventIds.length} événement{selectedEventIds.length > 1 ? 's' : ''} concerné{selectedEventIds.length >
+				1
+					? 's'
+					: ''}. Les champs laissés inchangés conserveront leurs valeurs actuelles.
+			</p>
+
+			<label class="form-control w-full">
+				<span class="label-text mb-2">Section</span>
+				<select class="select-bordered select w-full" bind:value={bulkSection}>
+					<option value="__unchanged__">Ne pas modifier</option>
+					<option value="Tout public">Tout public</option>
+					<option value="Jeunesse">Jeunesse</option>
+					<option value="Adulte">Adulte</option>
+					<option value="__clear__">Effacer la section</option>
+				</select>
+			</label>
+
+			<label class="form-control w-full">
+				<span class="label-text mb-2">Temps fort</span>
+				<input
+					class="input-bordered input w-full"
+					type="text"
+					bind:value={bulkHighlight}
+					placeholder="Laisser vide pour ne pas modifier"
+				/>
+			</label>
+
+			<div class="modal-action">
+				<button type="button" class="btn btn-ghost" onclick={() => (showBulkEditModal = false)}>
+					Annuler
+				</button>
+				<button
+					type="button"
+					class="btn btn-primary"
+					disabled={bulkSection === '__unchanged__' && !bulkHighlight.trim()}
+					onclick={handleBulkEdit}
+				>
+					Appliquer
+				</button>
+			</div>
+		</div>
+		<button
+			type="button"
+			class="modal-backdrop"
+			aria-label="Fermer la fenêtre"
+			onclick={() => (showBulkEditModal = false)}
+		></button>
+	</div>
 {/if}
