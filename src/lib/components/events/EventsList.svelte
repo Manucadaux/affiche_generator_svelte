@@ -44,6 +44,7 @@
 		}
 	});
 
+	// Regroupement mensuel uniquement pour le tri par date.
 	let groupedEvents = $derived.by(() => {
 		const undatedEvents = events.filter((event) => !event.startDate);
 		const datedEvents = events.filter((event) => event.startDate);
@@ -84,13 +85,13 @@
 			group.events.push(event);
 		}
 
-		// Les groupes restent chronologiques, sauf pour un tri par date.
 		const undatedGroup = groups.filter((group) => group.key === 'undated');
+
 		const datedGroups = groups
 			.filter((group) => group.key !== 'undated')
 			.toSorted((a, b) => {
 				const comparison = a.key.localeCompare(b.key);
-				return sortBy === 'date' && sortDirection === 'desc' ? -comparison : comparison;
+				return sortDirection === 'desc' ? -comparison : comparison;
 			});
 
 		return [...undatedGroup, ...datedGroups];
@@ -147,71 +148,94 @@
 	}
 </script>
 
-<div class="flex flex-col gap-6">
-	{#each groupedEvents as group (group.key)}
-		{@const groupIsExpanded = !collapsedGroupIds.includes(group.key)}
-		{@const groupIsFullySelected = isGroupFullySelected(group.events)}
-		{@const groupIsPartiallySelected = isGroupPartiallySelected(group.events)}
+{#if sortBy === 'date'}
+	<!-- Affichage regroupé par mois pour le tri par date -->
+	<div class="flex flex-col gap-6">
+		{#each groupedEvents as group (group.key)}
+			{@const groupIsExpanded = !collapsedGroupIds.includes(group.key)}
+			{@const groupIsFullySelected = isGroupFullySelected(group.events)}
+			{@const groupIsPartiallySelected = isGroupPartiallySelected(group.events)}
 
-		<section class="flex flex-col gap-2" aria-label={group.label}>
-			<div class="flex items-center gap-3 pt-2">
-				<input
-					type="checkbox"
-					class="checkbox checkbox-sm"
-					checked={groupIsFullySelected}
-					indeterminate={groupIsPartiallySelected}
-					aria-label={`Sélectionner tous les événements : ${group.label}`}
-					onchange={() => toggleGroupSelection(group.events)}
-				/>
-
-				<h2 class="text-lg font-semibold">{group.label}</h2>
-
-				<span class="text-sm text-base-content/50">
-					{group.events.length}
-					{group.events.length === 1 ? 'évènement' : 'évènements'}
-				</span>
-
-				<div class="h-px flex-1 bg-base-300"></div>
-
-				<button
-					type="button"
-					class="btn btn-square btn-ghost btn-sm"
-					aria-label={`${groupIsExpanded ? 'Replier' : 'Déplier'} ${group.label}`}
-					aria-expanded={groupIsExpanded}
-					aria-controls={`events-group-${group.key}`}
-					onclick={() => toggleGroup(group.key)}
-				>
-					<ChevronDown
-						size={20}
-						class={`transition-transform duration-200 ${groupIsExpanded ? '' : '-rotate-90'}`}
+			<section class="flex flex-col gap-2" aria-label={group.label}>
+				<div class="flex items-center gap-3 pt-2">
+					<input
+						type="checkbox"
+						class="checkbox checkbox-sm"
+						checked={groupIsFullySelected}
+						indeterminate={groupIsPartiallySelected}
+						aria-label={`Sélectionner tous les événements : ${group.label}`}
+						onchange={() => toggleGroupSelection(group.events)}
 					/>
-				</button>
-			</div>
 
-			{#if groupIsExpanded}
-				<div
-					id={`events-group-${group.key}`}
-					class="flex flex-col gap-2"
-					transition:slide={{ duration: 200 }}
-				>
-					{#each group.events as event (event.id)}
-						<EventRow
-							{event}
-							isExpanded={expandedIds.includes(event.id)}
-							isSelected={selectedIds.includes(event.id)}
-							isDraft={event.id === draftId}
-							onToggle={() => toggleExpanded(event.id)}
-							onToggleSelection={() => toggleSelection(event.id)}
-							onEdit={() => onEdit(event)}
-							{onDraftChange}
-							{onDraftSave}
-							{onDraftCancel}
-							{draftError}
-							{isSavingDraft}
+					<h2 class="text-lg font-semibold">{group.label}</h2>
+
+					<span class="text-sm text-base-content/50">
+						{group.events.length}
+						{group.events.length === 1 ? 'évènement' : 'évènements'}
+					</span>
+
+					<div class="h-px flex-1 bg-base-300"></div>
+
+					<button
+						type="button"
+						class="btn btn-square btn-ghost btn-sm"
+						aria-label={`${groupIsExpanded ? 'Replier' : 'Déplier'} ${group.label}`}
+						aria-expanded={groupIsExpanded}
+						aria-controls={`events-group-${group.key}`}
+						onclick={() => toggleGroup(group.key)}
+					>
+						<ChevronDown
+							size={20}
+							class={`transition-transform duration-200 ${groupIsExpanded ? '' : '-rotate-90'}`}
 						/>
-					{/each}
+					</button>
 				</div>
-			{/if}
-		</section>
-	{/each}
-</div>
+
+				{#if groupIsExpanded}
+					<div
+						id={`events-group-${group.key}`}
+						class="flex flex-col gap-2"
+						transition:slide={{ duration: 200 }}
+					>
+						{#each group.events as event (event.id)}
+							<EventRow
+								{event}
+								isExpanded={expandedIds.includes(event.id)}
+								isSelected={selectedIds.includes(event.id)}
+								isDraft={event.id === draftId}
+								onToggle={() => toggleExpanded(event.id)}
+								onToggleSelection={() => toggleSelection(event.id)}
+								onEdit={() => onEdit(event)}
+								{onDraftChange}
+								{onDraftSave}
+								{onDraftCancel}
+								{draftError}
+								{isSavingDraft}
+							/>
+						{/each}
+					</div>
+				{/if}
+			</section>
+		{/each}
+	</div>
+{:else}
+	<!-- Affichage global pour le tri par nom ou médiathèque -->
+	<div class="flex flex-col gap-2">
+		{#each events as event (event.id)}
+			<EventRow
+				{event}
+				isExpanded={expandedIds.includes(event.id)}
+				isSelected={selectedIds.includes(event.id)}
+				isDraft={event.id === draftId}
+				onToggle={() => toggleExpanded(event.id)}
+				onToggleSelection={() => toggleSelection(event.id)}
+				onEdit={() => onEdit(event)}
+				{onDraftChange}
+				{onDraftSave}
+				{onDraftCancel}
+				{draftError}
+				{isSavingDraft}
+			/>
+		{/each}
+	</div>
+{/if}
