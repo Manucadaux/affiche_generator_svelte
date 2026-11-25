@@ -18,7 +18,6 @@
 	import { scrollToPage } from '#lib/utils/scroll.js';
 	import { createPageActions } from '#lib/utils/editor/pageActions.js';
 	import { createEventActions } from '#lib/utils/editor/eventActions.js';
-	import { createResetActions } from '#lib/utils/editor/resetActions.js';
 	import {
 		getDocument as getStoredDocument,
 		getAllDocuments
@@ -72,7 +71,6 @@
 
 	let isDocumentDeleted = $state(false);
 	let loadedDocumentId = $state(undefined);
-	let isResetting = $state(false);
 
 	/** @type {'success' | 'error' | 'info' | 'warning'} */
 	let toastType = $state('error');
@@ -82,30 +80,6 @@
 	let documents = $state([]);
 
 	const documentPersistence = createDocumentPersistence();
-
-	/** @returns {Promise<void>} */
-	async function handleResetEvents() {
-		isResetting = true;
-
-		try {
-			await resetEvents();
-		} finally {
-			await tick();
-			isResetting = false;
-		}
-	}
-
-	/** @returns {Promise<void>} */
-	async function handleResetAll() {
-		isResetting = true;
-
-		try {
-			await resetAll();
-		} finally {
-			await tick();
-			isResetting = false;
-		}
-	}
 
 	// Chargement du document demandé
 	$effect(() => {
@@ -512,20 +486,6 @@
 		}
 	}
 
-	const { resetEvents, resetAll } = createResetActions({
-		pages,
-		createPage,
-		getEventImage,
-		saveEventImage,
-		deleteEventImages,
-		clearSelectedEvent: () => (selectedEventId = null),
-		selectedLibrary,
-		selectedMonth,
-		styles,
-		defaultStyles,
-		history
-	});
-
 	let selectedLibraryData = $derived(
 		optionsLibrary.find((option) => option.id === selectedLibrary.current) ?? null
 	);
@@ -665,8 +625,6 @@
 		bind:styles={styles.current}
 		bind:selectedTheme={selectedTheme.current}
 		bind:documentName={documentName.current}
-		onResetEvents={handleResetEvents}
-		onResetAll={handleResetAll}
 		onAddPage={handleAddPage}
 		onDeleteLastPage={deleteLastPage}
 		onNavigateHome={handleNavigateHome}
@@ -685,7 +643,7 @@
 			onRedo={handleRedo}
 		/>
 		{#each pages.current as page, i (page.id)}
-			<div id={`page-${page.id}`} out:slide={{ duration: isResetting ? 0 : 500 }}>
+			<div id={`page-${page.id}`} out:slide={{ duration: 500 }}>
 				<PageEditor
 					pageNumber={i + 1}
 					totalPages={nbPages}

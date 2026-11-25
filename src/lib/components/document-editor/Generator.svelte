@@ -4,7 +4,6 @@
 	import DisplayOptions from '#lib/components/document-editor/generator/DisplayOptions.svelte';
 	import GeneratorOptions from '#lib/components/document-editor/generator/GeneratorOptions.svelte';
 	import GeneratorColors from '#lib/components/document-editor/generator/GeneratorColors.svelte';
-	import GeneratorActions from '#lib/components/document-editor/generator/GeneratorActions.svelte';
 	import GeneratorMenu from '#lib/components/document-editor/generator/GeneratorMenu.svelte';
 
 	let {
@@ -18,8 +17,6 @@
 		documentName = $bindable(),
 		onAddPage,
 		onDeleteLastPage,
-		onResetEvents,
-		onResetAll,
 		renderHref,
 		documents = [],
 		currentDocumentId,
@@ -68,7 +65,11 @@
 
 	<GeneratorColors bind:styles {onUpdateStyle} {onBeginColorEdit} {onEndColorEdit} />
 
-	<GeneratorActions {onResetEvents} {onResetAll} />
+	<p class="mt-6 mb-6 text-sm text-base-content/60">
+		Un problème ou un bug ? Veuillez me contacter par mail
+		<a href="mailto:m.ortiz@agglo-pau.fr" class="link">m.ortiz@agglo-pau.fr</a>
+		ou par Teams !
+	</p>
 </div>
 
 <style>
