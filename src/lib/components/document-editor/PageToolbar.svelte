@@ -1,6 +1,6 @@
 <script>
 	import { MAX_EVENTS_PER_PAGE } from '#lib/utils/constants.js';
-	import { Trash2, FilePlus, Copy, Lock, Unlock } from '@lucide/svelte';
+	import { Trash, FilePlus, Copy, Lock, LockOpen } from '@lucide/svelte';
 
 	let {
 		pageNumber,
@@ -27,24 +27,6 @@
 		</p>
 
 		<div class="flex items-center gap-2">
-			<div
-				class="tooltip tooltip-bottom"
-				data-tip={locked ? 'Déverrouiller les réglages' : 'Verrouiller les réglages'}
-			>
-				<button
-					class="btn btn-ghost btn-sm"
-					onclick={() => onToggleLock(page.id)}
-					aria-label={locked ? 'Déverrouiller la page' : 'Verrouiller la page'}
-					aria-pressed={locked}
-				>
-					{#if locked}
-						<Lock size={20} />
-					{:else}
-						<Unlock size={20} />
-					{/if}
-				</button>
-			</div>
-
 			Nombre d'évènements :
 
 			<div class="eventCounter">
@@ -69,20 +51,40 @@
 				</button>
 			</div>
 
-			<label
-				class="ml-4 flex items-center gap-2 text-base-content"
-				class:cursor-not-allowed={locked}
-				class:opacity-50={locked}
-			>
-				<span>Disposition inversée</span>
-				<input
-					type="checkbox"
-					class="checkbox"
-					disabled={locked}
-					checked={page.reverse ?? false}
-					onchange={(event) => onToggleReverse(page.id, event.currentTarget.checked)}
-				/>
-			</label>
+			<div class="ml-4 flex items-center gap-2 text-base-content">
+				<label
+					class="flex items-center gap-2"
+					class:cursor-not-allowed={locked}
+					class:opacity-50={locked}
+				>
+					<span>Disposition inversée</span>
+					<input
+						type="checkbox"
+						class="checkbox"
+						disabled={locked}
+						checked={page.reverse ?? false}
+						onchange={(event) => onToggleReverse(page.id, event.currentTarget.checked)}
+					/>
+				</label>
+
+				<div
+					class="tooltip tooltip-bottom"
+					data-tip={locked ? 'Déverrouiller les réglages' : 'Verrouiller les réglages'}
+				>
+					<button
+						class="btn btn-ghost btn-sm"
+						onclick={() => onToggleLock(page.id)}
+						aria-label={locked ? 'Déverrouiller la page' : 'Verrouiller la page'}
+						aria-pressed={locked}
+					>
+						{#if locked}
+							<Lock size={20} />
+						{:else}
+							<LockOpen size={20} />
+						{/if}
+					</button>
+				</div>
+			</div>
 		</div>
 	</div>
 
@@ -94,7 +96,7 @@
 				onclick={() => onDeletePage(page.id)}
 				aria-label="Supprimer cette page"
 			>
-				<Trash2 size={22} />
+				<Trash size={22} />
 			</button>
 		</div>
 
@@ -102,7 +104,7 @@
 			<button
 				class="btn btn-neutral btn-md"
 				onclick={() => onDuplicatePage(page.id)}
-				aria-label="Dupliquer cette page"
+				aria-label="Dupliquer la page"
 			>
 				<Copy size={22} />
 			</button>
