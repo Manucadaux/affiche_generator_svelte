@@ -106,7 +106,7 @@
 
 	/**
 	 * Crée un document puis ouvre son éditeur dans un nouvel onglet.
-	 * @param {NewDocumentOptions} options
+	 * @param {{ name: string, libraryId: number | null, monthId: number | null }} options
 	 * @returns {Promise<void>}
 	 */
 	async function handleCreateDocument(options) {
@@ -117,7 +117,10 @@
 		}
 
 		try {
-			const newDocument = await createDocument(options);
+			const newDocument = await createDocument({
+				...options,
+				styles: defaultStyles
+			});
 
 			await refreshDocuments();
 
@@ -261,7 +264,6 @@
 	<NewDocumentModal
 		{documents}
 		{defaultLibraryId}
-		{defaultStyles}
 		{optionsLibrary}
 		{optionsMonth}
 		onClose={() => (isCreateModalOpen = false)}
