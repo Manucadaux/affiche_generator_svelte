@@ -34,6 +34,8 @@ export function createManagedEvent(initialData = {}) {
 		partner: '',
 		comment: '',
 		inscription: false,
+		registrationCapacity: null,
+		waitingListCapacity: null,
 		createdAt: now,
 		updatedAt: now,
 		...initialData
@@ -89,7 +91,18 @@ export function normalizeManagedEvent(event) {
 		partner: event.partner || '',
 		comment: event.comment || '',
 		inscription: event.inscription ?? false,
+		registrationCapacity: normalizeCapacity(event.registrationCapacity),
+		waitingListCapacity: normalizeCapacity(event.waitingListCapacity),
 		createdAt: event.createdAt || now,
 		updatedAt: event.updatedAt || now
 	};
+}
+
+/**
+ * Garantit une capacité entière positive ou nulle.
+ * @param {unknown} value
+ * @returns {number | null}
+ */
+function normalizeCapacity(value) {
+	return typeof value === 'number' && Number.isInteger(value) && value >= 0 ? value : null;
 }

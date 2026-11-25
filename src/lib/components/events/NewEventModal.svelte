@@ -57,6 +57,8 @@
 	 * @property {string} partner
 	 * @property {string} comment
 	 * @property {boolean} inscription
+	 * @property {number | null} registrationCapacity
+	 * @property {number | null} waitingListCapacity
 	 */
 
 	/**
@@ -93,7 +95,9 @@
 			actionType: eventToEdit?.actionType ?? '',
 			partner: eventToEdit?.partner ?? '',
 			comment: eventToEdit?.comment ?? '',
-			inscription: eventToEdit?.inscription ?? false
+			inscription: eventToEdit?.inscription ?? false,
+			registrationCapacity: eventToEdit?.registrationCapacity ?? null,
+			waitingListCapacity: eventToEdit?.waitingListCapacity ?? null
 		}))
 	);
 
@@ -419,6 +423,41 @@
 								<span class="label-text">Sans inscription</span>
 							</label>
 						</div>
+						{#if formData.inscription}
+							<div class="grid gap-4 sm:grid-cols-2">
+								<label class="form-control">
+									<span class="label-text mb-2">Nombre d'inscriptions</span>
+									<input
+										type="number"
+										min="0"
+										step="1"
+										class="input-bordered input w-full"
+										placeholder="Nombre de places"
+										value={formData.registrationCapacity ?? ''}
+										oninput={(event) => {
+											const value = event.currentTarget.value;
+											formData.registrationCapacity = value === '' ? null : Number(value);
+										}}
+									/>
+								</label>
+
+								<label class="form-control">
+									<span class="label-text mb-2">File d'attente</span>
+									<input
+										type="number"
+										min="0"
+										step="1"
+										class="input-bordered input w-full"
+										placeholder="Nombre de personnes"
+										value={formData.waitingListCapacity ?? ''}
+										oninput={(event) => {
+											const value = event.currentTarget.value;
+											formData.waitingListCapacity = value === '' ? null : Number(value);
+										}}
+									/>
+								</label>
+							</div>
+						{/if}
 					{/if}
 				</section>
 			{/each}

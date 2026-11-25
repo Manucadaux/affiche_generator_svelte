@@ -569,6 +569,26 @@
 						</div>
 					</div>
 
+					{#if event.inscription}
+						<div class="mt-5">
+							<div class="grid gap-4 sm:grid-cols-2">
+								<div>
+									<p class="text-xs text-base-content/50">Nombre d'inscriptions</p>
+									<p class={event.registrationCapacity === null ? 'text-base-content/40' : ''}>
+										{event.registrationCapacity ?? 'Non renseigné'}
+									</p>
+								</div>
+
+								<div>
+									<p class="text-xs text-base-content/50">File d'attente</p>
+									<p class={event.waitingListCapacity === null ? 'text-base-content/40' : ''}>
+										{event.waitingListCapacity ?? 'Non renseignée'}
+									</p>
+								</div>
+							</div>
+						</div>
+					{/if}
+
 					<!-- Descriptions -->
 					<div class="mt-5 grid gap-4 sm:grid-cols-2">
 						<div>

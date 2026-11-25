@@ -80,6 +80,8 @@
  * @property {string} partner
  * @property {string} comment
  * @property {boolean} inscription
+ * @property {number | null} registrationCapacity
+ * @property {number | null} waitingListCapacity
  * @property {string} createdAt
  * @property {string} updatedAt
  */
