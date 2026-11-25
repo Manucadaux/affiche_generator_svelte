@@ -3,11 +3,14 @@
 	import ThemeSelector from '#lib/components/ui/ThemeSelector.svelte';
 
 	let { selectedTheme = $bindable(), onMenuClick } = $props();
+
+	const homeHref =
+		typeof window !== 'undefined' && window.location.protocol === 'file:' ? '#home' : '/';
 </script>
 
 <header class="generatorHeader">
 	<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
-	<a href="/" class="homeLink">
+	<a href={homeHref} class="homeLink">
 		<House size={20} />
 		<span>Nakomi</span>
 	</a>
