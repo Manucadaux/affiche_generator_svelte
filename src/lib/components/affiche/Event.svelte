@@ -6,7 +6,7 @@
 
 	let eventClass = $derived(['uno', 'duo', 'trio', 'quatro'][nbEvents - 1] ?? 'uno');
 
-	let imageRight = $derived((eventIndex % 2 === 1) !== reverse);
+	let imageRight = $derived((eventIndex % 2 === 1) === reverse);
 
 	let titleSize = $derived(`${event.sizeTitle ?? 36}px`);
 	let descriptionSize = $derived(`${event.sizeDescription ?? 25}px`);
