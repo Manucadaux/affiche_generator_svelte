@@ -27,7 +27,6 @@
  * @property {string} colorTitle
  * @property {string} colorContent
  * @property {number} zoom
- * @property {boolean} autoZoom
  */
 
 /**

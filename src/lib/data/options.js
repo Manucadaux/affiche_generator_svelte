@@ -32,8 +32,7 @@ export const defaultStyles = {
 	colorDate: '#FFFFFF',
 	colorTitle: '#FFFFFF',
 	colorContent: '#003288',
-	zoom: 40,
-	autoZoom: true
+	zoom: 40
 };
 
 export const defaultEventOptions = {

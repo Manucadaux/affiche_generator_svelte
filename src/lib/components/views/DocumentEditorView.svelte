@@ -298,13 +298,11 @@
 		cleanImages();
 	});
 
-	// Calcul automatique du zoom pour afficher la page A3 entière.
+	// Calcul automatique du zoom à l'ouverture du document.
 	$effect(() => {
-		if (!documentReady || styles.current.autoZoom === false) return;
+		if (!documentReady) return;
 
 		let cancelled = false;
-		/** @type {ResizeObserver | null} */
-		let resizeObserver = null;
 
 		function updateAutoZoom() {
 			const pageContainer = document.querySelector('.pageContainer');
@@ -325,30 +323,18 @@
 
 			const zoom = Math.max(1, Math.floor(Math.min(widthZoom, heightZoom, 100)));
 
-			if (styles.current.autoZoom && styles.current.zoom !== zoom) {
+			if (styles.current.zoom !== zoom) {
 				styles.current = { ...styles.current, zoom };
 			}
 		}
 
 		tick().then(() => {
 			if (cancelled) return;
-
-			const pageContainer = document.querySelector('.pageContainer');
-
-			if (!(pageContainer instanceof HTMLElement)) return;
-
-			resizeObserver = new ResizeObserver(updateAutoZoom);
-			resizeObserver.observe(pageContainer);
-
-			window.addEventListener('resize', updateAutoZoom);
-
 			updateAutoZoom();
 		});
 
 		return () => {
 			cancelled = true;
-			resizeObserver?.disconnect();
-			window.removeEventListener('resize', updateAutoZoom);
 		};
 	});
 

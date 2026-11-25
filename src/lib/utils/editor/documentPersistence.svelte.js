@@ -41,13 +41,22 @@ export function createDocumentPersistence() {
 
 		const originalSnapshot = JSON.stringify(document);
 
-		if (document.styles.autoZoom === undefined) {
+		// Suppression de l'ancienne préférence autoZoom.
+		if (Object.hasOwn(document.styles, 'autoZoom')) {
+			const styles = /** @type {typeof document.styles & { autoZoom?: boolean }} */ ({
+				...document.styles
+			});
+
+			delete styles.autoZoom;
+
 			document = {
 				...document,
-				styles: {
-					...document.styles,
-					autoZoom: true
-				}
+				styles
+			};
+
+			document = {
+				...document,
+				styles
 			};
 		}
 
