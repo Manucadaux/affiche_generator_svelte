@@ -1,5 +1,5 @@
 <script>
-	import { Plus } from 'lucide-svelte';
+	import { Plus } from '@lucide/svelte';
 
 	/** @type {{ onCreate: () => void }} */
 	let { onCreate } = $props();

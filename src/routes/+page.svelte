@@ -1,5 +1,5 @@
 <script>
-	import DocumentsManager from '#lib/components/views/DocumentsManager.svelte';
+	import HomeView from '#lib/components/views/HomeView.svelte';
 </script>
 
-<DocumentsManager />
+<HomeView />

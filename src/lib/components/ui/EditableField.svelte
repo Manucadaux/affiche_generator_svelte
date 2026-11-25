@@ -1,6 +1,6 @@
 <script>
 	import { tick } from 'svelte';
-	import { PencilLine } from 'lucide-svelte';
+	import { PencilLine } from '@lucide/svelte';
 
 	/**
 	 * @typedef {{

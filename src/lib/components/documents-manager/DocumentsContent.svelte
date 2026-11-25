@@ -2,7 +2,10 @@
 	/** @typedef {import('#lib/utils/types.js').AppDocument} AppDocument */
 	/** @typedef {import('#lib/utils/types.js').DocumentUpdates} DocumentUpdates */
 	/** @typedef {import('#lib/utils/types.js').Styles} Styles */
-	/** @import { DeletedDocument } from '../../utils/documentActions.js' */
+	/** @import { DeletedDocument } from '../../utils/documents/documentActions.js' */
+
+	import { searchItems } from '#lib/utils/collections/search.js';
+	import { sortItems } from '#lib/utils/collections/sort.js';
 
 	import DocumentsToolbar from '#lib/components/documents-manager/content/DocumentsToolbar.svelte';
 	import DocumentsGrid from '#lib/components/documents-manager/content/DocumentsGrid.svelte';
@@ -60,13 +63,9 @@
 	let toastType = $state('error');
 
 	let filteredDocuments = $derived.by(() => {
-		const query = searchQuery.trim().toLocaleLowerCase('fr');
+		const filtered = searchItems(documents, searchQuery, (document) => document.name);
 
-		const filtered = documents.filter((document) =>
-			document.name.toLocaleLowerCase('fr').includes(query)
-		);
-
-		return [...filtered].sort((a, b) => {
+		return sortItems(filtered, (a, b) => {
 			switch (sortOrder) {
 				case 'updated-asc':
 					return new Date(a.updatedAt).getTime() - new Date(b.updatedAt).getTime();
@@ -82,16 +81,27 @@
 	});
 
 	/**
+	 * Construit l'adresse de l'éditeur d'un document.
+	 * @param {string} documentId
+	 * @returns {string}
+	 */
+	function getDocumentEditorUrl(documentId) {
+		const query = new URLSearchParams({ documentId });
+
+		if (window.location.protocol === 'file:') {
+			return `${window.location.href.split('#')[0]}#document-editor?${query.toString()}`;
+		}
+
+		return `/document-editor?${query.toString()}`;
+	}
+
+	/**
 	 * Ouvre l'éditeur d'un document dans un nouvel onglet.
 	 * @param {string} documentId
 	 * @returns {void}
 	 */
 	function openDocumentInNewTab(documentId) {
-		window.open(
-			`/document-editor?documentId=${encodeURIComponent(documentId)}`,
-			'_blank',
-			'noopener,noreferrer'
-		);
+		window.open(getDocumentEditorUrl(documentId), '_blank', 'noopener,noreferrer');
 	}
 
 	/**
@@ -114,7 +124,7 @@
 			isCreateModalOpen = false;
 
 			if (editorTab) {
-				editorTab.location.href = `/document-editor?documentId=${encodeURIComponent(newDocument.id)}`;
+				editorTab.location.href = getDocumentEditorUrl(newDocument.id);
 			}
 		} catch (error) {
 			editorTab?.close();

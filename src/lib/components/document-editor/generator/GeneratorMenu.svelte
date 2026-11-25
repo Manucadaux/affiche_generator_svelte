@@ -1,5 +1,5 @@
 <script>
-	import { House, X } from 'lucide-svelte';
+	import { House, X } from '@lucide/svelte';
 
 	let { documents = [], currentDocumentId, onNavigateHome, onNavigate, onClose } = $props();
 </script>

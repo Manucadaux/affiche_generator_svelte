@@ -1,4 +1,4 @@
-/** @typedef {import('./types.js').AppDocument} AppDocument */
+/** @typedef {import('../types.js').AppDocument} AppDocument */
 
 import { getAllDocuments, addDocument } from './documentStorage.js';
 

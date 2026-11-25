@@ -3,7 +3,7 @@
 	import { autoPlacement, autoUpdate, computePosition, shift } from '@floating-ui/dom';
 
 	import { onMount } from 'svelte';
-	import { FileText, EllipsisVertical } from 'lucide-svelte';
+	import { FileText, EllipsisVertical } from '@lucide/svelte';
 
 	import EditableField from '#lib/components/ui/EditableField.svelte';
 

@@ -5,7 +5,7 @@ import { SvelteDate } from 'svelte/reactivity';
 import {
 	getDocument as getStoredDocument,
 	updateDocument as saveStoredDocument
-} from '../documentStorage.js';
+} from '../documents/documentStorage.js';
 
 import { createSaveQueue, createSnapshotTracker } from '../persistence.js';
 

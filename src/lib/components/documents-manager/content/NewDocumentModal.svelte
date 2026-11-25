@@ -2,7 +2,7 @@
 	/** @typedef {import('#lib/utils/types.js').AppDocument} AppDocument */
 	/** @typedef {import('#lib/utils/types.js').Styles} Styles */
 
-	import { X } from 'lucide-svelte';
+	import { X } from '@lucide/svelte';
 	import ColorPicker from 'svelte-awesome-color-picker';
 
 	/** @type {{

@@ -6,18 +6,23 @@
 	import { optionsLibrary, optionsMonth, defaultStyles } from '#lib/data/options.js';
 	import { useLocalStorage } from '#lib/utils/useLocalStorage.svelte.js';
 	import { createPage, generateId } from '#lib/utils/factories.js';
-	import { createDocumentActions } from '#lib/utils/documentActions.js';
-	import { initializeDocuments } from '#lib/utils/initializeDocuments.js';
-	import { getAllDocuments } from '#lib/utils/documentStorage.js';
-	import { subscribeToDocumentChanges } from '#lib/utils/documentSync.js';
+	import { createDocumentActions } from '#lib/utils/documents/documentActions.js';
+	import { initializeDocuments } from '#lib/utils/documents/initializeDocuments.js';
+	import { getAllDocuments } from '#lib/utils/documents/documentStorage.js';
+	import { subscribeToDocumentChanges } from '#lib/utils/documents/documentSync.js';
 	import { applyTheme } from '#lib/utils/theme/applyTheme.svelte.js';
 
-	import DocumentsHeader from '#lib/components/documents-manager/DocumentsHeader.svelte';
+	import AppHeader from '#lib/components/layout/AppHeader.svelte';
 	import DocumentsContent from '#lib/components/documents-manager/DocumentsContent.svelte';
-	import DocumentsFooter from '#lib/components/documents-manager/DocumentsFooter.svelte';
+	import AppFooter from '#lib/components/layout/AppFooter.svelte';
 
-	const selectedLibraryForNewDocument = useLocalStorage('newDocumentLibraryId', null);
+	const selectedLibraryForNewDocument = useLocalStorage(
+		'newDocumentLibraryId',
+		/** @type {number | null} */ (null)
+	);
+
 	const selectedTheme = useLocalStorage('selectedTheme', 'system');
+
 	applyTheme(selectedTheme);
 
 	/** @type {AppDocument[]} */
@@ -62,13 +67,9 @@
 </script>
 
 <div class="flex min-h-screen flex-col">
-	<DocumentsHeader
-		{optionsLibrary}
-		bind:selectedLibrary={selectedLibraryForNewDocument.current}
-		bind:selectedTheme={selectedTheme.current}
-	/>
+	<AppHeader title="Gestionnaire d'affiches" bind:selectedTheme={selectedTheme.current} />
 
-	<main class="flex-1">
+	<main class="flex flex-1 flex-col">
 		{#if initializationError}
 			<p class="p-8 text-center text-error">{initializationError}</p>
 		{:else if isInitialized}
@@ -88,5 +89,5 @@
 		{/if}
 	</main>
 
-	<DocumentsFooter />
+	<AppFooter />
 </div>

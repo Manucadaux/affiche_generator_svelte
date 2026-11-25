@@ -1,5 +1,5 @@
 const DB_NAME = 'affiche-generator';
-const DB_VERSION = 2;
+const DB_VERSION = 3;
 
 /** @type {Promise<IDBDatabase> | null} */
 let dbPromise = null;
@@ -24,6 +24,10 @@ export function getDatabase() {
 
 			if (!db.objectStoreNames.contains('documents')) {
 				db.createObjectStore('documents', { keyPath: 'id' });
+			}
+
+			if (!db.objectStoreNames.contains('events')) {
+				db.createObjectStore('events', { keyPath: 'id' });
 			}
 		};
 

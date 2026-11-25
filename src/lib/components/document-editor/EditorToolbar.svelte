@@ -1,5 +1,5 @@
 <script>
-	import { Undo2, Redo2 } from 'lucide-svelte';
+	import { Undo2, Redo2 } from '@lucide/svelte';
 
 	let { canUndo = false, canRedo = false, onUndo, onRedo } = $props();
 </script>
