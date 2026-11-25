@@ -3,6 +3,7 @@
 /** @typedef {ReturnType<import('../history.js').createHistory>} History */
 
 import { MAX_EVENTS_PER_PAGE } from '#lib/utils/constants.js';
+import { defaultEventOptions } from '#lib/data/options.js';
 
 /**
  * @typedef {Object} Dependencies
@@ -28,6 +29,23 @@ export function createEventActions(dependencies) {
 		getSelectedEventId,
 		clearSelectedEvent
 	} = dependencies;
+
+	/**
+	 * Vérifie si un évènement contient des informations personnalisées.
+	 * @param {Object} event
+	 * @param {Blob | null} image
+	 * @returns {boolean}
+	 */
+	function isEventModified(event, image) {
+		if (image) return true;
+
+		const defaultOptions = /** @type {Record<string, unknown>} */ (defaultEventOptions);
+
+		return Object.entries(event).some(([key, value]) => {
+			if (key === 'id' || key === 'imageVersion') return false;
+			return value !== defaultOptions[key];
+		});
+	}
 
 	/**
 	 * Insère un événement à une position donnée.
@@ -93,6 +111,14 @@ export function createEventActions(dependencies) {
 		const index = page.events.length - 1;
 		const event = page.events[index];
 		const image = await getEventImage(event.id);
+
+		if (isEventModified(event, image)) {
+			const confirmed = window.confirm(
+				'Le dernier évènement contient des informations personnalisées. Voulez-vous vraiment le supprimer ?'
+			);
+
+			if (!confirmed) return;
+		}
 
 		await deleteEventImages([event]);
 
