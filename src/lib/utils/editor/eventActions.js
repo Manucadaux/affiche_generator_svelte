@@ -81,7 +81,7 @@ export function createEventActions(dependencies) {
 	function addEvent(pageId) {
 		const page = pages.current.find((page) => page.id === pageId);
 
-		if (!page || page.events.length >= MAX_EVENTS_PER_PAGE) return;
+		if (!page || page.locked || page.events.length >= MAX_EVENTS_PER_PAGE) return;
 
 		const event = createEvent();
 		const index = page.events.length;
@@ -106,7 +106,7 @@ export function createEventActions(dependencies) {
 	async function removeEvent(pageId) {
 		const page = pages.current.find((page) => page.id === pageId);
 
-		if (!page || page.events.length <= 1) return;
+		if (!page || page.locked || page.events.length <= 1) return;
 
 		const index = page.events.length - 1;
 		const event = page.events[index];
@@ -155,7 +155,7 @@ export function createEventActions(dependencies) {
 	function toggleReverse(pageId, checked) {
 		const page = pages.current.find((page) => page.id === pageId);
 
-		if (!page || page.reverse === checked) return;
+		if (!page || page.locked || page.reverse === checked) return;
 
 		/**
 		 * Applique l'inversion à une page.

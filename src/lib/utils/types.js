@@ -16,6 +16,7 @@
  * @typedef {Object} Page
  * @property {string} id
  * @property {boolean} reverse
+ * @property {boolean} locked
  * @property {Event[]} events
  */
 

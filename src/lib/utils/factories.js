@@ -15,6 +15,7 @@ export function createPage() {
 	return {
 		id: generateId(),
 		reverse: false,
+		locked: false,
 		events: [createEvent()]
 	};
 }

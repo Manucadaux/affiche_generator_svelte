@@ -1,6 +1,6 @@
 <script>
 	import { MAX_EVENTS_PER_PAGE } from '#lib/utils/constants.js';
-	import { Trash2, FilePlus, Copy } from '@lucide/svelte';
+	import { Trash2, FilePlus, Copy, Lock, Unlock } from '@lucide/svelte';
 
 	let {
 		pageNumber,
@@ -11,9 +11,12 @@
 		onAddEvent,
 		onRemoveEvent,
 		onToggleReverse,
+		onToggleLock,
 		onAddPage,
 		onDuplicatePage
 	} = $props();
+
+	let locked = $derived(page.locked ?? false);
 </script>
 
 <div class="headerPageContainer bg-base-300">
@@ -24,12 +27,30 @@
 		</p>
 
 		<div class="flex items-center gap-2">
+			<div
+				class="tooltip tooltip-bottom"
+				data-tip={locked ? 'Déverrouiller les réglages' : 'Verrouiller les réglages'}
+			>
+				<button
+					class="btn btn-ghost btn-sm"
+					onclick={() => onToggleLock(page.id)}
+					aria-label={locked ? 'Déverrouiller la page' : 'Verrouiller la page'}
+					aria-pressed={locked}
+				>
+					{#if locked}
+						<Lock size={20} />
+					{:else}
+						<Unlock size={20} />
+					{/if}
+				</button>
+			</div>
+
 			Nombre d'évènements :
 
 			<div class="eventCounter">
 				<button
 					class="eventCounterBtn"
-					disabled={page.events.length <= 1}
+					disabled={locked || page.events.length <= 1}
 					onclick={() => onRemoveEvent(page.id)}
 					aria-label="Retirer un évènement"
 				>
@@ -40,7 +61,7 @@
 
 				<button
 					class="eventCounterBtn"
-					disabled={page.events.length >= MAX_EVENTS_PER_PAGE}
+					disabled={locked || page.events.length >= MAX_EVENTS_PER_PAGE}
 					onclick={() => onAddEvent(page.id)}
 					aria-label="Ajouter un évènement"
 				>
@@ -48,11 +69,16 @@
 				</button>
 			</div>
 
-			<label class="ml-4 flex cursor-pointer items-center gap-2 text-base-content">
+			<label
+				class="ml-4 flex items-center gap-2 text-base-content"
+				class:cursor-not-allowed={locked}
+				class:opacity-50={locked}
+			>
 				<span>Disposition inversée</span>
 				<input
 					type="checkbox"
 					class="checkbox"
+					disabled={locked}
 					checked={page.reverse ?? false}
 					onchange={(event) => onToggleReverse(page.id, event.currentTarget.checked)}
 				/>

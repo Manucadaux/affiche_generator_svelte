@@ -216,6 +216,7 @@ export function createPageActions(dependencies) {
 		const duplicatedPage = {
 			...sourcePage,
 			id: generateId(),
+			locked: false,
 			events: sourcePage.events.map((event) => ({
 				...event,
 				id: generateId()
@@ -270,5 +271,15 @@ export function createPageActions(dependencies) {
 		await scrollToPage(duplicatedPage.id);
 	}
 
-	return { addPage, addPageAndScroll, duplicatePage, deletePage, deleteLastPage };
+	/**
+	 * Verrouille ou déverrouille une page.
+	 * @param {string} pageId
+	 */
+	function toggleLock(pageId) {
+		pages.current = pages.current.map((page) =>
+			page.id === pageId ? { ...page, locked: !page.locked } : page
+		);
+	}
+
+	return { addPage, addPageAndScroll, duplicatePage, deletePage, deleteLastPage, toggleLock };
 }

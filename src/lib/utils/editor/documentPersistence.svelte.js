@@ -60,6 +60,17 @@ export function createDocumentPersistence() {
 			};
 		}
 
+		// Ajout de la propriété locked aux anciennes pages.
+		if (document.pages.some((page) => typeof page.locked !== 'boolean')) {
+			document = {
+				...document,
+				pages: document.pages.map((page) => ({
+					...page,
+					locked: page.locked ?? false
+				}))
+			};
+		}
+
 		snapshotTracker.reset(originalSnapshot);
 
 		return document;

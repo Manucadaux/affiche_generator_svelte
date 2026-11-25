@@ -15,6 +15,7 @@
 		onAddEvent,
 		onRemoveEvent,
 		onToggleReverse,
+		onToggleLock,
 		onSelectEvent,
 		isEditing,
 		onAddPage,
@@ -33,6 +34,7 @@
 		{onAddEvent}
 		{onRemoveEvent}
 		{onToggleReverse}
+		{onToggleLock}
 		{onAddPage}
 		{onDuplicatePage}
 	/>

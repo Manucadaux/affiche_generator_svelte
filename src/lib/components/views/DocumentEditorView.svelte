@@ -315,7 +315,7 @@
 	/** @type {string | null} */
 	let selectedEventId = $state(null);
 
-	const { addPage, addPageAndScroll, duplicatePage, deletePage, deleteLastPage } =
+	const { addPage, addPageAndScroll, duplicatePage, deletePage, deleteLastPage, toggleLock } =
 		createPageActions({
 			pages,
 			createPage,
@@ -656,6 +656,7 @@
 					onAddEvent={addEvent}
 					onRemoveEvent={removeEvent}
 					onToggleReverse={toggleReverse}
+					onToggleLock={toggleLock}
 					onSelectEvent={selectEvent}
 					isEditing={selectedEvent !== null}
 					onAddPage={addPageAndScroll}
