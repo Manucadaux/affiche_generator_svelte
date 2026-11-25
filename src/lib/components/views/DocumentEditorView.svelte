@@ -643,7 +643,7 @@
 			onRedo={handleRedo}
 		/>
 		{#each pages.current as page, i (page.id)}
-			<div id={`page-${page.id}`} out:slide={{ duration: 500 }}>
+			<div class="editorPage" id={`page-${page.id}`} out:slide={{ duration: 500 }}>
 				<PageEditor
 					pageNumber={i + 1}
 					totalPages={nbPages}
@@ -751,5 +751,9 @@
 		justify-content: center;
 		align-items: center;
 		gap: 12px;
+	}
+
+	.editorPage {
+		scroll-margin-top: 56px;
 	}
 </style>

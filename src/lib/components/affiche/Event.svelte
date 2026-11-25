@@ -178,6 +178,7 @@
 			flex: 0 0 auto;
 			width: 100%;
 			overflow-wrap: anywhere;
+			text-transform: uppercase;
 		}
 
 		.text {
@@ -249,7 +250,6 @@
 				padding: 20px;
 				box-sizing: border-box;
 				line-height: 1.5;
-				text-transform: uppercase;
 			}
 
 			.text {
