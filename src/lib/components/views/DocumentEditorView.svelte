@@ -655,6 +655,10 @@
 	});
 </script>
 
+<svelte:head>
+	<title>{activeDocument?.name || 'Affiches'}</title>
+</svelte:head>
+
 {#if isDocumentDeleted}
 	<div class="loaderContainer">
 		<p>Ce document a été supprimé dans un autre onglet.</p>
