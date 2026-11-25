@@ -2,37 +2,50 @@
 	import HomeView from '../src/lib/components/views/HomeView.svelte';
 	import EventsManagerView from '../src/lib/components/views/EventsManagerView.svelte';
 	import DocumentsManagerView from '../src/lib/components/views/DocumentsManagerView.svelte';
+	import DocumentEditorView from '../src/lib/components/views/DocumentEditorView.svelte';
 	import RenderView from '../src/lib/components/views/RenderView.svelte';
 
-	function getCurrentView() {
-		const hash = window.location.hash;
+	function getCurrentRoute() {
+		const [route, query = ''] = window.location.hash.slice(1).split('?');
+		const params = new URLSearchParams(query);
 
-		if (hash === '#events-manager') return 'events';
-		if (hash === '#documents-manager') return 'documents';
-		if (hash === '#render') return 'render';
-
-		return 'home';
+		return {
+			view: route || 'home',
+			documentId: params.get('documentId')
+		};
 	}
 
-	let currentView = $state(getCurrentView());
+	const initialRoute = getCurrentRoute();
+
+	let currentView = $state(initialRoute.view);
+	let currentDocumentId = $state(initialRoute.documentId);
 
 	function updateView() {
-		currentView = getCurrentView();
+		const route = getCurrentRoute();
+
+		currentView = route.view;
+		currentDocumentId = route.documentId;
 	}
 
 	function onFinish() {
-		window.location.hash = 'home';
+		const query = new URLSearchParams({
+			documentId: currentDocumentId ?? ''
+		});
+
+		window.location.hash = `document-editor?${query.toString()}`;
 	}
 </script>
 
 <svelte:window onhashchange={updateView} />
 
-{#if currentView === 'events'}
+{#if currentView === 'events-manager'}
 	<EventsManagerView />
-{:else if currentView === 'documents'}
+{:else if currentView === 'documents-manager'}
 	<DocumentsManagerView />
+{:else if currentView === 'document-editor' && currentDocumentId}
+	<DocumentEditorView documentId={currentDocumentId} standalone={true} />
 {:else if currentView === 'render'}
-	<RenderView {onFinish} />
+	<RenderView documentId={currentDocumentId} {onFinish} />
 {:else}
 	<HomeView />
 {/if}

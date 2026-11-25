@@ -81,16 +81,27 @@
 	});
 
 	/**
+	 * Construit l'adresse de l'éditeur d'un document.
+	 * @param {string} documentId
+	 * @returns {string}
+	 */
+	function getDocumentEditorUrl(documentId) {
+		const query = new URLSearchParams({ documentId });
+
+		if (window.location.protocol === 'file:') {
+			return `${window.location.href.split('#')[0]}#document-editor?${query.toString()}`;
+		}
+
+		return `/document-editor?${query.toString()}`;
+	}
+
+	/**
 	 * Ouvre l'éditeur d'un document dans un nouvel onglet.
 	 * @param {string} documentId
 	 * @returns {void}
 	 */
 	function openDocumentInNewTab(documentId) {
-		window.open(
-			`/document-editor?documentId=${encodeURIComponent(documentId)}`,
-			'_blank',
-			'noopener,noreferrer'
-		);
+		window.open(getDocumentEditorUrl(documentId), '_blank', 'noopener,noreferrer');
 	}
 
 	/**
@@ -113,7 +124,7 @@
 			isCreateModalOpen = false;
 
 			if (editorTab) {
-				editorTab.location.href = `/document-editor?documentId=${encodeURIComponent(newDocument.id)}`;
+				editorTab.location.href = getDocumentEditorUrl(newDocument.id);
 			}
 		} catch (error) {
 			editorTab?.close();

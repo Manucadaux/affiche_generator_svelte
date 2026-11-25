@@ -31,7 +31,6 @@
 
 	import { slide } from 'svelte/transition';
 	import { onMount, tick } from 'svelte';
-	import { goto } from '$app/navigation';
 
 	import Toast from '#lib/components/ui/Toast.svelte';
 	import EditorToolbar from '#lib/components/document-editor/EditorToolbar.svelte';
@@ -39,12 +38,18 @@
 	import PageEditor from '#lib/components/document-editor/PageEditor.svelte';
 	import EventEditor from '#lib/components/document-editor/EventEditor.svelte';
 
-	let { documentId } = $props();
+	let { documentId, standalone = false } = $props();
 
 	const A3_WIDTH_PX = (297 / 25.4) * 96;
 	const A3_HEIGHT_PX = (420 / 25.4) * 96;
 
-	let renderHref = $derived(`/render?documentId=${encodeURIComponent(documentId)}`);
+	let renderHref = $derived(
+		standalone
+			? `#render?documentId=${encodeURIComponent(documentId)}`
+			: `/render?documentId=${encodeURIComponent(documentId)}`
+	);
+
+	let homeHref = $derived(standalone ? '#documents-manager' : '/documents-manager');
 
 	const selectedTheme = useLocalStorage('selectedTheme', 'system');
 	applyTheme(selectedTheme);
@@ -228,31 +233,32 @@
 		}
 	}
 
-	/**
-	 * Retourne à la liste des documents après sauvegarde.
-	 * @returns {Promise<void>}
-	 */
 	async function handleNavigateHome() {
 		const saved = await saveCurrentDocument();
-
 		if (!saved) return;
 
-		// eslint-disable-next-line svelte/no-navigation-without-resolve
-		await goto('/documents-manager');
+		if (standalone) {
+			window.location.hash = 'documents-manager';
+			return;
+		}
+
+		window.location.href = '/documents-manager';
 	}
 
 	/**
-	 * Ouvre un autre document après sauvegarde du document courant.
 	 * @param {string} nextDocumentId
-	 * @returns {Promise<void>}
 	 */
 	async function handleNavigate(nextDocumentId) {
 		const saved = await saveCurrentDocument();
-
 		if (!saved) return;
 
-		// eslint-disable-next-line svelte/no-navigation-without-resolve
-		await goto(`/document-editor?documentId=${encodeURIComponent(nextDocumentId)}`);
+		if (standalone) {
+			const query = new URLSearchParams({ documentId: nextDocumentId });
+			window.location.hash = `document-editor?${query.toString()}`;
+			return;
+		}
+
+		window.location.href = `/document-editor?documentId=${encodeURIComponent(nextDocumentId)}`;
 	}
 
 	// Sauvegarde automatique
@@ -654,7 +660,7 @@
 		<p>Ce document a été supprimé dans un autre onglet.</p>
 
 		<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
-		<a href="/documents-manager" class="link">Retour aux documents</a>
+		<a href={homeHref} class="link">Retour aux documents</a>
 	</div>
 {:else if isReady}
 	<Generator
